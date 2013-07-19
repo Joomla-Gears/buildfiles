@@ -1,11 +1,28 @@
 <?php
 /**
- * @package AkeebaRelink
- * @copyright Copyright ©2010-2012 Nicholas K. Dionysopoulos / AkeebaBackup.com
- * @license GNU/GPL version 3 or, at your option, any later version
+ * Akeeba Build Tools - Relinker
+ * Copyright (c)2010-2013 Akeeba Ltd
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @package     buildfiles
+ * @subpackage  tools
+ * @license     GPL v3
  */
 
-if(stristr(php_uname(), 'windows')) {
+if(stristr(php_uname(), 'windows'))
+{
 	define('AKEEBA_RELINK_WINDOWS', 1);
 }
 
@@ -872,20 +889,39 @@ class AkeebaRelink
 	}
 }
 
+function showUsage()
+{
+	$file = basename(__FILE__);
+	echo <<<ENDUSAGE
+
+Usage:
+	php $file /path/to/site /path/to/repository
+
+ENDUSAGE;
+}
+
+
+$year = gmdate('Y');
 echo <<<ENDBANNER
-Akeeba Relinker 2.0
+Akeeba Build Tools - Relinker 3.0
 No-configuration extension symlinker
 -------------------------------------------------------------------------------
-Copyright ©2010-2012 Nicholas K. Dionysopoulos / AkeebaBackup.com
+Copyright ©2010-$year Nicholas K. Dionysopoulos / AkeebaBackup.com
 Distributed under the GNU General Public License v3 or later
 -------------------------------------------------------------------------------
 
 ENDBANNER;
 
+if ($argc < 3)
+{
+	showUsage();
+	die();
+}
+
 $config = array();
 
-if($argc >= 2) $config['site'] = $argv[1];
-if($argc >= 3) $config['root'] = $argv[2];
+$config['site'] = $argv[1];
+$config['root'] = $argv[2];
 
 $relink = new AkeebaRelink($config);
 
