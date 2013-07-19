@@ -4,7 +4,7 @@ require_once '../phingext/pclzip.php';
 function scan($root)
 {
 	$ret = array();
-	
+
 	// Scan component frontend languages
 	_mergeLangRet($ret, _scanLangDir($root.'/component/frontend'), 'frontend');
 
@@ -34,7 +34,7 @@ function scan($root)
 	} catch (Exception $exc) {
 		//echo $exc->getTraceAsString();
 	}
-		
+
 	// Scan plugins
 	try {
 		foreach(new DirectoryIterator($root.'/plugins') as $fldname) {
@@ -56,7 +56,7 @@ function scan($root)
 	} catch (Exception $exc) {
 		//echo $exc->getTraceAsString();
 	}
-		
+
 	return $ret;
 }
 
@@ -85,7 +85,7 @@ function _scanLangDir($path)
 	} catch (Exception $exc) {
 		//echo $exc->getTraceAsString();
 	}
-	
+
 	$ret = array();
 	foreach($langs as $lang) {
 		try {
@@ -99,7 +99,7 @@ function _scanLangDir($path)
 			//echo $exc->getTraceAsString();
 		}
 	}
-	
+
 	return $ret;
 }
 
@@ -111,7 +111,9 @@ Copyright (c)2012 Nicholas K. Dionysopoulos - AkeebaBackup.com
 ENDBANNER;
 
 // Load the properties
-$props = parse_ini_file(dirname(__FILE__).'/../build.properties');
+$propsFile = $argv[1];
+$rootDirectory = realpath($argv[2]);
+$props = parse_ini_file($propsFile);
 
 // Get some basic parameters
 $packageName = $props['langbuilder.packagename'];
@@ -124,14 +126,14 @@ $s3Bucket = $props['s3.bucket'];
 $s3Path = $props['s3.path'];
 
 // Scan languages
-$root = realpath(dirname(__FILE__).'/../../translations');
+$root = $rootDirectory . '/translations';
 $langs = scan($root);
 ksort($langs);
 $numlangs = count($langs);
 echo "Found $numlangs languages\n\n";
 
-if($argc > 1) {
-	$version = $argv[1];
+if($argc > 3) {
+	$version = $argv[2];
 } else {
 	$version = '0.0.'.gmdate('YdmHis');
 }
@@ -148,16 +150,16 @@ $row = 1;
 foreach($langs as $tag => $files) {
 	$langName = $langToName[$tag];
 	echo "Building $langName ($tag)...\n";
-	
+
 	// Get paths to temp and output files
-	@mkdir(realpath(dirname(__FILE__).'/../..').'/release/languages');
-	$j20ZIPPath = dirname(__FILE__).'/../../release/languages/'.$packageName.'-'.$tag.'-j25.zip';
-	$tempXMLPath = realpath(dirname(__FILE__).'/../..').'/release/'.$tag.'.xml';
-	
+	@mkdir($rootDirectory . '/release/languages');
+	$j20ZIPPath = $rootDirectory . '/release/languages/'.$packageName.'-'.$tag.'-j25.zip';
+	$tempXMLPath = $rootDirectory . '/release/'.$tag.'.xml';
+
 	// Start new ZIP files
 	@unlink($j20ZIPPath);
 	$zip20 = new PclZip( $j20ZIPPath );
-	
+
 	// Produce the Joomla! 1.6/1.7/2.5 manifest contents
 	$j20XML = <<<ENDHEAD
 <?xml version="1.0" encoding="utf-8"?>
@@ -173,7 +175,7 @@ foreach($langs as $tag => $files) {
 	<fileset>
 
 ENDHEAD;
-	
+
 	if(array_key_exists('backend', $files)){
 		$j20XML .= "\t\t<files folder=\"backend\" target=\"administrator/language/$tag\">\n";
 		foreach($files['backend'] as $file) {
@@ -189,12 +191,12 @@ ENDHEAD;
 		$j20XML .= "\t\t</files>\n";
 	}
 	$j20XML .= "\t</fileset>\n</extension>";
-	
+
 	// Add the manifest (J! 2.x)
 	@unlink($tempXMLPath);
 	@file_put_contents($tempXMLPath, $j20XML);
 	$zip20->add($tempXMLPath,
-			PCLZIP_OPT_ADD_PATH, '', 
+			PCLZIP_OPT_ADD_PATH, '',
 			PCLZIP_OPT_REMOVE_PATH, dirname($tempXMLPath)
 	);
 	@unlink($tempXMLPath);
@@ -215,18 +217,18 @@ ENDHEAD;
                 	PCLZIP_OPT_REMOVE_PATH, dirname($file) );
 		}
 	}
-	
+
 	// Close archives
 	unset($zip20);
-	
+
 	$parts = explode('-', $tag);
 	$country = strtolower($parts[1]);
 	if($tag == 'ca-ES') {
 		$country = 'catalonia';
 	}
-	
+
 	$base20 = basename($j20ZIPPath);
-	
+
 	$row = 1 - $row;
 	$langHTMLTable .= <<<ENDHTML
 	<tr class="row$row">
@@ -245,13 +247,13 @@ ENDHTML;
 	$s3->putObjectFile($j20ZIPPath, $s3Bucket, $s3Path.'/'.$packageName.'/'.basename($j20ZIPPath), S3::ACL_PUBLIC_READ);
 }
 
-$html = @file_get_contents(dirname(__FILE__).'/../../translations/_pages/index.html');
+$html = @file_get_contents($rootDirectory . '/translations/_pages/index.html');
 $html = str_replace('[DATE]', gmdate('d M Y H:i:s'), $html);
 $html = str_replace('[LANGTABLE]', $langHTMLTable, $html);
 $html = str_replace('[YEAR]', gmdate('Y'), $html);
 
 echo "Uploading index.html file\n";
-$tempHTMLPath = realpath(dirname(__FILE__).'/../..').'/release/index.html';
+$tempHTMLPath = $rootDirectory . '/release/index.html';
 @file_put_contents($tempHTMLPath, $html);
 $s3->putObjectFile($tempHTMLPath, $s3Bucket, $s3Path.'/'.$packageName.'/index.html', S3::ACL_PUBLIC_READ);
 @unlink($tempHTMLPath);
