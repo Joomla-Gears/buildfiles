@@ -60,10 +60,8 @@ function TranslateWinPath( $p_path )
 	return $p_path;
 }
 
-function doLink($from, $to, $type = 'symlink')
+function doLink($from, $to, $type = 'symlink', $path)
 {
-	$path = dirname(__FILE__);
-
 	$realTo = $path .'/'. $to;
 	$realFrom = $path.'/'.$from;
 	if(IS_WINDOWS) {
@@ -110,8 +108,10 @@ Usage:
 ENDUSAGE;
 }
 
-$year = gmdate('Y');
-echo <<<ENDBANNER
+if (!isset($repoRoot))
+{
+	$year = gmdate('Y');
+	echo <<<ENDBANNER
 Akeeba Build Tools - Linker
 Internal file and directory symlinker
 -------------------------------------------------------------------------------
@@ -121,34 +121,33 @@ Distributed under the GNU General Public License v3 or later
 
 ENDBANNER;
 
-if ($argc < 2)
-{
-	showUsage();
-	die();
+	if ($argc < 2)
+	{
+		showUsage();
+		die();
+	}
+
+	$repoRoot = $argv[1];
 }
 
-$repoRoot = $argv[1];
-
-chdir($repoRoot);
-
-if (!file_exists('build/templates/link.php'))
+if (!file_exists($repoRoot . '/build/templates/link.php'))
 {
 	die("Error: build/templates/link.php not found\n");
 }
 
-require_once 'build/templates/link.php';
+require_once $repoRoot . '/build/templates/link.php';
 
 echo "Hard linking files...\n";
 if(!empty($hardlink_files)) foreach($hardlink_files as $from => $to) {
-	doLink($from, $to, 'link');
+	doLink($from, $to, 'link', $repoRoot);
 }
 
 echo "Symlinking files...\n";
 if(!empty($symlink_files)) foreach($symlink_files as $from => $to) {
-	doLink($from, $to, 'symlink');
+	doLink($from, $to, 'symlink', $repoRoot);
 }
 
 echo "Symlinking folders...\n";
 if(!empty($symlink_folders)) foreach($symlink_folders as $from => $to) {
-	doLink($from, $to, 'symlink');
+	doLink($from, $to, 'symlink', $repoRoot);
 }
