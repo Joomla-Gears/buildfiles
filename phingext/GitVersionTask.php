@@ -49,8 +49,8 @@ class GitVersionTask extends SvnBaseTask
     function main()
     {
 		$this->setup('info');
-
-		exec('git log --format=%h -n1 '.escapeshellarg($this->workingCopy), $out);
+		
+		exec('git log --format=%h -n1 '.escapeshellarg(realpath($this->workingCopy)), $out);
 		$this->project->setProperty($this->getPropertyName(), strtoupper(trim($out[0])));
     }
 }
