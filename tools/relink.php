@@ -62,7 +62,7 @@ function symlink_file($from, $to)
 {
 	if(file_exists($to))
 	{
-		if((defined('AKEEBA_RELINK_WINDOWS'))
+		if(defined('AKEEBA_RELINK_WINDOWS'))
 		{
 			$cmd = 'del /f /q "'.$to.'"';
 		}
@@ -85,7 +85,7 @@ function hardlink_file($from, $to)
 {
 	if(file_exists($to))
 	{
-		if((defined('AKEEBA_RELINK_WINDOWS'))
+		if(defined('AKEEBA_RELINK_WINDOWS'))
 		{
 			$cmd = 'del /f /q "'.$to.'"';
 		}
