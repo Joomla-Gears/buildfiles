@@ -495,63 +495,71 @@ class AkeebaRelink
 			}
 
 			// Get the <languages> tags for front and back-end
-			$langFolderSite = $path;
-			$langFolderAdmin = $path;
+			$langFolderSite    = $path;
+			$langFolderAdmin   = $path;
 			$allLanguagesTags  = $xmlDoc->getElementsByTagName('languages');
-			$nodePath0         = $allLanguagesTags->item(0)->getNodePath();
+			$nodePath0         = '';
 			$nodePath1         = '';
 			$siteLanguagesTag  = '';
 			$adminLanguagesTag = '';
+            $langFilesSite     = array();
+            $langFilesAdmin    = array();
 
-			if($allLanguagesTags->item(1))
-			{
-				$nodePath1 = $allLanguagesTags->item(1)->getNodePath();
-			}
+            // Do I have any language tag defined in the "old" way?
+            if($allLanguagesTags->item(0))
+            {
+                $nodePath0 = $allLanguagesTags->item(0)->getNodePath();
 
-			if(in_array($nodePath0, array('/install/languages','/extension/languages'))) {
-				$siteLanguagesTag = $allLanguagesTags->item(0);
-				if($nodePath1)
-				{
-					$adminLanguagesTag = $allLanguagesTags->item(1);
-				}
+                if($allLanguagesTags->item(1))
+                {
+                    $nodePath1 = $allLanguagesTags->item(1)->getNodePath();
+                }
 
-			} else {
-				$adminLanguagesTag = $allLanguagesTags->item(0);
+                if(in_array($nodePath0, array('/install/languages','/extension/languages'))) {
+                    $siteLanguagesTag = $allLanguagesTags->item(0);
+                    if($nodePath1)
+                    {
+                        $adminLanguagesTag = $allLanguagesTags->item(1);
+                    }
 
-				if($nodePath1)
-				{
-					$siteLanguagesTag = $allLanguagesTags->item(1);
-				}
-			}
+                } else {
+                    $adminLanguagesTag = $allLanguagesTags->item(0);
 
-			// Get the site and admin language folders
-			if($siteLanguagesTag)
-			{
-				if($siteLanguagesTag->hasAttribute('folder')) $langFolderSite = $path.'/'.$siteLanguagesTag->getAttribute('folder');
-			}
+                    if($nodePath1)
+                    {
+                        $siteLanguagesTag = $allLanguagesTags->item(1);
+                    }
+                }
 
-			if($adminLanguagesTag)
-			{
-				if($adminLanguagesTag->hasAttribute('folder')) $langFolderAdmin = $path.'/'.$adminLanguagesTag->getAttribute('folder');
-			}
+                // Get the site and admin language folders
+                if($siteLanguagesTag)
+                {
+                    if($siteLanguagesTag->hasAttribute('folder')) $langFolderSite = $path.'/'.$siteLanguagesTag->getAttribute('folder');
+                }
 
-			// Get the frontend languages
-			$langFilesSite = array();
-			if($siteLanguagesTag && $siteLanguagesTag->hasChildNodes()) foreach($siteLanguagesTag->childNodes as $langFile)
-			{
-				if(!($langFile instanceof DOMElement)) continue;
-				$tag = $langFile->getAttribute('tag');
-				$langFilesSite[$tag][] = $langFolderSite.'/'.$langFile->textContent;
-			}
+                if($adminLanguagesTag)
+                {
+                    if($adminLanguagesTag->hasAttribute('folder')) $langFolderAdmin = $path.'/'.$adminLanguagesTag->getAttribute('folder');
+                }
 
-			// Get the backend languages
-			$langFilesAdmin = array();
-			if($adminLanguagesTag && $adminLanguagesTag->hasChildNodes()) foreach($adminLanguagesTag->childNodes as $langFile)
-			{
-				if(!($langFile instanceof DOMElement)) continue;
-				$tag = $langFile->getAttribute('tag');
-				$langFilesAdmin[$tag][] = $langFolderAdmin.'/'.$langFile->textContent;
-			}
+                // Get the frontend languages
+                $langFilesSite = array();
+                if($siteLanguagesTag && $siteLanguagesTag->hasChildNodes()) foreach($siteLanguagesTag->childNodes as $langFile)
+                {
+                    if(!($langFile instanceof DOMElement)) continue;
+                    $tag = $langFile->getAttribute('tag');
+                    $langFilesSite[$tag][] = $langFolderSite.'/'.$langFile->textContent;
+                }
+
+                // Get the backend languages
+                $langFilesAdmin = array();
+                if($adminLanguagesTag && $adminLanguagesTag->hasChildNodes()) foreach($adminLanguagesTag->childNodes as $langFile)
+                {
+                    if(!($langFile instanceof DOMElement)) continue;
+                    $tag = $langFile->getAttribute('tag');
+                    $langFilesAdmin[$tag][] = $langFolderAdmin.'/'.$langFile->textContent;
+                }
+            }
 
 			if(empty($component)) {
 				unset($xmlDoc);
