@@ -429,6 +429,22 @@ class AkeebaRelink
 	{
 		$path = $this->_root.'/component';
 
+		if (!is_dir($path))
+		{
+			$this->_component = array(
+				'component'		=> '',
+				'siteFolder'	=> '',
+				'adminFolder'	=> '',
+				'mediaFolder'	=> '',
+				'cliFolder'		=> '',
+				'siteLangPath'	=> '',
+				'siteLangFiles'	=> '',
+				'adminLangPath'	=> '',
+				'adminLangFiles'=> '',
+			);
+			return;
+		}
+
 		// Find the XML files
 		foreach(new DirectoryIterator($path) as $fileInfo) {
 			if($fileInfo->isDot()) continue;
@@ -719,8 +735,15 @@ class AkeebaRelink
 	 */
 	public function unlinkComponent()
 	{
+		if (empty($this->_component['component']))
+		{
+			return;
+		}
+
 		echo "Unlinking component ".$this->_component['component']."\n";
 
+		$dirs = array();
+		$files = array();
 		$map = $this->_mapComponent();
 		extract($map);
 
@@ -740,6 +763,9 @@ class AkeebaRelink
 		foreach($this->_modules as $module)
 		{
 			echo "Unlinking module ".$module['module'].' ('.$module['client'].")\n";
+
+			$dirs = array();
+			$files = array();
 
 			$map = $this->_mapModule($module);
 			extract($map);
@@ -762,6 +788,9 @@ class AkeebaRelink
 		{
 			echo "Unlinking plugin ".$plugin['plugin'].' ('.$plugin['folder'].")\n";
 
+			$dirs = array();
+			$files = array();
+
 			$map = $this->_mapPlugin($plugin);
 			extract($map);
 
@@ -778,7 +807,15 @@ class AkeebaRelink
 	 */
 	public function linkComponent()
 	{
+		if (empty($this->_component['component']))
+		{
+			return;
+		}
+
 		echo "Linking component ".$this->_component['component']."\n";
+
+		$dirs = array();
+		$files = array();
 
 		$map = $this->_mapComponent();
 		extract($map);
@@ -804,6 +841,9 @@ class AkeebaRelink
 		{
 			echo "Linking module ".$module['module'].' ('.$module['client'].")\n";
 
+			$dirs = array();
+			$files = array();
+
 			$map = $this->_mapModule($module);
 			extract($map);
 
@@ -828,6 +868,9 @@ class AkeebaRelink
 		foreach($this->_plugins as $plugin)
 		{
 			echo "Linking plugin ".$plugin['plugin'].' ('.$plugin['folder'].")\n";
+
+			$dirs = array();
+			$files = array();
 
 			$map = $this->_mapPlugin($plugin);
 			extract($map);
