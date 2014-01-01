@@ -105,7 +105,7 @@ function _scanLangDir($path)
 
 echo <<<ENDBANNER
 BuildLang 1.0
-Copyright (c)2012 Nicholas K. Dionysopoulos - AkeebaBackup.com
+Copyright (c)2014 Nicholas K. Dionysopoulos - AkeebaBackup.com
 
 
 ENDBANNER;

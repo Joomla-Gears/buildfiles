@@ -1,7 +1,7 @@
 <?php
 /**
  * @package Akeeba
- * @copyright 2009-2011 Nicholas K. Dionysopoulos
+ * @copyright 2009-2014 Nicholas K. Dionysopoulos
  *
  * This script converts Joomla! 1.5.x language files to Joomla! 1.6
  */

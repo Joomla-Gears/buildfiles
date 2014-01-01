@@ -12,7 +12,7 @@ require_once 'jpalib.php';
  * @author Nicholas K. Dionysopoulos
  * @version $Id: JPATask.php 409 2011-01-24 09:30:22Z nikosdion $
  * @package akeebabuilder
- * @copyright Copyright (c)2009-2011 Nicholas K. Dionysopoulos
+ * @copyright Copyright (c)2009-2014 Nicholas K. Dionysopoulos
  * @license GNU GPL version 3 or, at your option, any later version
  */
 class JpaTask extends MatchingTask {

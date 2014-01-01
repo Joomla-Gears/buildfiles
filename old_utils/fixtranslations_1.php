@@ -11,7 +11,7 @@ $translationPaths = array(
 echo <<<ENDBANNER
 Akeeba Translation INI Fixer
 ===============================================================================
-Copyright (c)2011 Nicholas K. Dionysopoulos - All legal rights reserved
+Copyright (c)2014 Nicholas K. Dionysopoulos - All legal rights reserved
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
