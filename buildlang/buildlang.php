@@ -116,14 +116,23 @@ $rootDirectory = realpath($argv[2]);
 $props = parse_ini_file($propsFile);
 
 // Get some basic parameters
-$packageName = $props['langbuilder.packagename'];
+$packageName  = $props['langbuilder.packagename'];
 $softwareName = $props['langbuilder.software'];
+$authorName   = isset($props['langbuilder.authorname']) ? $props['langbuilder.authorname'] : 'AkeebaBackup.com';
+$authorUrl    = isset($props['langbuilder.authorurl']) ? $props['langbuilder.authorurl'] : 'http://www.akeebabackup.com';
+$license      = isset($props['langbuilder.license']) ? $props['langbuilder.license'] : 'http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL';
+$langVersions = isset($props['langbuilder.jversions']) ? $props['langbuilder.jversions'] : '1.6/1.7/2.5/3.x';
+
+// Create an URL-friendly version of the package name
+$packageNameURL = str_replace(' ', '-', strtolower(trim($packageName)));
 
 // Instanciate S3
 require_once('S3.php');
-$s3 = new S3($props['s3.access'], $props['s3.private']);
-$s3Bucket = $props['s3.bucket'];
-$s3Path = $props['s3.path'];
+
+$s3         = new S3($props['s3.access'], $props['s3.private']);
+$s3Bucket   = $props['s3.bucket'];
+$s3Path     = $props['s3.path'];
+$s3LangPath = isset($props['s3.langpath']) ? $props['s3.langpath'] : 'http://cdn.akeebabackup.com/language';
 
 // Scan languages
 $root = $rootDirectory . '/translations';
@@ -164,11 +173,11 @@ foreach($langs as $tag => $files) {
 	$j20XML = <<<ENDHEAD
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="file" version="1.6" method="upgrade" client="site">
-    <name><![CDATA[$packageName-$tag]]></name>
-    <author><![CDATA[AkeebaBackup.com]]></author>
-    <authorurl>http://www.akeebabackup.com</authorurl>
-	<copyright>Copyright (C)$year AkeebaBackup.com. All rights reserved.</copyright>
-	<license>http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL</license>
+    <name><![CDATA[$packageName - $tag]]></name>
+    <author><![CDATA[$authorName]]></author>
+    <authorurl>$authorUrl</authorurl>
+	<copyright>Copyright (C)$year $authorName. All rights reserved.</copyright>
+	<license>$license</license>
     <version>$version</version>
     <creationDate>$date</creationDate>
     <description><![CDATA[$langName translation file for $softwareName]]></description>
@@ -232,11 +241,11 @@ ENDHEAD;
 	$row = 1 - $row;
 	$langHTMLTable .= <<<ENDHTML
 	<tr class="row$row">
-		<td width="16"><img src="http://cdn.akeebabackup.com/language/flags/$country.png" /></td>
+		<td width="16"><img src="$s3LangPath/flags/$country.png" /></td>
 		<td width="50" align="center"><tt>$tag</tt></td>
 		<td width="250">$langName</td>
 		<td>
-			<a href="http://cdn.akeebabackup.com/language/$packageName/$base20">Download for Joomla! 1.6/1.7/2.5/3.x</a>
+			<a href="$s3LangPath/$packageNameURL/$base20">Download for Joomla! $langVersions</a>
 		</td>
 	</tr>
 
@@ -244,7 +253,7 @@ ENDHTML;
 
 	// @todo Upload translation files
 	echo "\tUploading ".basename($j20ZIPPath)."\n";
-	$s3->putObjectFile($j20ZIPPath, $s3Bucket, $s3Path.'/'.$packageName.'/'.basename($j20ZIPPath), S3::ACL_PUBLIC_READ);
+	$s3->putObjectFile($j20ZIPPath, $s3Bucket, $s3Path.'/'.$packageNameURL.'/'.basename($j20ZIPPath), S3::ACL_PUBLIC_READ);
 }
 
 $html = @file_get_contents($rootDirectory . '/translations/_pages/index.html');
@@ -255,7 +264,7 @@ $html = str_replace('[YEAR]', gmdate('Y'), $html);
 echo "Uploading index.html file\n";
 $tempHTMLPath = $rootDirectory . '/release/index.html';
 @file_put_contents($tempHTMLPath, $html);
-$s3->putObjectFile($tempHTMLPath, $s3Bucket, $s3Path.'/'.$packageName.'/index.html', S3::ACL_PUBLIC_READ);
+$s3->putObjectFile($tempHTMLPath, $s3Bucket, $s3Path.'/'.$packageNameURL.'/index.html', S3::ACL_PUBLIC_READ);
 @unlink($tempHTMLPath);
 
 echo "\nDone\n\n";
