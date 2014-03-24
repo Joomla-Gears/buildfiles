@@ -217,9 +217,12 @@ class LinkSiteTask extends LinkTask
 		$this->_fetchModules();
 		$this->_fetchPlugins();
 
-		// Unlink and link component, modules and plugins
-		$this->unlinkComponent();
-		$this->linkComponent();
+		if (!empty($this->_component))
+		{
+			// Unlink and link component, modules and plugins
+			$this->unlinkComponent();
+			$this->linkComponent();
+		}
 
 		$this->unlinkModules();
 		$this->linkModules();
@@ -830,6 +833,11 @@ class LinkSiteTask extends LinkTask
 	 */
 	public function unlinkComponent()
 	{
+		if (empty($this->_component))
+		{
+			return;
+		}
+
 		$this->log("Unlinking component ".$this->_component['component'], Project::MSG_INFO);
 
 		$map = $this->_mapComponent();
