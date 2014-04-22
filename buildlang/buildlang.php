@@ -29,7 +29,7 @@ function scan($root)
 			if($mname->isDot()) continue;
 			if(!$mname->isDir()) continue;
 			$module = $mname->getFilename();
-			_mergeLangRet($ret, _scanLangDir($root.'/modules/site/'.$module), 'backend');
+			_mergeLangRet($ret, _scanLangDir($root.'/modules/site/'.$module), 'frontend');
 		}
 	} catch (Exception $exc) {
 		//echo $exc->getTraceAsString();
