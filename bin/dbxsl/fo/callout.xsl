@@ -1,15 +1,14 @@
 <?xml version='1.0'?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:d="http://docbook.org/ns/docbook"
-xmlns:fo="http://www.w3.org/1999/XSL/Format"
+                xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
                 xmlns:xverb="com.nwalsh.xalan.Verbatim"
                 xmlns:lxslt="http://xml.apache.org/xslt"
-                exclude-result-prefixes="sverb xverb lxslt d"
+                exclude-result-prefixes="sverb xverb lxslt"
                 version='1.0'>
 
 <!-- ********************************************************************
-     $Id: callout.xsl 6910 2007-06-28 23:23:30Z xmldoc $
+     $Id: callout.xsl 9668 2012-11-28 00:47:59Z bobstayton $
      ********************************************************************
 
      This file is part of the XSL DocBook Stylesheet distribution.
@@ -21,8 +20,8 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
 <lxslt:component prefix="xverb"
                  functions="insertCallouts"/>
 
-<xsl:template match="d:programlistingco|d:screenco">
-  <xsl:variable name="verbatim" select="d:programlisting|d:screen"/>
+<xsl:template match="programlistingco|screenco">
+  <xsl:variable name="verbatim" select="programlisting|screen"/>
   <xsl:variable name="vendor" select="system-property('xsl:vendor')"/>
 
   <xsl:choose>
@@ -37,10 +36,10 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
       <xsl:variable name="rtf-with-callouts">
         <xsl:choose>
           <xsl:when test="contains($vendor, 'SAXON ')">
-            <xsl:copy-of select="sverb:insertCallouts(d:areaspec,$rtf)"/>
+            <xsl:copy-of select="sverb:insertCallouts(areaspec,$rtf)"/>
           </xsl:when>
           <xsl:when test="contains($vendor, 'Apache Software Foundation')">
-            <xsl:copy-of select="xverb:insertCallouts(d:areaspec,$rtf)"/>
+            <xsl:copy-of select="xverb:insertCallouts(areaspec,$rtf)"/>
           </xsl:when>
           <xsl:otherwise>
             <xsl:message terminate="yes">
@@ -57,13 +56,13 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
           <xsl:call-template name="number.rtf.lines">
             <xsl:with-param name="rtf" select="$rtf-with-callouts"/>
             <xsl:with-param name="pi.context"
-                            select="d:programlisting|d:screen"/>
+                            select="programlisting|screen"/>
           </xsl:call-template>
-          <xsl:apply-templates select="d:calloutlist"/>
+          <xsl:apply-templates select="calloutlist"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:copy-of select="$rtf-with-callouts"/>
-          <xsl:apply-templates select="d:calloutlist"/>
+          <xsl:apply-templates select="calloutlist"/>
         </xsl:otherwise>
       </xsl:choose>
     </xsl:when>
@@ -73,26 +72,76 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
   </xsl:choose>
 </xsl:template>
 
-<xsl:template match="d:areaspec|d:areaset|d:area">
+<xsl:template match="areaspec|areaset|area">
 </xsl:template>
 
-<xsl:template match="d:areaset" mode="conumber">
-  <xsl:number count="d:area|d:areaset" format="1"/>
+<xsl:template match="areaset" mode="conumber">
+  <xsl:number count="area|areaset" format="1"/>
 </xsl:template>
 
-<xsl:template match="d:area" mode="conumber">
-  <xsl:number count="d:area|d:areaset" format="1"/>
+<xsl:template match="area" mode="conumber">
+  <xsl:number count="area|areaset" format="1"/>
 </xsl:template>
 
-<xsl:template match="d:co">
-  <fo:inline>
-    <xsl:call-template name="anchor"/>
-    <xsl:apply-templates select="." mode="callout-bug"/>
-  </fo:inline>
+<xsl:template match="co">
+  <xsl:param name="coref"/> 
+  <!-- link to the callout? -->
+  <xsl:variable name="linkend">
+    <xsl:choose>
+      <!-- if more than one target, choose the first -->
+      <xsl:when test="contains(normalize-space(@linkends), ' ')">
+        <xsl:value-of select="substring-before(normalize-space(@linkends), ' ')"/>
+      </xsl:when>
+      <xsl:when test="string-length(normalize-space(@linkends)) != 0">
+        <xsl:value-of select="normalize-space(@linkends)"/>
+      </xsl:when>
+      <xsl:otherwise>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
+
+  <xsl:choose>
+    <xsl:when test="string-length($linkend) != 0">
+      <fo:basic-link internal-destination="{$linkend}">
+        <xsl:choose>
+          <xsl:when test="$coref">
+            <xsl:call-template name="anchor">
+              <xsl:with-param name="node" select="$coref"/>
+              <xsl:with-param name="conditional" select="0"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:call-template name="anchor">
+              <xsl:with-param name="conditional" select="0"/>
+            </xsl:call-template>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:apply-templates select="." mode="callout-bug"/>
+      </fo:basic-link>
+    </xsl:when>
+    <xsl:otherwise>
+      <fo:inline>
+        <xsl:choose>
+          <xsl:when test="$coref">
+            <xsl:call-template name="anchor">
+              <xsl:with-param name="node" select="$coref"/>
+              <xsl:with-param name="conditional" select="0"/>
+            </xsl:call-template>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:call-template name="anchor">
+              <xsl:with-param name="conditional" select="0"/>
+            </xsl:call-template>
+          </xsl:otherwise>
+        </xsl:choose>
+        <xsl:apply-templates select="." mode="callout-bug"/>
+      </fo:inline>
+    </xsl:otherwise>
+  </xsl:choose>
 </xsl:template>
 
-<xsl:template match="d:coref">
-  <!-- tricky; this relies on the fact that we can process the "co" that's -->
+<xsl:template match="coref">
+  <!-- this relies on the fact that we can process the "co" that's -->
   <!-- "over there" as if it were "right here" -->
 
   <xsl:variable name="co" select="key('id', @linkend)"/>
@@ -110,20 +159,20 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
       </xsl:message>
     </xsl:when>
     <xsl:otherwise>
-      <fo:inline>
-        <xsl:call-template name="anchor"/>
-        <xsl:apply-templates select="$co" mode="callout-bug"/>
-      </fo:inline>
+      <!-- process it as if it were the co itself -->
+      <xsl:apply-templates select="$co">
+        <xsl:with-param name="coref" select="."/>
+      </xsl:apply-templates>
     </xsl:otherwise>
   </xsl:choose>
 </xsl:template>
 
-<xsl:template match="d:co" mode="callout-bug">
+<xsl:template match="co" mode="callout-bug">
   <xsl:call-template name="callout-bug">
     <xsl:with-param name="conum">
-      <xsl:number count="d:co"
+      <xsl:number count="co"
                   level="any"
-                  from="d:programlisting|d:screen|d:literallayout|d:synopsis"
+                  from="programlisting|screen|literallayout|synopsis"
                   format="1"/>
     </xsl:with-param>
   </xsl:call-template>
@@ -144,8 +193,7 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
                            width="{$callout.icon.size}">
         <xsl:attribute name="src">
           <xsl:choose>
-            <xsl:when test="$passivetex.extensions != 0
-                            or $fop.extensions != 0
+            <xsl:when test="$fop.extensions != 0
                             or $arbortext.extensions != 0">
               <xsl:value-of select="$filename"/>
             </xsl:when>
@@ -175,6 +223,40 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
               <xsl:when test="$conum = 8">&#10109;</xsl:when>
               <xsl:when test="$conum = 9">&#10110;</xsl:when>
               <xsl:when test="$conum = 10">&#10111;</xsl:when>
+              <xsl:when test="$conum = 11">&#9451;</xsl:when>
+              <xsl:when test="$conum = 12">&#9452;</xsl:when>
+              <xsl:when test="$conum = 13">&#9453;</xsl:when>
+              <xsl:when test="$conum = 14">&#9454;</xsl:when>
+              <xsl:when test="$conum = 15">&#9455;</xsl:when>
+              <xsl:when test="$conum = 16">&#9456;</xsl:when>
+              <xsl:when test="$conum = 17">&#9457;</xsl:when>
+              <xsl:when test="$conum = 18">&#9458;</xsl:when>
+              <xsl:when test="$conum = 19">&#9459;</xsl:when>
+              <xsl:when test="$conum = 20">&#9460;</xsl:when>
+            </xsl:choose>
+          </xsl:when>
+          <xsl:when test="$callout.unicode.start.character = 9312">
+            <xsl:choose>
+              <xsl:when test="$conum = 1">&#9312;</xsl:when>
+              <xsl:when test="$conum = 2">&#9313;</xsl:when>
+              <xsl:when test="$conum = 3">&#9314;</xsl:when>
+              <xsl:when test="$conum = 4">&#9315;</xsl:when>
+              <xsl:when test="$conum = 5">&#9316;</xsl:when>
+              <xsl:when test="$conum = 6">&#9317;</xsl:when>
+              <xsl:when test="$conum = 7">&#9318;</xsl:when>
+              <xsl:when test="$conum = 8">&#9319;</xsl:when>
+              <xsl:when test="$conum = 9">&#9320;</xsl:when>
+              <xsl:when test="$conum = 10">&#9321;</xsl:when>
+              <xsl:when test="$conum = 11">&#9322;</xsl:when>
+              <xsl:when test="$conum = 12">&#9323;</xsl:when>
+              <xsl:when test="$conum = 13">&#9324;</xsl:when>
+              <xsl:when test="$conum = 14">&#9325;</xsl:when>
+              <xsl:when test="$conum = 15">&#9326;</xsl:when>
+              <xsl:when test="$conum = 16">&#9327;</xsl:when>
+              <xsl:when test="$conum = 17">&#9328;</xsl:when>
+              <xsl:when test="$conum = 18">&#9329;</xsl:when>
+              <xsl:when test="$conum = 19">&#9330;</xsl:when>
+              <xsl:when test="$conum = 20">&#9331;</xsl:when>
             </xsl:choose>
           </xsl:when>
           <xsl:otherwise>

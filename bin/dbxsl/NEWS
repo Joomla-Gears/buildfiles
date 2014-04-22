@@ -1,6 +1,6 @@
-Changes since the 1.75.1 release
+Changes since the 1.78.0 release
 
-Note: This document lists changes only since the 1.75.1 release. If you instead
+Note: This document lists changes only since the 1.78.0 release. If you instead
 want a record of the complete list of changes for the codebase over its entire
 history, you can obtain one by running the following commands:
 
@@ -11,149 +11,166 @@ history, you can obtain one by running the following commands:
 
 Table of Contents
 
-Release Notes: 1.75.2
+Release Notes: 1.78.1
 
-    Gentext
     Common
     FO
     HTML
     Manpages
-    Epub
+    Webhelp
     Params
-    Profiling
-    XSL-Saxon
-    XSL-Xalan
+    Highlighting
 
-Release Notes: 1.75.2
+Release Notes: 1.78.1
 
-The following is a list of changes that have been made since the 1.75.1
+The following is a list of changes that have been made since the 1.78.0
 release.
-
-Gentext
-
-The following changes have been made to the gentext code since the 1.75.1
-release.
-
-  ● Keith Fahlgren: Makefile
-
-    Add Icelandic
-
-  ● dleidert: locale/ja.xml
-
-    Improved Japanese translation for Note(s). Closes bug #2823965.
-
-  ● dleidert: locale/pl.xml
-
-    Polish alphabet contains O with acute accent, not with grave accent. Closes bug #2823964.
-
-  ● Robert Stayton: locale/ja.xml
-
-    Fix translation of "index", per bug report 2796064.
-
-  ● Robert Stayton: locale/is.xml
-
-    New Icelandic locale file.
 
 Common
 
-The following changes have been made to the common code since the 1.75.1
+The following changes have been made to the common code since the 1.78.0
 release.
 
-  ● Keith Fahlgren: Makefile
+  • Robert Stayton: titles.xsl
 
-    Add Icelandic
+    Make sure part and set titleabbrev are used in mode="titleabbrev.markup"
 
-  ● Norman Walsh: stripns.xsl
+  • Robert Stayton: titles.xsl
 
-    Support more downconvert cases
+    Add empty default template for titleabbrev since it is always processed in a mode.
 
-  ● Robert Stayton: titles.xsl
+  • Robert Stayton: gentext.xsl
 
-    Make sure title inside info is used if no other title.
+    Make consistent handling of titleabbrev in xrefs.
+
+  • Robert Stayton: titles.xsl
+
+    for missing title in xref, provide parent information of target to help locate problem element.
+    Process bridgehead in mode="title.markup", not normal mode.
+
+  • Jirka Kosek: l10n.xsl
+
+    Fixed bug #3598963
+
+  • Robert Stayton: gentext.xsl; labels.xsl
+
+    Make sure bridgeheads are not numbered in all contexts, including html title attributes.
 
 FO
 
-The following changes have been made to the fo code since the 1.75.1 release.
+The following changes have been made to the fo code since the 1.78.0 release.
 
-  ● Robert Stayton: pi.xsl
+  • Robert Stayton: division.xsl
 
-    Turn off dbfo-need for fop1.extensions also, per bug #2816141.
+    Fix bug where part TOC not generated when partintro is present.
+
+  • Jirka Kosek: xref.xsl
+
+    Footnotes can't be placed into fo:float
+
+  • Robert Stayton: titlepage.templates.xml
+
+    Remove margin-left when start-indent is used because they interfere
+    with each other.
+
+  • Robert Stayton: fo.xsl; pagesetup.xsl
+
+    Use dingbat.fontset rather than dingbat.font.family so it falls
+    back to symbol font if glyph not found, like other font properties.
+
+  • Robert Stayton: inline.xsl
+
+    Change last instance of inline.charseq in inline glossterm to
+    inline.italicseq so it is consistent with the others.
+
+  • Robert Stayton: xref.xsl
+
+    Make consistent handling of titleabbrev in xrefs.
 
 HTML
 
-The following changes have been made to the html code since the 1.75.1 release.
+The following changes have been made to the html code since the 1.78.0 release.
 
-  ● Mauritz Jeanson: titlepage.xsl
+  • Robert Stayton: admon.xsl
 
-    Output "Copyright" heading in XHTML too.
+    Turn off $admon.style if $make.clean.html is set to non-zero.
 
-  ● Mauritz Jeanson: titlepage.xsl
+  • Jirka Kosek: highlight.xsl
 
-    Added stylesheet.result.type test for copyright. Closes bug #2813289.
+    Added new definitions for syntax highlighting
 
-  ● Norman Walsh: htmltbl.xsl
+  • Robert Stayton: chunk-common.xsl
 
-    Remove ambiguity wrt @span, @rowspan, and @colspan
+    Make active.olink.hrefs param work for chunked output too.
+
+  • Robert Stayton: xref.xsl
+
+    Make consistent handling of titleabbrev in xrefs.
+
+  • Robert Stayton: graphics.xsl
+
+    Add round() function when pixel counts are used for image width and height.
+
+  • Robert Stayton: glossary.xsl
+
+    fix missing class and id attributes on glossterm and glossdef.
+
+  • Robert Stayton: autoidx.xsl
+
+    Fix bug where prefer.index.titleabbrev ignored info/titleabbrev.
 
 Manpages
 
-The following changes have been made to the manpages code since the 1.75.1
+The following changes have been made to the manpages code since the 1.78.0
 release.
 
-  ● Mauritz Jeanson: endnotes.xsl
+  • Robert Stayton: utility.xsl
 
-    Added normalize-space() for ulink content. Closes bug #2793877.
+    Fix bug 3599520: spurious newline in para when starts with
+    whitespace and inline element.
 
-  ● Mauritz Jeanson: docbook.xsl
+Webhelp
 
-    Added stylesheet.result.type test for copyright. Closes bug #2813289.
+The following changes have been made to the webhelp code since the 1.78.0
+release.
 
-Epub
+  • David Cramer: xsl/webhelp-common.xsl
 
-The following changes have been made to the epub code since the 1.75.1 release.
+    Webhelp: Fix test for webhelp.include.search.tab param
 
-  ● Keith Fahlgren: bin/dbtoepub; bin/lib/docbook.rb
+  • David Cramer: Makefile.sample
 
-    Corrected bugs caused by path and file assumptions were not met
+    Webhelp: Fix order of args to xsltproc
 
-  ● Keith Fahlgren: bin/lib/docbook.rb; docbook.xsl
+  • David Cramer: docsrc/readme.xml
 
-    Cleaning up hardcoded values into parameters and fixing Ruby library to pass them properly; all thanks to patch from Liza Daly
+    Webhelp: Turn on xinclude-test.xml in readme to demo xinclude functionality
+
+  • David Cramer: Makefile; Makefile.sample
+
+    Webhelp: In Makefiles, do xinclude in first pass at document
 
 Params
 
-The following changes have been made to the params code since the 1.75.1
+The following changes have been made to the params code since the 1.78.0
 release.
 
-  ● Mauritz Jeanson: highlight.source.xml
+  • David Cramer: webhelp.include.search.tab.xml
 
-    Fixed typo.
+    Webhelp: Fix test for webhelp.include.search.tab param
 
-Profiling
+  • Robert Stayton: article.appendix.title.properties.xml
 
-The following changes have been made to the profiling code since the 1.75.1
+    Remove unneeded margin-left property from article appendix title.
+    It interferes with the start-indent property.
+
+Highlighting
+
+The following changes have been made to the highlighting code since the 1.78.0
 release.
 
-  ● Robert Stayton: profile.xsl
+  • Jirka Kosek: c-hl.xml; cpp-hl.xml; sql2003-hl.xml; php-hl.xml; upc-hl.xml;
+    bourne-hl.xml; ⋯
 
-    Fix bug 2815493 missing exsl.node.set.available parameter.
-
-XSL-Saxon
-
-The following changes have been made to the xsl-saxon code since the 1.75.1
-release.
-
-  ● Mauritz Jeanson: src/com/nwalsh/saxon/ColumnUpdateEmitter.java; src/com/
-    nwalsh/saxon/Colum⋯
-
-    Added fixes so that colgroups in the XHTML namespace are processed properly.
-
-XSL-Xalan
-
-The following changes have been made to the xsl-xalan code since the 1.75.1
-release.
-
-  ● Mauritz Jeanson: nbproject/project.xml
-
-    Added missing NetBeans configuration.
+    Added new definitions for syntax highlighting
 

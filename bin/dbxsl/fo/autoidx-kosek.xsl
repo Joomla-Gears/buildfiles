@@ -1,21 +1,10 @@
 <?xml version="1.0"?>
 <!DOCTYPE xsl:stylesheet [
-
-<!ENTITY primary   'normalize-space(concat(d:primary/@sortas, d:primary[not(@sortas) or @sortas = ""]))'>
-<!ENTITY secondary 'normalize-space(concat(d:secondary/@sortas, d:secondary[not(@sortas) or @sortas = ""]))'>
-<!ENTITY tertiary  'normalize-space(concat(d:tertiary/@sortas, d:tertiary[not(@sortas) or @sortas = ""]))'>
-
-<!ENTITY sep '" "'>
-<!-- Documents using the kimber index method must have a lang attribute -->
-<!-- Only one of these should be present in the entity -->
-
-<!ENTITY scope 'count(ancestor::node()|$scope) = count(ancestor::node())
-                and ($role = @role or $type = @type or
-                (string-length($role) = 0 and string-length($type) = 0))'>
+<!ENTITY % common.entities SYSTEM "../common/entities.ent">
+%common.entities;
 ]>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:d="http://docbook.org/ns/docbook"
-xmlns:fo="http://www.w3.org/1999/XSL/Format"
+                xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 xmlns:rx="http://www.renderx.com/XSL/Extensions"
                 xmlns:axf="http://www.antennahouse.com/names/XSL/Extensions"
                 xmlns:i="urn:cz-kosek:functions:index"
@@ -23,11 +12,11 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 xmlns:func="http://exslt.org/functions"
                 xmlns:exslt="http://exslt.org/common"
                 extension-element-prefixes="func exslt"
-                exclude-result-prefixes="func exslt i l d"
+                exclude-result-prefixes="func exslt i l"
                 version="1.0">
 
 <!-- ********************************************************************
-     $Id: autoidx-kosek.xsl 8399 2009-04-08 07:37:42Z bobstayton $
+     $Id: autoidx-kosek.xsl 8725 2010-07-15 08:08:04Z kosek $
      ********************************************************************
 
      This file is part of the DocBook XSL Stylesheet distribution.
@@ -89,7 +78,7 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
   </xsl:variable>
 
   <xsl:variable name="terms"
-                select="//d:indexterm[count(.|key('group-code',
+                select="//indexterm[count(.|key('group-code',
                                           i:group-index(&primary;))
                                           [&scope;][1]) = 1
                                 and not(@class = 'endofrange')]"/>
@@ -103,7 +92,7 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
   </fo:block>
 </xsl:template>
 
-<xsl:template match="d:indexterm" mode="index-div-kosek">
+<xsl:template match="indexterm" mode="index-div-kosek">
   <xsl:param name="scope" select="."/>
   <xsl:param name="role" select="''"/>
   <xsl:param name="type" select="''"/>

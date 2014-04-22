@@ -1,15 +1,14 @@
 <?xml version='1.0'?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:d="http://docbook.org/ns/docbook"
-xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
+                xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
                 xmlns:xverb="xalan://com.nwalsh.xalan.Verbatim"
                 xmlns:lxslt="http://xml.apache.org/xslt"
                 xmlns:exsl="http://exslt.org/common"
-                exclude-result-prefixes="sverb xverb lxslt exsl d"
+                exclude-result-prefixes="sverb xverb lxslt exsl"
                 version='1.0'>
 
 <!-- ********************************************************************
-     $Id: verbatim.xsl 8421 2009-05-04 07:49:49Z bobstayton $
+     $Id: verbatim.xsl 9589 2012-09-02 20:52:15Z tom_schr $
      ********************************************************************
 
      This file is part of the XSL DocBook Stylesheet distribution.
@@ -27,13 +26,12 @@ xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
 <lxslt:component prefix="xverb"
                  functions="numberLines"/>
 
-<xsl:template match="d:programlisting|d:screen|d:synopsis">
+<xsl:template match="programlisting|screen|synopsis">
   <xsl:param name="suppress-numbers" select="'0'"/>
-  <xsl:variable name="id">
-    <xsl:call-template name="object.id"/>
-  </xsl:variable>
 
   <xsl:call-template name="anchor"/>
+
+  <xsl:variable name="div.element">pre</xsl:variable>
 
   <xsl:if test="$shade.verbatim != 0">
     <xsl:message>
@@ -62,8 +60,9 @@ xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
           </xsl:otherwise>
         </xsl:choose>
       </xsl:variable>
-      <pre>
+      <xsl:element name="{$div.element}">
         <xsl:apply-templates select="." mode="common.html.attributes"/>
+        <xsl:call-template name="id.attribute"/>
         <xsl:if test="@width != ''">
           <xsl:attribute name="width">
             <xsl:value-of select="@width"/>
@@ -72,11 +71,12 @@ xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
         <xsl:call-template name="number.rtf.lines">
           <xsl:with-param name="rtf" select="$rtf"/>
         </xsl:call-template>
-      </pre>
+      </xsl:element>
     </xsl:when>
     <xsl:otherwise>
-      <pre>
+      <xsl:element name="{$div.element}">
         <xsl:apply-templates select="." mode="common.html.attributes"/>
+        <xsl:call-template name="id.attribute"/>
         <xsl:if test="@width != ''">
           <xsl:attribute name="width">
             <xsl:value-of select="@width"/>
@@ -90,12 +90,12 @@ xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
             <xsl:apply-templates/>
           </xsl:otherwise>
         </xsl:choose>
-      </pre>
+      </xsl:element>
     </xsl:otherwise>
   </xsl:choose>
 </xsl:template>
 
-<xsl:template match="d:literallayout">
+<xsl:template match="literallayout">
   <xsl:param name="suppress-numbers" select="'0'"/>
 
   <xsl:variable name="rtf">
@@ -123,6 +123,7 @@ xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
         <xsl:when test="@class='monospaced'">
           <pre>
             <xsl:apply-templates select="." mode="common.html.attributes"/>
+            <xsl:call-template name="id.attribute"/>
             <xsl:call-template name="number.rtf.lines">
               <xsl:with-param name="rtf" select="$rtf"/>
             </xsl:call-template>
@@ -131,6 +132,7 @@ xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
         <xsl:otherwise>
           <div>
             <xsl:apply-templates select="." mode="common.html.attributes"/>
+            <xsl:call-template name="id.attribute"/>
             <p>
               <xsl:call-template name="number.rtf.lines">
                 <xsl:with-param name="rtf" select="$rtf"/>
@@ -145,12 +147,14 @@ xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
         <xsl:when test="@class='monospaced'">
           <pre>
             <xsl:apply-templates select="." mode="common.html.attributes"/>
+            <xsl:call-template name="id.attribute"/>
             <xsl:copy-of select="$rtf"/>
           </pre>
         </xsl:when>
         <xsl:otherwise>
           <div>
             <xsl:apply-templates select="." mode="common.html.attributes"/>
+            <xsl:call-template name="id.attribute"/>
             <p>
               <xsl:call-template name="make-verbatim">
                 <xsl:with-param name="rtf" select="$rtf"/>
@@ -163,7 +167,7 @@ xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
   </xsl:choose>
 </xsl:template>
 
-<xsl:template match="d:address">
+<xsl:template match="address">
   <xsl:param name="suppress-numbers" select="'0'"/>
 
   <xsl:variable name="rtf">
@@ -177,6 +181,7 @@ xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
                     and $linenumbering.extension != '0'">
       <div>
         <xsl:apply-templates select="." mode="common.html.attributes"/>
+        <xsl:call-template name="id.attribute"/>
         <p>
           <xsl:call-template name="number.rtf.lines">
             <xsl:with-param name="rtf" select="$rtf"/>
@@ -188,6 +193,7 @@ xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
     <xsl:otherwise>
       <div>
         <xsl:apply-templates select="." mode="common.html.attributes"/>
+        <xsl:call-template name="id.attribute"/>
         <p>
           <xsl:call-template name="make-verbatim">
             <xsl:with-param name="rtf" select="$rtf"/>
@@ -273,34 +279,34 @@ xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
       <xsl:when test="$pi.context/@continuation='continues'">
         <xsl:variable name="lastLine">
           <xsl:choose>
-            <xsl:when test="$pi.context/self::d:programlisting">
+            <xsl:when test="$pi.context/self::programlisting">
               <xsl:call-template name="lastLineNumber">
                 <xsl:with-param name="listings"
-                     select="preceding::d:programlisting[@linenumbering='numbered']"/>
+                     select="preceding::programlisting[@linenumbering='numbered']"/>
               </xsl:call-template>
             </xsl:when>
-            <xsl:when test="$pi.context/self::d:screen">
+            <xsl:when test="$pi.context/self::screen">
               <xsl:call-template name="lastLineNumber">
                 <xsl:with-param name="listings"
-                     select="preceding::d:screen[@linenumbering='numbered']"/>
+                     select="preceding::screen[@linenumbering='numbered']"/>
               </xsl:call-template>
             </xsl:when>
-            <xsl:when test="$pi.context/self::d:literallayout">
+            <xsl:when test="$pi.context/self::literallayout">
               <xsl:call-template name="lastLineNumber">
                 <xsl:with-param name="listings"
-                     select="preceding::d:literallayout[@linenumbering='numbered']"/>
+                     select="preceding::literallayout[@linenumbering='numbered']"/>
               </xsl:call-template>
             </xsl:when>
-            <xsl:when test="$pi.context/self::d:address">
+            <xsl:when test="$pi.context/self::address">
               <xsl:call-template name="lastLineNumber">
                 <xsl:with-param name="listings"
-                     select="preceding::d:address[@linenumbering='numbered']"/>
+                     select="preceding::address[@linenumbering='numbered']"/>
               </xsl:call-template>
             </xsl:when>
-            <xsl:when test="$pi.context/self::d:synopsis">
+            <xsl:when test="$pi.context/self::synopsis">
               <xsl:call-template name="lastLineNumber">
                 <xsl:with-param name="listings"
-                     select="preceding::d:synopsis[@linenumbering='numbered']"/>
+                     select="preceding::synopsis[@linenumbering='numbered']"/>
               </xsl:call-template>
             </xsl:when>
             <xsl:otherwise>
@@ -374,7 +380,7 @@ xmlns:sverb="http://nwalsh.com/xslt/ext/com.nwalsh.saxon.Verbatim"
     </xsl:when>
     <xsl:when test="$listings[1]/@continuation='continues'">
       <xsl:call-template name="lastLineNumber">
-        <xsl:with-param name="listings" select="d:listings[position() &gt; 1]"/>
+        <xsl:with-param name="listings" select="$listings[position() &gt; 1]"/>
         <xsl:with-param name="number" select="$number + $lines"/>
       </xsl:call-template>
     </xsl:when>

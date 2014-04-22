@@ -1,14 +1,13 @@
 <?xml version='1.0'?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:d="http://docbook.org/ns/docbook"
-xmlns:exsl="http://exslt.org/common"
+                xmlns:exsl="http://exslt.org/common"
                 xmlns:dyn="http://exslt.org/dynamic"
                 xmlns:saxon="http://icl.com/saxon"
-                exclude-result-prefixes="exsl dyn saxon d"
+                exclude-result-prefixes="exsl dyn saxon"
                 version='1.0'>
 
 <!-- ********************************************************************
-     $Id: utility.xsl 8236 2009-02-09 17:44:52Z xmldoc $
+     $Id: utility.xsl 9703 2013-01-07 20:13:05Z bobstayton $
      ********************************************************************
 
      This file is part of the XSL DocBook Stylesheet distribution.
@@ -40,7 +39,7 @@ xmlns:exsl="http://exslt.org/common"
     <xsl:param name="node"/>
     <xsl:param name="context"/>
     <xsl:choose>
-      <xsl:when test="not($context[ancestor::d:title])">
+      <xsl:when test="not($context[ancestor::title])">
         <xsl:for-each select="$node/node()">
           <xsl:text>\fB</xsl:text>
           <xsl:apply-templates select="."/>
@@ -64,8 +63,11 @@ xmlns:exsl="http://exslt.org/common"
   </xsl:template>
 
   <xsl:template name="inline.monoseq">
+    <xsl:param name="content">
+      <xsl:apply-templates/>
+    </xsl:param>
     <xsl:call-template name="code-inline-start"/>
-    <xsl:apply-templates/>
+    <xsl:copy-of select="$content"/>
     <xsl:call-template name="code-inline-end"/>
   </xsl:template>
 
@@ -151,8 +153,8 @@ xmlns:exsl="http://exslt.org/common"
     <!-- * actually on, and even then only outside of Cmdsynopsis and -->
     <!-- * Funcsynopsis, where it is already always turned off -->
     <xsl:if test="$man.hyphenate != 0 and
-                  not(ancestor::d:cmdsynopsis) and
-                  not(ancestor::d:funcsynopsis)">
+                  not(ancestor::cmdsynopsis) and
+                  not(ancestor::funcsynopsis)">
       <xsl:text>\%</xsl:text>
     </xsl:if>
   </xsl:template>
@@ -205,8 +207,8 @@ xmlns:exsl="http://exslt.org/common"
     <!-- * character formatting to it -->
     <xsl:variable name="title.wrapper">
       <xsl:choose>
-        <xsl:when test="d:title">
-          <xsl:value-of select="normalize-space(d:title[1])"/>
+        <xsl:when test="title">
+          <xsl:value-of select="normalize-space(title[1])"/>
         </xsl:when>
         <xsl:otherwise>
           <xsl:apply-templates select="." mode="object.title.markup.textonly"/>
@@ -238,8 +240,8 @@ xmlns:exsl="http://exslt.org/common"
         <!-- * -->
         <!-- * The code here previously also treated informaltable as a -->
         <!-- * verbatim, presumably to support some kludge; I removed it -->
-        <xsl:when test="self::d:address|self::d:literallayout|self::d:programlisting|
-                        self::d:screen|self::d:synopsis">
+        <xsl:when test="self::address|self::literallayout|self::programlisting|
+                        self::screen|self::synopsis">
           <xsl:text>&#10;</xsl:text>
           <xsl:text>.sp&#10;</xsl:text>
           <xsl:call-template name="mark.up.block.start"/>
@@ -248,13 +250,13 @@ xmlns:exsl="http://exslt.org/common"
         <!-- * Check to see if this node is a list; if it is, we don't -->
         <!-- * want to normalize-space(), so we just apply-templates. -->
         <!-- * Do same for all admonitions -->
-        <xsl:when test="(self::d:itemizedlist|self::d:orderedlist|
-                        self::d:variablelist|self::d:glosslist|
-                        self::d:simplelist[@type !='inline']|
-                        self::d:segmentedlist|
-                        self::d:caution|self::d:important|
-                        self::d:note|self::d:tip|self::d:warning|
-                        self::d:table|self::d:informaltable)">
+        <xsl:when test="(self::itemizedlist|self::orderedlist|
+                        self::variablelist|self::glosslist|
+                        self::simplelist[@type !='inline']|
+                        self::segmentedlist|
+                        self::caution|self::important|
+                        self::note|self::tip|self::warning|
+                        self::table|self::informaltable)">
           <xsl:call-template name="mark.up.block.start"/>
           <xsl:apply-templates select="."/>
         </xsl:when>
@@ -273,23 +275,24 @@ xmlns:exsl="http://exslt.org/common"
                     and normalize-space($content) != ''
                     and not(
                     preceding-sibling::*[1][
-                    self::d:caution or
-                    self::d:important or
-                    self::d:note or
-                    self::d:tip or
-                    self::d:warning or
-                    self::d:variablelist or
-                    self::d:glosslist or
-                    self::d:itemizedlist or
-                    self::d:orderedlist or
-                    self::d:segmentedlist or
-                    self::d:procedure or
-                    self::d:address or
-                    self::d:literallayout or
-                    self::d:programlisting or
-                    self::d:screen or
-                    self::d:table or
-                    self::d:informaltable
+                    self::caution or
+                    self::important or
+                    self::note or
+                    self::tip or
+                    self::warning or
+                    self::variablelist or
+                    self::glosslist or
+                    self::itemizedlist or
+                    self::orderedlist or
+                    self::segmentedlist or
+                    self::procedure or
+                    self::address or
+                    self::literallayout or
+                    self::programlisting or
+                    self::synopsis or
+                    self::screen or
+                    self::table or
+                    self::informaltable
                     ]
                     )
                     ">
@@ -303,7 +306,7 @@ xmlns:exsl="http://exslt.org/common"
                     or following-sibling::node()[1][self::processing-instruction()]
                     ">
             <xsl:if test="normalize-space($content) != ''
-                          or concat(normalize-space($content), ' ') = ' '">
+                          or concat(normalize-space($content), ' ') != ' '">
               <xsl:text>&#10;</xsl:text>
             </xsl:if>
           </xsl:if>
@@ -338,26 +341,26 @@ xmlns:exsl="http://exslt.org/common"
 
   <xsl:template name="mark.up.block.start">
     <xsl:choose>
-      <xsl:when test="(ancestor::d:footnote
-                      or ancestor::d:annotation)">
-        <xsl:if test="not(preceding-sibling::d:address|
-                      preceding-sibling::d:literallayout|
-                      preceding-sibling::d:programlisting|
-                      preceding-sibling::d:screen|
-                      preceding-sibling::d:synopsis|
-                      preceding-sibling::d:itemizedlist|
-                      preceding-sibling::d:orderedlist|
-                      preceding-sibling::d:variablelist|
-                      preceding-sibling::d:glosslist|
-                      preceding-sibling::d:simplelist[@type !='inline']|
-                      preceding-sibling::d:segmentedlist|
-                      preceding-sibling::d:caution|
-                      preceding-sibling::d:important|
-                      preceding-sibling::d:note|
-                      preceding-sibling::d:tip|
-                      preceding-sibling::d:warning|
-                      preceding-sibling::d:table|
-                      preceding-sibling::d:informaltable
+      <xsl:when test="(ancestor::footnote
+                      or ancestor::annotation)">
+        <xsl:if test="not(preceding-sibling::address|
+                      preceding-sibling::literallayout|
+                      preceding-sibling::programlisting|
+                      preceding-sibling::screen|
+                      preceding-sibling::synopsis|
+                      preceding-sibling::itemizedlist|
+                      preceding-sibling::orderedlist|
+                      preceding-sibling::variablelist|
+                      preceding-sibling::glosslist|
+                      preceding-sibling::simplelist[@type !='inline']|
+                      preceding-sibling::segmentedlist|
+                      preceding-sibling::caution|
+                      preceding-sibling::important|
+                      preceding-sibling::note|
+                      preceding-sibling::tip|
+                      preceding-sibling::warning|
+                      preceding-sibling::table|
+                      preceding-sibling::informaltable
                       )">
           <xsl:text>.RS</xsl:text>
           <xsl:if test="not($list-indent = '')">
@@ -377,26 +380,26 @@ xmlns:exsl="http://exslt.org/common"
   <!-- * content; so we need to generate a .RE to set the margin back to -->
   <!-- * where it was prior to the .RS call. -->
   <xsl:template name="mark.up.block.end">
-    <xsl:if test="(ancestor::d:footnote
-                  or ancestor::d:annotation)">
-      <xsl:if test="d:address|
-                    d:literallayout|
-                    d:programlisting|
-                    d:screen|
-                    d:synopsis|
-                    d:itemizedlist|
-                    d:orderedlist|
-                    d:variablelist|
-                    d:glosslist|
-                    d:simplelist[@type !='inline']|
-                    d:segmentedlist|
-                    d:caution|
-                    d:important|
-                    d:note|
-                    d:tip|
-                    d:warning|
-                    d:table|
-                    d:informaltable">
+    <xsl:if test="(ancestor::footnote
+                  or ancestor::annotation)">
+      <xsl:if test="address|
+                    literallayout|
+                    programlisting|
+                    screen|
+                    synopsis|
+                    itemizedlist|
+                    orderedlist|
+                    variablelist|
+                    glosslist|
+                    simplelist[@type !='inline']|
+                    segmentedlist|
+                    caution|
+                    important|
+                    note|
+                    tip|
+                    warning|
+                    table|
+                    informaltable">
         <xsl:text>&#10;</xsl:text>
         <xsl:text>.RE</xsl:text>
       <xsl:text>&#10;</xsl:text>

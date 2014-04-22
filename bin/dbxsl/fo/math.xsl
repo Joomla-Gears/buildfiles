@@ -1,13 +1,12 @@
 <?xml version='1.0'?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-                xmlns:d="http://docbook.org/ns/docbook"
-xmlns:fo="http://www.w3.org/1999/XSL/Format"
+                xmlns:fo="http://www.w3.org/1999/XSL/Format"
                 xmlns:mml="http://www.w3.org/1998/Math/MathML"
-                exclude-result-prefixes="mml d"
+                exclude-result-prefixes="mml"
                 version='1.0'>
 
 <!-- ********************************************************************
-     $Id: math.xsl 7503 2007-10-08 01:57:30Z xmldoc $
+     $Id: math.xsl 9647 2012-10-26 17:42:03Z bobstayton $
      ********************************************************************
 
      This file is part of the XSL DocBook Stylesheet distribution.
@@ -16,25 +15,14 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
 
      ******************************************************************** -->
 
-<xsl:template match="d:inlineequation">
-  <xsl:choose>
-    <xsl:when test="$passivetex.extensions != 0 and $tex.math.in.alt != ''">
-      <xsl:apply-templates select="d:alt[@role='tex'] | d:inlinemediaobject/d:textobject[@role='tex']">
-        <xsl:with-param name="output.delims">
-          <xsl:call-template name="tex.math.output.delims"/>
-        </xsl:with-param>
-      </xsl:apply-templates>
-    </xsl:when>
-    <xsl:otherwise>
-      <xsl:apply-templates/>
-    </xsl:otherwise>
-  </xsl:choose>
+<xsl:template match="inlineequation">
+  <xsl:apply-templates/>
 </xsl:template>
 
-<xsl:template match="d:alt">
+<xsl:template match="alt">
 </xsl:template>
 
-<xsl:template match="d:mathphrase">
+<xsl:template match="mathphrase">
   <fo:inline>
     <xsl:apply-templates/>
   </fo:inline>
@@ -43,24 +31,12 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
 <!-- "Support" for MathML -->
 
 <xsl:template match="mml:math" xmlns:mml="http://www.w3.org/1998/Math/MathML">
-  <xsl:choose>
-    <!-- * If user is using passivetex, we don't wrap the output in -->
-    <!-- * fo:instream-foreign-object (which passivetex doesn't support). -->
-    <xsl:when test="not($passivetex.extensions = 0)">
-      <xsl:copy>
-        <xsl:copy-of select="@*"/>
-        <xsl:apply-templates/>
-      </xsl:copy>
-    </xsl:when>
-    <xsl:otherwise>
-      <fo:instream-foreign-object>
-        <xsl:copy>
-          <xsl:copy-of select="@*"/>
-          <xsl:apply-templates/>
-        </xsl:copy>
-      </fo:instream-foreign-object>
-    </xsl:otherwise>
-  </xsl:choose>
+  <fo:instream-foreign-object>
+    <xsl:copy>
+      <xsl:copy-of select="@*"/>
+      <xsl:apply-templates/>
+    </xsl:copy>
+  </fo:instream-foreign-object>
 </xsl:template>
 
 <xsl:template match="mml:*" xmlns:mml="http://www.w3.org/1998/Math/MathML">
@@ -70,55 +46,25 @@ xmlns:fo="http://www.w3.org/1999/XSL/Format"
   </xsl:copy>
 </xsl:template>
 
-<xsl:template match="d:equation/d:graphic | d:informalequation/d:graphic">
-  <xsl:if test="$passivetex.extensions = 0 or $tex.math.in.alt = ''">
+<xsl:template match="equation/graphic | informalequation/graphic">
+  <xsl:if test="$tex.math.in.alt = ''">
     <fo:block>
       <xsl:call-template name="process.image"/>
     </fo:block>
   </xsl:if>
 </xsl:template>
 
-<xsl:template match="d:inlineequation/d:alt[@role='tex'] | 
-                     d:inlineequation/d:inlinemediaobject/d:textobject[@role='tex']" priority="1">
+<xsl:template match="inlineequation/alt[@role='tex'] | 
+                     inlineequation/inlinemediaobject/textobject[@role='tex']" priority="1">
   <xsl:param name="output.delims" select="1"/>
-  <xsl:if test="$passivetex.extensions != 0 and $tex.math.in.alt != ''">
-    <xsl:processing-instruction name="xmltex">
-      <xsl:if test="$output.delims != 0">
-        <xsl:text>$</xsl:text>
-      </xsl:if>
-      <xsl:value-of select="."/>
-      <xsl:if test="$output.delims != 0">
-        <xsl:text>$</xsl:text>
-      </xsl:if>
-    </xsl:processing-instruction>
-  </xsl:if>
 </xsl:template>
 
-<xsl:template match="d:equation/d:alt[@role='tex'] | d:informalequation/d:alt[@role='tex'] |
-                     d:equation/d:mediaobject/d:textobject[@role='tex'] |
-                     d:informalequation/d:mediaobject/d:textobject[@role='tex']" priority="1">
+<xsl:template match="equation/alt[@role='tex'] | informalequation/alt[@role='tex'] |
+                     equation/mediaobject/textobject[@role='tex'] |
+                     informalequation/mediaobject/textobject[@role='tex']" priority="1">
   <xsl:variable name="output.delims">
     <xsl:call-template name="tex.math.output.delims"/>
   </xsl:variable>
-  <xsl:if test="$passivetex.extensions != 0 and $tex.math.in.alt != ''">
-    <xsl:processing-instruction name="xmltex">
-      <xsl:if test="$output.delims != 0">
-        <xsl:text>$$</xsl:text>
-      </xsl:if>
-      <xsl:value-of select="."/>
-      <xsl:if test="$output.delims != 0">
-        <xsl:text>$$</xsl:text>
-      </xsl:if>
-    </xsl:processing-instruction>
-  </xsl:if>
-</xsl:template>
-
-<xsl:template match="d:alt[@role='tex']">
-  <xsl:if test="$passivetex.extensions != 0 and $tex.math.in.alt != ''">
-    <xsl:message>
-      Your equation is misplaced. It should be in inlineequation, equation or informalequation.
-    </xsl:message>
-  </xsl:if>
 </xsl:template>
 
 <xsl:template name="tex.math.output.delims">

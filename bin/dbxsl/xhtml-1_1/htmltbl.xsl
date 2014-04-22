@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="ASCII"?>
 <!--This file was created automatically by html2xhtml-->
 <!--from the HTML stylesheets.-->
-<xsl:stylesheet exclude-result-prefixes="d"
-                 xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:d="http://docbook.org/ns/docbook"
-xmlns="http://www.w3.org/1999/xhtml" version="1.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns="http://www.w3.org/1999/xhtml" version="1.0">
 
 <!-- ********************************************************************
-     $Id: htmltbl.xsl 8477 2009-07-13 11:38:55Z nwalsh $
+     $Id: htmltbl.xsl 9501 2012-07-16 00:14:50Z bobstayton $
      ********************************************************************
 
      This file is part of the XSL DocBook Stylesheet distribution.
@@ -17,39 +15,37 @@ xmlns="http://www.w3.org/1999/xhtml" version="1.0">
 
 <!-- ==================================================================== -->
 
-<xsl:template match="d:colgroup" mode="htmlTable">
+<xsl:template match="table" mode="htmlTable">
+  <xsl:element name="table" namespace="http://www.w3.org/1999/xhtml">
+    <xsl:apply-templates select="@*" mode="htmlTableAtt"/>
+    <xsl:call-template name="htmlTable"/>
+  </xsl:element>
+</xsl:template>
+
+<xsl:template match="colgroup" mode="htmlTable">
   <xsl:element name="{local-name()}" namespace="http://www.w3.org/1999/xhtml">
     <xsl:apply-templates select="@*" mode="htmlTableAtt"/>
     <xsl:apply-templates mode="htmlTable"/>
   </xsl:element>
 </xsl:template>
 
-<xsl:template match="d:col" mode="htmlTable">
+<xsl:template match="col" mode="htmlTable">
   <xsl:element name="{local-name()}" namespace="http://www.w3.org/1999/xhtml">
     <xsl:apply-templates select="@*" mode="htmlTableAtt"/>
   </xsl:element>
 </xsl:template>
 
-<xsl:template match="d:caption" mode="htmlTable">
-  <!-- do not use xsl:copy because of XHTML's needs -->
-  <caption>  
-    <xsl:apply-templates select="@*" mode="htmlTableAtt"/>
+<!-- Handled by formal.object.title template -->
+<xsl:template match="caption" mode="htmlTable"/>
 
-    <xsl:apply-templates select=".." mode="object.title.markup">
-      <xsl:with-param name="allow-anchors" select="1"/>
-    </xsl:apply-templates>
-
-  </caption>
-</xsl:template>
-
-<xsl:template match="d:tbody|d:thead|d:tfoot|d:tr" mode="htmlTable">
+<xsl:template match="tbody|thead|tfoot|tr" mode="htmlTable">
   <xsl:element name="{local-name(.)}" namespace="http://www.w3.org/1999/xhtml">
     <xsl:apply-templates select="@*" mode="htmlTableAtt"/>
     <xsl:apply-templates mode="htmlTable"/>
   </xsl:element>
 </xsl:template>
 
-<xsl:template match="d:th|d:td" mode="htmlTable">
+<xsl:template match="th|td" mode="htmlTable">
   <xsl:element name="{local-name(.)}" namespace="http://www.w3.org/1999/xhtml">
     <xsl:apply-templates select="@*" mode="htmlTableAtt"/>
     <xsl:apply-templates/> <!-- *not* mode=htmlTable -->

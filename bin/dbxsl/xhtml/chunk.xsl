@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="ASCII"?>
 <!--This file was created automatically by html2xhtml-->
 <!--from the HTML stylesheets.-->
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:d="http://docbook.org/ns/docbook"
-xmlns:exsl="http://exslt.org/common" xmlns="http://www.w3.org/1999/xhtml" version="1.0" exclude-result-prefixes="exsl d">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:exsl="http://exslt.org/common" xmlns="http://www.w3.org/1999/xhtml" version="1.0" exclude-result-prefixes="exsl">
 
 <!-- ********************************************************************
      $Id: chunk.xsl 6910 2007-06-28 23:23:30Z xmldoc $
@@ -23,7 +22,7 @@ xmlns:exsl="http://exslt.org/common" xmlns="http://www.w3.org/1999/xhtml" versio
      customizes any presentation templates. Then your chunking
      customization should import mydocbook.xsl instead of
      docbook.xsl.  -->
-<xsl:import href="docbook.xsl"/>
+<xsl:import href="docbook-no-doctype.xsl"/>
 
 <!-- chunk-common.xsl contains all the named templates for chunking.
      In a customization file, you import chunk-common.xsl, then

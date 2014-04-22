@@ -1,7 +1,6 @@
 <xsl:stylesheet version="1.0"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:d="http://docbook.org/ns/docbook"
-xmlns:sfa="http://developer.apple.com/namespaces/sfa"
+  xmlns:sfa="http://developer.apple.com/namespaces/sfa"
   xmlns:sf="http://developer.apple.com/namespaces/sf"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:sl="http://developer.apple.com/namespaces/sl"
@@ -15,7 +14,7 @@ xmlns:sfa="http://developer.apple.com/namespaces/sfa"
   <xsl:output method="xml" indent='yes' encoding='ascii'/>
 
   <!-- ********************************************************************
-       $Id: dbk2pages.xsl 7701 2008-02-22 06:07:31Z balls $
+       $Id: dbk2pages.xsl 9396 2012-06-02 21:56:19Z bobstayton $
        ********************************************************************
 
        This file is part of the XSL DocBook Stylesheet distribution.
@@ -24,7 +23,7 @@ xmlns:sfa="http://developer.apple.com/namespaces/sfa"
 
        ******************************************************************** -->
 
-  <xsl:include href='../VERSION'/>
+  <xsl:include href='../VERSION.xsl'/>
   <xsl:include href='param.xsl'/>
 
   <xsl:variable name='templatedoc' select='document($pages.template)'/>
@@ -264,7 +263,7 @@ xmlns:sfa="http://developer.apple.com/namespaces/sfa"
   </xsl:template>
 
   <xsl:template name='doc:make-paragraph'>
-    <xsl:param name='style' select='"d:unknown"'/>
+    <xsl:param name='style' select='"unknown"'/>
     <xsl:param name='content'>
       <xsl:apply-templates mode='doc:body'/>
     </xsl:param>
@@ -346,7 +345,7 @@ xmlns:sfa="http://developer.apple.com/namespaces/sfa"
     <sf:p>
       <xsl:attribute name='sf:style'>
         <xsl:call-template name='doc:lookup-paragraph-style'>
-          <xsl:with-param name='style' select='"d:para"'/>
+          <xsl:with-param name='style' select='"para"'/>
         </xsl:call-template>
       </xsl:attribute>
 
