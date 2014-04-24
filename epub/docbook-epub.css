@@ -1,0 +1,292 @@
+
+
+/********************************/
+/* start of styles in block.xsl */
+
+.formalpara-title {
+  font-weight: bold;
+}
+
+div.blockquote-title {
+  font-weight: bold;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+span.msgmain-title {
+  font-weight: bold;
+}
+
+span.msgsub-title {
+  font-weight: bold;
+}
+
+span.msgrel-title {
+  font-weight: bold;
+}
+
+div.msglevel, div.msgorig, div.msgaud {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+span.msglevel-title, span.msgorig-title, span.msgaud-title {
+  font-weight: bold;
+}
+
+div.msgexplan {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+span.msgexplan-title {
+  font-weight: bold;
+}
+
+div.sidebar {
+  border: 0.5pt solid black;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  padding: 8px;
+}
+
+/* end of styles in block.xsl */
+/********************************/
+
+/********************************/
+/* start of styles in autotoc.xsl */
+
+/* top level entries */
+nav>ol>li>a {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+
+/* end of styles in autotoc.xsl */
+/********************************/
+
+/********************************/
+/* start of styles in formal.xsl */
+
+div.figure-title {
+  font-weight: bold;
+}
+
+div.example-title {
+  font-weight: bold;
+}
+
+div.equation-title {
+  font-weight: bold;
+}
+
+div.table-title {
+  font-weight: bold;
+}
+
+div.sidebar-title {
+  font-weight: bold;
+}
+
+
+/* end of styles in formal.xsl */
+/********************************/
+
+/********************************/
+/* start of styles in verbatim.xsl */
+
+div.programlisting {
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+
+div.screen {
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+
+div.synopsis {
+  white-space: pre-wrap;
+  font-family: monospace;
+}
+
+/* end of styles in verbatim.xsl */
+/********************************/
+
+/********************************/
+/* NAVIGATION */
+
+nav ol {
+list-style-type: none;
+margin: 0 0 0 2em;
+padding: 0 0 0 0;
+}
+
+nav ol li {
+margin: 0 0 0 0;
+padding: 0 0 0 0;
+}
+
+nav ol li a {
+text-decoration: none;
+color: black;
+font-family: sans-serif;
+}
+
+#guide {
+display: none;
+}
+
+
+/** Akeeba Ltd Customisations **/
+/* Base style */
+html {
+	font-size: 11pt;
+	text-align: justify;
+	font-family: "Avenir-Book", "HelveticaNeue", "Helvetica", "Arial", sans;
+}
+
+/* Structure */
+
+dl { margin-left: 2em; }
+dd { margin-left: 1em; }
+
+h1.title {
+	font-weight: bold;
+	text-align: center;
+}
+
+h2.title {
+	font-weight: bold;
+	border-bottom: thin solid #999;
+}
+
+h3.title {
+	font-weight: bold;
+	border-bottom: thin solid #ccc;
+}
+
+table tr,
+table td {
+	border: none;
+}
+
+table p {
+	margin-bottom: 6pt;
+}
+
+pre {
+	margin-bottom: 6pt;
+}
+
+/* Admonitions */
+
+.warning,
+.important,
+.note,
+.tip {
+	text-align: justify;
+	border-left: 5px solid black;
+	margin: 0.5em 1em !important;
+	padding: 0.3em 0.5em !important;
+	border-radius: 1em;
+}
+
+.warning h3.title,
+.important h3.title,
+.note h3.title,
+.tip h3.title {
+	padding: 0;
+	margin: 0;
+	font-size: medium;
+	font-weight: normal;
+	font-style: italic;
+	border: none;
+}
+
+.warning img,
+.important img,
+.note img,
+.tip img {
+	padding: 0.2em 0.5em 0 0;
+}
+
+.warning p,
+.important p,
+.note p,
+.tip p {
+	margin: 0.3em 0;
+}
+
+.warning { background-color: #ffe0e0; border-color: #990000; }
+.warning h3 {color: #660000;}
+.important { background-color: #ffffe0; border-color: #999900; }
+.important h3 {color: #666600;}
+.note { background-color: #e0ffe0; border-color: #009900; }
+.note h3 {color: #006600;}
+.tip { background-color: #eeeeff; border-color: #000099; }
+.tip h3 {color: #000066;}
+
+.warning th { color: #660000; font-size: larger; }
+.important th { color: #666600; font-size: larger; }
+.note th { color: #006600; font-size: larger; }
+.tip th { color: #000066; font-size: larger; }
+
+/* Fixed width */
+
+pre.programlisting {
+	border: 1px solid #333333;
+	background-color: #f0f0f0;
+	font-family: "Consolas", "Courier New", "Liberation Mono", monospace;
+	color: #003300;
+	border-radius: 5px;
+	padding: 3px;
+}
+
+/* Document elements */
+.screenshot-title {
+	font-size: x-small;
+	color: #666;
+}
+
+.replaceable {
+	font-style: italic;
+	text-decoration: underline;
+}
+
+code {
+	font-family: "Consolas", "Courier New", "Liberation Mono", monospace;
+}
+
+code.filename {
+	color: #363;
+}
+
+.guimenu,
+.guisubmenu,
+.guilabel {
+	font-weight: bold;
+}
+
+.guilabel {
+	color: #333399;
+}
+
+.guibutton {
+	color: black;
+	border: 1px solid #aaaaaa;
+	border-radius: 0.2em;
+	padding: 0 0.25em;
+	background: #f1f1f1;
+	box-shadow: -0.1em -0.1em 0.2em 0.1em #ccc inset;
+}
+
+dt .term {
+	font-weight: bold;
+	color: #663333;
+}
+
+trademark {
+	color: #336633;
+}
