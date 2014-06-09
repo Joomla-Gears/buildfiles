@@ -6,24 +6,30 @@ include_once 'phing/mappers/MergeMapper.php';
 include_once 'phing/util/StringHelper.php';
 require_once 'jpalib.php';
 
-if(!defined('DS')) define('DS', '/');
+if (!defined('DS'))
+{
+	define('DS', '/');
+}
 
-if (!function_exists('fnmatch')) {
-	function fnmatch($pattern, $string) {
+if (!function_exists('fnmatch'))
+{
+	function fnmatch($pattern, $string)
+	{
 		return @preg_match(
-                '/^' . strtr(addcslashes($pattern, '/\\.+^$(){}=!<>|'),
-		array('*' => '.*', '?' => '.?')) . '$/i', $string
+			'/^' . strtr(addcslashes($pattern, '/\\.+^$(){}=!<>|'),
+				array('*' => '.*', '?' => '.?')) . '$/i', $string
 		);
 	}
 }
 
 /**
  * Documentation export from DocBook XML to a DocImport package file
- * @version $Id$
- * @package akeebabuilder
+ *
+ * @version   $Id$
+ * @package   akeebabuilder
  * @copyright Copyright (c)2009-2014 Nicholas K. Dionysopoulos
- * @license GNU GPL version 3 or, at your option, any later version
- * @author nicholas
+ * @license   GNU GPL version 3 or, at your option, any later version
+ * @author    nicholas
  */
 class DocexportTask extends matchingTask
 {
@@ -52,7 +58,7 @@ class DocexportTask extends matchingTask
 	 */
 	function init()
 	{
-		if(DIRECTORY_SEPARATOR == '\\')
+		if (DIRECTORY_SEPARATOR == '\\')
 		{
 			$this->temproot = str_replace('\\', '/', sys_get_temp_dir());
 		}
@@ -64,11 +70,14 @@ class DocexportTask extends matchingTask
 		// Post process some configuration arguments
 		$root = getcwd();
 
-		$this->imagefile_directory = dirname($this->docbook_file).DS.$this->imagefile_directory;
-		if(empty($this->outdir)) $this->outdir = $root;
-		$this->docimport_package = $this->outdir.DS.$this->docimport_package.'-'.$this->version.'.jpa';
+		$this->imagefile_directory = dirname($this->docbook_file) . DS . $this->imagefile_directory;
+		if (empty($this->outdir))
+		{
+			$this->outdir = $root;
+		}
+		$this->docimport_package = $this->outdir . DS . $this->docimport_package . '-' . $this->version . '.jpa';
 
-		if(DIRECTORY_SEPARATOR == '\\')
+		if (DIRECTORY_SEPARATOR == '\\')
 		{
 			$this->docbook_file = str_replace('\\', '/', $this->docbook_file);
 			$this->imagefile_directory = str_replace('\\', '/', $this->imagefile_directory);
@@ -130,17 +139,17 @@ class DocexportTask extends matchingTask
 		$this->init();
 
 		// Get a temporary directory
-		$tempdir = $this->temproot.DS.'docexport';
-		$i=0;
+		$tempdir = $this->temproot . DS . 'docexport';
+		$i = 0;
 		// Does this directory already exist? If so, try creating a different name.
-		while(file_exists($tempdir))
+		while (file_exists($tempdir))
 		{
 			$i++;
-			$tempdir = $this->temproot.DS.'docexport'.$i;
+			$tempdir = $this->temproot . DS . 'docexport' . $i;
 		}
 
 		// Create the temporary directory
-		if(@mkdir($tempdir) === false)
+		if (@mkdir($tempdir) === false)
 		{
 			// Oops! I couldn't create a temporary directory. Crap!
 			throw new BuildException('Sorry, I couldn\'t create a temporary directory.');
@@ -152,28 +161,28 @@ class DocexportTask extends matchingTask
 		// Call DocBook XML parsing
 		$this->log("Generating XHTML files. Please wait...");
 		$commandline = 'xsltproc --nonet --xinclude --novalid --stringparam html.stylesheet ' .
-			'jpmanual.css --stringparam base.dir '.$tempdir.DS.' --stringparam admon.graphics 1 '.
-			'--stringparam use.id.as.filename 1 --stringparam use.id.as.filename 1 '.
+			'jpmanual.css --stringparam base.dir ' . $tempdir . DS . ' --stringparam admon.graphics 1 ' .
+			'--stringparam use.id.as.filename 1 --stringparam use.id.as.filename 1 ' .
 			'--stringparam toc.section.depth 5 --stringparam chunk.section.depth 3 ';
-		$xslroot = $this->xsl_stylesheet_root.DS.'xhtml'.DS.'chunk.xsl';
-		if(DIRECTORY_SEPARATOR == '\\')
+		$xslroot = $this->xsl_stylesheet_root . DS . 'xhtml' . DS . 'chunk.xsl';
+		if (DIRECTORY_SEPARATOR == '\\')
 		{
-			$commandline .= '"'.$xslroot.'"';
+			$commandline .= '"' . $xslroot . '"';
 		}
 		else
 		{
-			$commandline .= str_replace(" ",'\\ ',$xslroot);
+			$commandline .= str_replace(" ", '\\ ', $xslroot);
 		}
 		$commandline .= ' ';
-		if(DIRECTORY_SEPARATOR == '\\')
+		if (DIRECTORY_SEPARATOR == '\\')
 		{
-			$commandline .= '"'.$this->docbook_file.'"';
+			$commandline .= '"' . $this->docbook_file . '"';
 		}
 		else
 		{
-			$commandline .= str_replace(" ",'\\ ',$this->docbook_file);
+			$commandline .= str_replace(" ", '\\ ', $this->docbook_file);
 		}
-		$tempResult = shell_exec( $commandline );
+		$tempResult = shell_exec($commandline);
 		unset($tempResult);
 
 		// Scan for HTML files
@@ -181,38 +190,42 @@ class DocexportTask extends matchingTask
 		$handle = opendir($tempdir);
 		$id = 0;
 		$files = array();
-		while( $file = readdir($handle) )
+		while ($file = readdir($handle))
 		{
-			if( fnmatch('*.html', $file) && !is_dir($file) )
+			if (fnmatch('*.html', $file) && !is_dir($file))
 			{
 				$files[$file] = ++$id;
 			}
 		}
 		closedir($handle);
-		unset($handle); unset($file); unset($id);
+		unset($handle);
+		unset($file);
+		unset($id);
 
 		// Scan for image files
 		$this->log("Scanning for image files");
 		$handle = opendir($this->imagefile_directory);
 		$id = 0;
 		$images = array();
-		while( $file = readdir($handle) )
+		while ($file = readdir($handle))
 		{
-			if( !is_dir($file) && in_array($this->getFileExtension($file), array('png','jpg','jpeg','gif','bmp')) )
+			if (!is_dir($file) && in_array($this->getFileExtension($file), array('png', 'jpg', 'jpeg', 'gif', 'bmp')))
 			{
 				$images[$file] = ++$id;
 			}
 		}
 		closedir($handle);
-		unset($handle); unset($file); unset($id);
+		unset($handle);
+		unset($file);
+		unset($id);
 
 		// Parse HTML files
 		$this->log("Parsing HTML files");
 		$ordTable = array();
 		$usedImages = array();
-		foreach( $files as $filename => $id)
+		foreach ($files as $filename => $id)
 		{
-			$test = $this->processHTML($tempdir.DS.$filename, $id);
+			$test = $this->processHTML($tempdir . DS . $filename, $id);
 			unset($test);
 		}
 
@@ -222,48 +235,48 @@ class DocexportTask extends matchingTask
 
 		// Generate packing list
 		$this->log("Generating package list");
-		$packlist = '[images]'."\n";
-		foreach( $images as $filename => $id )
+		$packlist = '[images]' . "\n";
+		foreach ($images as $filename => $id)
 		{
-			$packlist .= 'image'.$id.'="'.$filename.'"'."\n";
+			$packlist .= 'image' . $id . '="' . $filename . '"' . "\n";
 		}
 		$packlist .= "[articles]\n";
-		foreach( $files as $filename => $id )
+		foreach ($files as $filename => $id)
 		{
-			$filename=str_replace('.html','',$filename);
-			$packlist .= 'file'.$id.'="'.$filename.'"'."\n";
+			$filename = str_replace('.html', '', $filename);
+			$packlist .= 'file' . $id . '="' . $filename . '"' . "\n";
 		}
 		$packlist .= "[titles]\n";
-		foreach( $titles as $filename => $title )
+		foreach ($titles as $filename => $title)
 		{
-			$filename=str_replace('.html','',$filename);
-			$packlist .= $filename.'="'.$title.'"'."\n";
+			$filename = str_replace('.html', '', $filename);
+			$packlist .= $filename . '="' . $title . '"' . "\n";
 		}
 		$packlist .= "[order]\n";
-		foreach( $ordTable as $filename => $order )
+		foreach ($ordTable as $filename => $order)
 		{
-			$filename=str_replace('.html','',$filename);
-			$packlist .= $filename.'='.$order."\n";
+			$filename = str_replace('.html', '', $filename);
+			$packlist .= $filename . '=' . $order . "\n";
 		}
 		// Add packing list
-		file_put_contents($tempdir.DS.'packlist.tmp', $packlist);
-		$archiver->addFile($tempdir.DS.'packlist.tmp', 'packlist');
-		unlink($tempdir.DS.'packlist.tmp');
+		file_put_contents($tempdir . DS . 'packlist.tmp', $packlist);
+		$archiver->addFile($tempdir . DS . 'packlist.tmp', 'packlist');
+		unlink($tempdir . DS . 'packlist.tmp');
 
 		// Add processed HTML files; the idea is to follow the article order
 		$this->log("Adding processed HTML to the archive");
-		foreach( $ordTable as $filename => $order )
+		foreach ($ordTable as $filename => $order)
 		{
 			$id = $files[$filename];
-			$myfile = $tempdir.DS.'file'.$id.'.dat';
-			$archiver->addFile($myfile, 'file'.$id.'.dat');
+			$myfile = $tempdir . DS . 'file' . $id . '.dat';
+			$archiver->addFile($myfile, 'file' . $id . '.dat');
 			unlink($myfile);
 		}
 
 		$this->log("Adding images to the archive");
-		foreach( $images as $filename => $id )
+		foreach ($images as $filename => $id)
 		{
-			$archiver->addFile($this->imagefile_directory.DS.$filename, 'image'.$id.'.dat');
+			$archiver->addFile($this->imagefile_directory . DS . $filename, 'image' . $id . '.dat');
 		}
 
 		// Finalize archive
@@ -273,34 +286,46 @@ class DocexportTask extends matchingTask
 		$this->log("Cleaning up");
 		$this->advancedRmdir($tempdir);
 
-		$this->log("Max memory used: ". memory_get_peak_usage());
+		$this->log("Max memory used: " . memory_get_peak_usage());
 	}
 
-	function advancedRmdir($path) {
+	function advancedRmdir($path)
+	{
 		$origipath = $path;
 		$handler = opendir($path);
-		while (true) {
+		while (true)
+		{
 			$item = readdir($handler);
-			if ($item == "." or $item == "..") {
+			if ($item == "." or $item == "..")
+			{
 				continue;
-			} elseif (gettype($item) == "boolean") {
+			}
+			elseif (gettype($item) == "boolean")
+			{
 				closedir($handler);
-				if (!@rmdir($path)) {
+				if (!@rmdir($path))
+				{
 					return false;
 				}
-				if ($path == $origipath) {
+				if ($path == $origipath)
+				{
 					break;
 				}
 				$path = substr($path, 0, strrpos($path, "/"));
 				$handler = opendir($path);
-			} elseif (is_dir($path."/".$item)) {
+			}
+			elseif (is_dir($path . "/" . $item))
+			{
 				closedir($handler);
-				$path = $path."/".$item;
+				$path = $path . "/" . $item;
 				$handler = opendir($path);
-			} else {
-				unlink($path."/".$item);
+			}
+			else
+			{
+				unlink($path . "/" . $item);
 			}
 		}
+
 		return true;
 	}
 
@@ -312,15 +337,16 @@ class DocexportTask extends matchingTask
 		$pattern = preg_split('/\./', $string, -1, PREG_SPLIT_OFFSET_CAPTURE);
 
 		# check if there is any extension
-		if(count($pattern) == 1)
+		if (count($pattern) == 1)
 		{
 			return '';
 		}
 
-		if(count($pattern) > 1)
+		if (count($pattern) > 1)
 		{
-			$filenamepart = $pattern[count($pattern)-1][0];
+			$filenamepart = $pattern[count($pattern) - 1][0];
 			preg_match('/[^?]*/', $filenamepart, $matches);
+
 			return $matches[0];
 		}
 	}
@@ -331,34 +357,37 @@ class DocexportTask extends matchingTask
 
 		$filedata = file_get_contents($filename);
 
-		if(basename($filename) == 'index.html')
+		if (basename($filename) == 'index.html')
 		{
 			$error_reporting = error_reporting(E_ERROR);
 			$domdoc = new DOMDocument();
 			$success = $domdoc->loadXML($filedata);
 
-			if(!$success) die('ERROR: '.$domdoc->getErrorString());
+			if (!$success)
+			{
+				die('ERROR: ' . $domdoc->getErrorString());
+			}
 
 			$order = 0;
 			$ordTable = array(
-					'index.html'	=> 0
+				'index.html' => 0
 			);
 			// Get a list of anchor elements (<a href="...">)
 			$anchors =& $domdoc->getElementsByTagName('a');
-			foreach($anchors as $anchor)
+			foreach ($anchors as $anchor)
 			{
 				// Grab the href
 				$href = $anchor->getAttribute('href');
 				// Kill any page anchors from the URL, e.g. #some-anchor
 				$hashlocation = strpos($href, '#');
-				if($hashlocation !== false)
+				if ($hashlocation !== false)
 				{
 					$href = substr($href, 0, $hashlocation);
 				}
 				// Only precess if this page is not already found
-				if(!array_key_exists($href, $ordTable) && ($href != ''))
+				if (!array_key_exists($href, $ordTable) && ($href != ''))
 				{
-					if(substr($href, 0, 7) != 'mailto:')
+					if (substr($href, 0, 7) != 'mailto:')
 					{
 						$order++;
 						$ordTable[$href] = $order;
@@ -387,24 +416,24 @@ class DocexportTask extends matchingTask
 		$titles[basename($filename)] = $title;
 
 		// Replace links to other XHTML files with {{fileXX}}
-		foreach($files as $filename => $id)
+		foreach ($files as $filename => $id)
 		{
-			$filedata = str_replace('href="'.$filename, 'href="{{file'.$id.'}}', $filedata);
+			$filedata = str_replace('href="' . $filename, 'href="{{file' . $id . '}}', $filedata);
 		}
 
 		// Replace links to image files with {{imageXX}}
 		$imageroot = $this->docbook_relimages;
-		foreach($images as $filename => $id)
+		foreach ($images as $filename => $id)
 		{
-			$occurence = strpos($filedata, 'src="'.$imageroot.'/'.$filename);
-			if($occurence !== false)
+			$occurence = strpos($filedata, 'src="' . $imageroot . '/' . $filename);
+			if ($occurence !== false)
 			{
 				$usedImages[basename($filename)] = true; // Mark this image as used
 			}
-			$filedata = str_replace('src="'.$imageroot.'/'.$filename, 'src="{{image'.$id.'}}', $filedata);
+			$filedata = str_replace('src="' . $imageroot . '/' . $filename, 'src="{{image' . $id . '}}', $filedata);
 		}
 
 		// Save the result to the archive
-		file_put_contents($tempdir.DS.'file'.$thisid.'.dat', $filedata);
+		file_put_contents($tempdir . DS . 'file' . $thisid . '.dat', $filedata);
 	}
 }

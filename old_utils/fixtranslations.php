@@ -3,20 +3,39 @@
 function recursiveApply($path)
 {
 	$dh = opendir($path);
-	while($entry = readdir($dh)) {
-		if($entry == '.') continue;
-		if($entry == '..') continue;
-		if(substr($entry, 0, 1) == '.') continue;
-		if(substr($entry, 0, 1) == '_') continue;
-		
-		$myDir = $path.DIRECTORY_SEPARATOR.$entry;
-		
-		if(is_link($myDir)) continue;
-		if(is_dir($myDir)) {
+	while ($entry = readdir($dh))
+	{
+		if ($entry == '.')
+		{
+			continue;
+		}
+		if ($entry == '..')
+		{
+			continue;
+		}
+		if (substr($entry, 0, 1) == '.')
+		{
+			continue;
+		}
+		if (substr($entry, 0, 1) == '_')
+		{
+			continue;
+		}
+
+		$myDir = $path . DIRECTORY_SEPARATOR . $entry;
+
+		if (is_link($myDir))
+		{
+			continue;
+		}
+		if (is_dir($myDir))
+		{
 			recursiveApply($myDir);
 		}
-		if(is_file($myDir)) {
-			if(substr($myDir, -4) == '.ini') {
+		if (is_file($myDir))
+		{
+			if (substr($myDir, -4) == '.ini')
+			{
 				fixTranslation($myDir);
 			}
 		}
@@ -27,44 +46,53 @@ function recursiveApply($path)
 function fixTranslation($filename)
 {
 	static $count = 0;
-	
+
 	$count++;
-	
+
 	echo sprintf('%05u', $count) . "\t$filename\n";
-	echo str_repeat('-', 79)."\n";
-	
+	echo str_repeat('-', 79) . "\n";
+
 	$fp = fopen($filename, 'rt');
-	if($fp == false) {
+	if ($fp == false)
+	{
 		echo "\tCOULD NOT OPEN FILE!\n";
+
 		return;
 	}
 	$out = '';
 	echo "\tReading file\n";
-	
+
 	$inEmptyLine = false;
-	while(!feof($fp)) {
+	while (!feof($fp))
+	{
 		$line = fgets($fp);
 		$trimmed = trim($line);
 
 		// Transform comments
-		if(substr($trimmed,0,1) == '#') {
-			$out .= ';'.substr($trimmed,1)."\n";
+		if (substr($trimmed, 0, 1) == '#')
+		{
+			$out .= ';' . substr($trimmed, 1) . "\n";
 			continue;
 		}
 
-		if(substr($trimmed,0,1) == ';') {
+		if (substr($trimmed, 0, 1) == ';')
+		{
 			$out .= "$trimmed\n";
 			continue;
 		}
 
 		// Detect blank lines
-		if(empty($trimmed)) {
-			if($inEmptyLine) continue;
+		if (empty($trimmed))
+		{
+			if ($inEmptyLine)
+			{
+				continue;
+			}
 			$inEmptyLine = true;
 			$out .= "\n";
 			continue;
 		}
-		
+
 		$inEmptyLine = false;
 
 		// Process key-value pairs
@@ -77,9 +105,9 @@ function fixTranslation($filename)
 		$key = trim($key);
 		$out .= "$key=\"$value\"\n";
 	}
-	$out = rtrim($out, "\n")."\n";
+	$out = rtrim($out, "\n") . "\n";
 	fclose($fp);
-	
+
 	#echo $out."\n\n";
 	echo "\tWriting fixed file\n";
 	file_put_contents($filename, $out);
@@ -108,5 +136,5 @@ Copyright (c)2014 Nicholas K. Dionysopoulos - All legal rights reserved
 ENDBANNER;
 
 
-$path = __DIR__.'/translations';
+$path = __DIR__ . '/translations';
 recursiveApply($path);

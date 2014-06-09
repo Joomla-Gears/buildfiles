@@ -7,23 +7,23 @@ class GitDateTask extends SvnBaseTask
 	/**
 	 * Git.date
 	 *
-	 * @var 	string
+	 * @var    string
 	 */
 	private $propertyName = "git.date";
 
 	/**
 	 * The date format. Uses Unix timestamp by default.
 	 *
-	 * @var 	string
+	 * @var    string
 	 *
-	 * @see		http://www.php.net/manual/en/function.date.php
+	 * @see        http://www.php.net/manual/en/function.date.php
 	 */
 	private $format = 'U';
 
 	/**
 	 * The working copy.
 	 *
-	 * @var		string
+	 * @var        string
 	 */
 	private $workingCopy;
 
@@ -62,7 +62,7 @@ class GitDateTask extends SvnBaseTask
 	/**
 	 * Sets the date format
 	 *
-	 * @param 	$format
+	 * @param    $format
 	 */
 	function setFormat($format)
 	{
@@ -78,9 +78,12 @@ class GitDateTask extends SvnBaseTask
 	{
 		$this->setup('info');
 
-		if($this->workingCopy == '..') $this->workingCopy = '../';
+		if ($this->workingCopy == '..')
+		{
+			$this->workingCopy = '../';
+		}
 
-		exec('git log --format=%at -n1 '.escapeshellarg($this->workingCopy), $timestamp);
+		exec('git log --format=%at -n1 ' . escapeshellarg($this->workingCopy), $timestamp);
 		$date = date($this->format, trim($timestamp[0]));
 		$this->project->setProperty($this->getPropertyName(), $date);
 	}

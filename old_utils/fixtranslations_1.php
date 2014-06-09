@@ -29,48 +29,59 @@ Copyright (c)2014 Nicholas K. Dionysopoulos - All legal rights reserved
     
 ENDBANNER;
 
-foreach($translationPaths as $root)
+foreach ($translationPaths as $root)
 {
 	echo "Fixing translations in $root\n";
-	$files = glob($root.'/*.ini');
-	if(!empty($files)) foreach($files as $file) {
-		echo "\t$file\n";
-		$fp = fopen($file, 'rt');
-		if($fp == false) die('Could not open file.');
-		$out = '';
-		while(!feof($fp)) {
-			$line = fgets($fp);
-			$trimmed = trim($line);
-			
-			// Transform comments
-			if(substr($trimmed,0,1) == '#') {
-				$out .= ';'.substr($trimmed,1)."\n";
-				continue;
+	$files = glob($root . '/*.ini');
+	if (!empty($files))
+	{
+		foreach ($files as $file)
+		{
+			echo "\t$file\n";
+			$fp = fopen($file, 'rt');
+			if ($fp == false)
+			{
+				die('Could not open file.');
 			}
-			
-			if(substr($trimmed,0,1) == ';') {
-				$out .= "$trimmed\n";
-				continue;
+			$out = '';
+			while (!feof($fp))
+			{
+				$line = fgets($fp);
+				$trimmed = trim($line);
+
+				// Transform comments
+				if (substr($trimmed, 0, 1) == '#')
+				{
+					$out .= ';' . substr($trimmed, 1) . "\n";
+					continue;
+				}
+
+				if (substr($trimmed, 0, 1) == ';')
+				{
+					$out .= "$trimmed\n";
+					continue;
+				}
+
+				// Detect blank lines
+				if (empty($trimmed))
+				{
+					$out .= "\n";
+					continue;
+				}
+
+				// Process key-value pairs
+				list($key, $value) = explode('=', $trimmed, 2);
+				$value = trim($value, '"');
+				$value = str_replace('\\"', "'", $value);
+				$value = str_replace('"_QQ_"', "'", $value);
+				$value = str_replace('"', "'", $value);
+				$key = strtoupper($key);
+				$key = trim($key);
+				$out .= "$key=\"$value\"\n";
 			}
-			
-			// Detect blank lines
-			if(empty($trimmed)) {
-				$out .= "\n";
-				continue;
-			}
-			
-			// Process key-value pairs
-			list($key, $value) = explode('=', $trimmed, 2);
-			$value = trim($value, '"');
-			$value = str_replace('\\"', "'", $value);
-			$value = str_replace('"_QQ_"', "'", $value);
-			$value = str_replace('"', "'", $value);
-			$key = strtoupper($key);
-			$key = trim($key);
-			$out .= "$key=\"$value\"\n";
+			fclose($fp);
+
+			file_put_contents($file, $out);
 		}
-		fclose($fp);
-		
-		file_put_contents($file, $out);
 	}
 }

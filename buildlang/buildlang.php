@@ -6,54 +6,94 @@ function scan($root)
 	$ret = array();
 
 	// Scan component frontend languages
-	_mergeLangRet($ret, _scanLangDir($root.'/component/frontend'), 'frontend');
+	_mergeLangRet($ret, _scanLangDir($root . '/component/frontend'), 'frontend');
 
 	// Scan component backend languages
-	_mergeLangRet($ret, _scanLangDir($root.'/component/backend'), 'backend');
+	_mergeLangRet($ret, _scanLangDir($root . '/component/backend'), 'backend');
 
 	// Scan modules, admin
-	try {
-		foreach(new DirectoryIterator($root.'/modules/admin') as $mname) {
-			if($mname->isDot()) continue;
-			if(!$mname->isDir()) continue;
+	try
+	{
+		foreach (new DirectoryIterator($root . '/modules/admin') as $mname)
+		{
+			if ($mname->isDot())
+			{
+				continue;
+			}
+			if (!$mname->isDir())
+			{
+				continue;
+			}
 			$module = $mname->getFilename();
-			_mergeLangRet($ret, _scanLangDir($root.'/modules/admin/'.$module), 'backend');
+			_mergeLangRet($ret, _scanLangDir($root . '/modules/admin/' . $module), 'backend');
 		}
-	} catch (Exception $exc) {
+	}
+	catch (Exception $exc)
+	{
 		//echo $exc->getTraceAsString();
 	}
 
 	// Scan modules, site
-	try {
-		foreach(new DirectoryIterator($root.'/modules/site') as $mname) {
-			if($mname->isDot()) continue;
-			if(!$mname->isDir()) continue;
+	try
+	{
+		foreach (new DirectoryIterator($root . '/modules/site') as $mname)
+		{
+			if ($mname->isDot())
+			{
+				continue;
+			}
+			if (!$mname->isDir())
+			{
+				continue;
+			}
 			$module = $mname->getFilename();
-			_mergeLangRet($ret, _scanLangDir($root.'/modules/site/'.$module), 'frontend');
+			_mergeLangRet($ret, _scanLangDir($root . '/modules/site/' . $module), 'frontend');
 		}
-	} catch (Exception $exc) {
+	}
+	catch (Exception $exc)
+	{
 		//echo $exc->getTraceAsString();
 	}
 
 	// Scan plugins
-	try {
-		foreach(new DirectoryIterator($root.'/plugins') as $fldname) {
-			if($fldname->isDot()) continue;
-			if(!$fldname->isDir()) continue;
-			$path = $root.'/plugins/'.$fldname->getFilename();
+	try
+	{
+		foreach (new DirectoryIterator($root . '/plugins') as $fldname)
+		{
+			if ($fldname->isDot())
+			{
+				continue;
+			}
+			if (!$fldname->isDir())
+			{
+				continue;
+			}
+			$path = $root . '/plugins/' . $fldname->getFilename();
 			// Scan this folder for plugins
-			try {
-				foreach(new DirectoryIterator($path) as $pname) {
-					if($pname->isDot()) continue;
-					if(!$pname->isDir()) continue;
+			try
+			{
+				foreach (new DirectoryIterator($path) as $pname)
+				{
+					if ($pname->isDot())
+					{
+						continue;
+					}
+					if (!$pname->isDir())
+					{
+						continue;
+					}
 					$plugin = $pname->getFilename();
-					_mergeLangRet($ret, _scanLangDir($path.'/'.$plugin), 'backend');
+					_mergeLangRet($ret, _scanLangDir($path . '/' . $plugin), 'backend');
 				}
-			} catch (Exception $exc) {
+			}
+			catch (Exception $exc)
+			{
 				//echo $exc->getTraceAsString();
 			}
 		}
-	} catch (Exception $exc) {
+	}
+	catch (Exception $exc)
+	{
 		//echo $exc->getTraceAsString();
 	}
 
@@ -62,10 +102,13 @@ function scan($root)
 
 function _mergeLangRet(&$ret, $temp, $area = 'frontend')
 {
-	foreach($temp as $lang => $files) {
+	foreach ($temp as $lang => $files)
+	{
 		$existing = array();
-		if(array_key_exists($lang, $ret)) {
-			if(array_key_exists($area, $ret[$lang])) {
+		if (array_key_exists($lang, $ret))
+		{
+			if (array_key_exists($area, $ret[$lang]))
+			{
 				$existing = $ret[$lang][$area];
 			}
 		}
@@ -76,26 +119,47 @@ function _mergeLangRet(&$ret, $temp, $area = 'frontend')
 function _scanLangDir($path)
 {
 	$langs = array();
-	try {
-		foreach(new DirectoryIterator($path) as $file) {
-			if($file->isDot()) continue;
-			if(!$file->isDir()) continue;
+	try
+	{
+		foreach (new DirectoryIterator($path) as $file)
+		{
+			if ($file->isDot())
+			{
+				continue;
+			}
+			if (!$file->isDir())
+			{
+				continue;
+			}
 			$langs[] = $file->getFileName();
 		}
-	} catch (Exception $exc) {
+	}
+	catch (Exception $exc)
+	{
 		//echo $exc->getTraceAsString();
 	}
 
 	$ret = array();
-	foreach($langs as $lang) {
-		try {
-			foreach(new DirectoryIterator($path.'/'.$lang) as $file) {
-				if(!$file->isFile()) continue;
+	foreach ($langs as $lang)
+	{
+		try
+		{
+			foreach (new DirectoryIterator($path . '/' . $lang) as $file)
+			{
+				if (!$file->isFile())
+				{
+					continue;
+				}
 				$fname = $file->getFileName();
-				if(substr($fname,-4) != '.ini') continue;
-				$ret[$lang][] = $path.'/'.$lang.'/'.$fname;
+				if (substr($fname, -4) != '.ini')
+				{
+					continue;
+				}
+				$ret[$lang][] = $path . '/' . $lang . '/' . $fname;
 			}
-		} catch (Exception $exc) {
+		}
+		catch (Exception $exc)
+		{
 			//echo $exc->getTraceAsString();
 		}
 	}
@@ -116,11 +180,11 @@ $rootDirectory = realpath($argv[2]);
 $props = parse_ini_file($propsFile);
 
 // Get some basic parameters
-$packageName  = $props['langbuilder.packagename'];
+$packageName = $props['langbuilder.packagename'];
 $softwareName = $props['langbuilder.software'];
-$authorName   = isset($props['langbuilder.authorname']) ? $props['langbuilder.authorname'] : 'AkeebaBackup.com';
-$authorUrl    = isset($props['langbuilder.authorurl']) ? $props['langbuilder.authorurl'] : 'http://www.akeebabackup.com';
-$license      = isset($props['langbuilder.license']) ? $props['langbuilder.license'] : 'http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL';
+$authorName = isset($props['langbuilder.authorname']) ? $props['langbuilder.authorname'] : 'AkeebaBackup.com';
+$authorUrl = isset($props['langbuilder.authorurl']) ? $props['langbuilder.authorurl'] : 'http://www.akeebabackup.com';
+$license = isset($props['langbuilder.license']) ? $props['langbuilder.license'] : 'http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL';
 $langVersions = isset($props['langbuilder.jversions']) ? $props['langbuilder.jversions'] : '1.6/1.7/2.5/3.x';
 
 // Create an URL-friendly version of the package name
@@ -129,9 +193,9 @@ $packageNameURL = str_replace(' ', '-', strtolower(trim($packageName)));
 // Instanciate S3
 require_once('S3.php');
 
-$s3         = new S3($props['s3.access'], $props['s3.private']);
-$s3Bucket   = $props['s3.bucket'];
-$s3Path     = $props['s3.path'];
+$s3 = new S3($props['s3.access'], $props['s3.private']);
+$s3Bucket = $props['s3.bucket'];
+$s3Path = $props['s3.path'];
 $s3LangPath = isset($props['s3.langpath']) ? $props['s3.langpath'] : 'http://cdn.akeebabackup.com/language';
 
 // Scan languages
@@ -141,10 +205,13 @@ ksort($langs);
 $numlangs = count($langs);
 echo "Found $numlangs languages\n\n";
 
-if($argc > 3) {
+if ($argc > 3)
+{
 	$version = $argv[2];
-} else {
-	$version = '0.0.'.gmdate('YdmHis');
+}
+else
+{
+	$version = '0.0.' . gmdate('YdmHis');
 }
 
 date_default_timezone_set('Europe/Athens');
@@ -156,18 +223,19 @@ $langToName = parse_ini_file('map.ini');
 
 $langHTMLTable = '';
 $row = 1;
-foreach($langs as $tag => $files) {
+foreach ($langs as $tag => $files)
+{
 	$langName = $langToName[$tag];
 	echo "Building $langName ($tag)...\n";
 
 	// Get paths to temp and output files
 	@mkdir($rootDirectory . '/release/languages');
-	$j20ZIPPath = $rootDirectory . '/release/languages/'.$packageName.'-'.$tag.'-j25.zip';
-	$tempXMLPath = $rootDirectory . '/release/'.$tag.'.xml';
+	$j20ZIPPath = $rootDirectory . '/release/languages/' . $packageName . '-' . $tag . '-j25.zip';
+	$tempXMLPath = $rootDirectory . '/release/' . $tag . '.xml';
 
 	// Start new ZIP files
 	@unlink($j20ZIPPath);
-	$zip20 = new PclZip( $j20ZIPPath );
+	$zip20 = new PclZip($j20ZIPPath);
 
 	// Produce the Joomla! 1.6/1.7/2.5 manifest contents
 	$j20XML = <<<ENDHEAD
@@ -185,17 +253,21 @@ foreach($langs as $tag => $files) {
 
 ENDHEAD;
 
-	if(array_key_exists('backend', $files)){
+	if (array_key_exists('backend', $files))
+	{
 		$j20XML .= "\t\t<files folder=\"backend\" target=\"administrator/language/$tag\">\n";
-		foreach($files['backend'] as $file) {
-			$j20XML .= "\t\t\t<filename>".baseName($file)."</filename>\n";
+		foreach ($files['backend'] as $file)
+		{
+			$j20XML .= "\t\t\t<filename>" . baseName($file) . "</filename>\n";
 		}
 		$j20XML .= "\t\t</files>\n";
 	}
-	if(array_key_exists('frontend', $files)){
+	if (array_key_exists('frontend', $files))
+	{
 		$j20XML .= "\t\t<files folder=\"frontend\" target=\"language/$tag\">\n";
-		foreach($files['frontend'] as $file) {
-			$j20XML .= "\t\t\t<filename>".baseName($file)."</filename>\n";
+		foreach ($files['frontend'] as $file)
+		{
+			$j20XML .= "\t\t\t<filename>" . baseName($file) . "</filename>\n";
 		}
 		$j20XML .= "\t\t</files>\n";
 	}
@@ -205,25 +277,29 @@ ENDHEAD;
 	@unlink($tempXMLPath);
 	@file_put_contents($tempXMLPath, $j20XML);
 	$zip20->add($tempXMLPath,
-			PCLZIP_OPT_ADD_PATH, '',
-			PCLZIP_OPT_REMOVE_PATH, dirname($tempXMLPath)
+		PCLZIP_OPT_ADD_PATH, '',
+		PCLZIP_OPT_REMOVE_PATH, dirname($tempXMLPath)
 	);
 	@unlink($tempXMLPath);
 
 	// Add back-end files to archives
-	if(array_key_exists('backend', $files)){
-		foreach($files['backend'] as $file) {
+	if (array_key_exists('backend', $files))
+	{
+		foreach ($files['backend'] as $file)
+		{
 			$zip20->add($file,
-                	PCLZIP_OPT_ADD_PATH, 'backend' ,
-                	PCLZIP_OPT_REMOVE_PATH, dirname($file) );
+				PCLZIP_OPT_ADD_PATH, 'backend',
+				PCLZIP_OPT_REMOVE_PATH, dirname($file));
 		}
 	}
 	// Add front-end files to archives
-	if(array_key_exists('frontend', $files)){
-		foreach($files['frontend'] as $file) {
+	if (array_key_exists('frontend', $files))
+	{
+		foreach ($files['frontend'] as $file)
+		{
 			$zip20->add($file,
-                	PCLZIP_OPT_ADD_PATH, 'frontend' ,
-                	PCLZIP_OPT_REMOVE_PATH, dirname($file) );
+				PCLZIP_OPT_ADD_PATH, 'frontend',
+				PCLZIP_OPT_REMOVE_PATH, dirname($file));
 		}
 	}
 
@@ -232,7 +308,8 @@ ENDHEAD;
 
 	$parts = explode('-', $tag);
 	$country = strtolower($parts[1]);
-	if($tag == 'ca-ES') {
+	if ($tag == 'ca-ES')
+	{
 		$country = 'catalonia';
 	}
 
@@ -252,8 +329,8 @@ ENDHEAD;
 ENDHTML;
 
 	// @todo Upload translation files
-	echo "\tUploading ".basename($j20ZIPPath)."\n";
-	$s3->putObjectFile($j20ZIPPath, $s3Bucket, $s3Path.'/'.$packageNameURL.'/'.basename($j20ZIPPath), S3::ACL_PUBLIC_READ);
+	echo "\tUploading " . basename($j20ZIPPath) . "\n";
+	$s3->putObjectFile($j20ZIPPath, $s3Bucket, $s3Path . '/' . $packageNameURL . '/' . basename($j20ZIPPath), S3::ACL_PUBLIC_READ);
 }
 
 $html = @file_get_contents($rootDirectory . '/translations/_pages/index.html');
@@ -264,7 +341,7 @@ $html = str_replace('[YEAR]', gmdate('Y'), $html);
 echo "Uploading index.html file\n";
 $tempHTMLPath = $rootDirectory . '/release/index.html';
 @file_put_contents($tempHTMLPath, $html);
-$s3->putObjectFile($tempHTMLPath, $s3Bucket, $s3Path.'/'.$packageNameURL.'/index.html', S3::ACL_PUBLIC_READ);
+$s3->putObjectFile($tempHTMLPath, $s3Bucket, $s3Path . '/' . $packageNameURL . '/index.html', S3::ACL_PUBLIC_READ);
 @unlink($tempHTMLPath);
 
 echo "\nDone\n\n";

@@ -4,7 +4,7 @@
  * preventing you from managing the language. This is how we fix it.
  */
 
-$rawData = parse_ini_file(__DIR__.'/.tx/config', true);
+$rawData = parse_ini_file(__DIR__ . '/.tx/config', true);
 
 $fixed = array();
 foreach ($rawData as $key => $data)
@@ -29,7 +29,7 @@ foreach ($rawData as $key => $data)
 }
 
 $out = '';
-foreach($fixed as $section => $data)
+foreach ($fixed as $section => $data)
 {
 	$out .= "[$section]\n";
 	foreach ($data as $k => $v)
@@ -39,5 +39,5 @@ foreach($fixed as $section => $data)
 	$out .= "\n";
 }
 
-file_put_contents(__DIR__.'/.tx/config', $out);
+file_put_contents(__DIR__ . '/.tx/config', $out);
 echo "\n\nDone\n\n";

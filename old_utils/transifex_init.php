@@ -9,22 +9,22 @@ $symlink_lang = 'pt-BR';
 
 /**
  * Does a translation already exist in .tx/config?
- * 
- * @param   string  $key    The translation key to check
- * @param   string  $proto  The translation file prototype to check (overrides key)
- * 
+ *
+ * @param   string $key   The translation key to check
+ * @param   string $proto The translation file prototype to check (overrides key)
+ *
  * @return  boolean True if the key already exists
  */
 function does_translation_exist($key, $proto = null)
 {
 	static $translations = null;
 	static $file_protos = null;
-	
+
 	if (is_null($translations))
 	{
-		$rawData = parse_ini_file(__DIR__.'/.tx/config', true);
+		$rawData = parse_ini_file(__DIR__ . '/.tx/config', true);
 		$translations = array_keys($rawData);
-		foreach($rawData as $section => $data)
+		foreach ($rawData as $section => $data)
 		{
 			if (!isset($data['file_filter']))
 			{
@@ -33,48 +33,55 @@ function does_translation_exist($key, $proto = null)
 			$file_protos[] = $data['file_filter'];
 		}
 	}
-	
+
 	if (in_array($key, $translations))
 	{
 		return true;
 	}
-	elseif(!empty($proto))
+	elseif (!empty($proto))
 	{
 		return in_array($proto, $file_protos);
 	}
-	
+
 	return false;
 }
 
 /**
  * Process a translation INI file, converting from Joomla! 1.5 to 1.6+ format.
  * The original file is replaced with the fixed file.
- * 
- * @param   string  $file  The full path to the file to be fixed
+ *
+ * @param   string $file The full path to the file to be fixed
  */
 function fix_file($file)
 {
-	echo basename($file)."\n";
+	echo basename($file) . "\n";
 	$fp = fopen($file, 'rt');
-	if($fp == false) die('Could not open file.');
+	if ($fp == false)
+	{
+		die('Could not open file.');
+	}
 	$out = '';
-	while(!feof($fp)) {
+	while (!feof($fp))
+	{
 		$line = fgets($fp);
 		$trimmed = trim($line);
 
 		// Transform comments
-		if(substr($trimmed,0,1) == '#') {
-			$out .= ';'.substr($trimmed,1)."\n";
+		if (substr($trimmed, 0, 1) == '#')
+		{
+			$out .= ';' . substr($trimmed, 1) . "\n";
 			continue;
 		}
 
-		if(substr($trimmed,0,1) == ';') {
+		if (substr($trimmed, 0, 1) == ';')
+		{
 			$out .= "$trimmed\n";
 			continue;
 		}
 
 		// Detect blank lines
-		if(empty($trimmed)) {
+		if (empty($trimmed))
+		{
 			$out .= "\n";
 			continue;
 		}
@@ -96,14 +103,21 @@ function fix_file($file)
 
 function scan_leaf_fixfile($slugArray, $rootDir)
 {
-	foreach(new DirectoryIterator($rootDir) as $oLang)
+	foreach (new DirectoryIterator($rootDir) as $oLang)
 	{
-		if(!$oLang->isDir()) continue;
-		if($oLang->isDot()) continue;
+		if (!$oLang->isDir())
+		{
+			continue;
+		}
+		if ($oLang->isDot())
+		{
+			continue;
+		}
 		$lang = $oLang->getFilename();
-		
-		$files = glob($rootDir.'/'.$lang.'/*.ini');
-		foreach($files as $f) {
+
+		$files = glob($rootDir . '/' . $lang . '/*.ini');
+		foreach ($files as $f)
+		{
 			fix_file($f);
 		}
 	}
@@ -112,119 +126,163 @@ function scan_leaf_fixfile($slugArray, $rootDir)
 function scan_leaf_symlink($slugArray, $rootDir)
 {
 	global $symlink_lang;
-	
-	foreach(new DirectoryIterator($rootDir) as $oLang)
+
+	foreach (new DirectoryIterator($rootDir) as $oLang)
 	{
-		if(!$oLang->isDir()) continue;
-		if($oLang->isDot()) continue;
+		if (!$oLang->isDir())
+		{
+			continue;
+		}
+		if ($oLang->isDot())
+		{
+			continue;
+		}
 		$lang = $oLang->getFilename();
-		
-		$files = glob($rootDir.'/'.$lang.'/*.ini');
-		foreach($files as $f) {
-			if(substr(basename($f), 0, 5) != $symlink_lang) continue;
-			echo basename($f)."\n";
+
+		$files = glob($rootDir . '/' . $lang . '/*.ini');
+		foreach ($files as $f)
+		{
+			if (substr(basename($f), 0, 5) != $symlink_lang)
+			{
+				continue;
+			}
+			echo basename($f) . "\n";
 			#copy($f, __DIR__.'/000/'.basename($f));
-			copy(__DIR__.'/000/'.basename($f), $f);
+			copy(__DIR__ . '/000/' . basename($f), $f);
 		}
 	}
 }
 
-function scan_leaf_txinit($slugArray, $rootDir) {
+function scan_leaf_txinit($slugArray, $rootDir)
+{
 	global $root, $txproject;
-	
-	if(!file_exists('tx.sh')) {
-		file_put_contents('tx.sh', '#!/bin/bash'."\n");
+
+	if (!file_exists('tx.sh'))
+	{
+		file_put_contents('tx.sh', '#!/bin/bash' . "\n");
 		chmod('tx.sh', 0755);
 	}
-	
-	$files = glob($rootDir.'/en-GB/*.ini');
+
+	$files = glob($rootDir . '/en-GB/*.ini');
 	$slug = implode($slugArray, '_');
-	foreach($files as $f) {
-		
-		if(substr($f, -8) == '.sys.ini') {
+	foreach ($files as $f)
+	{
+
+		if (substr($f, -8) == '.sys.ini')
+		{
 			$slug .= '_sys';
-		} elseif(substr($f, -9) == '.menu.ini') {
+		}
+		elseif (substr($f, -9) == '.menu.ini')
+		{
 			$slug .= '_menu';
-		} else {
+		}
+		else
+		{
 			$slug .= '_main';
 		}
-		
+
 		$file_proto = basename($f);
 		$file_proto = substr($file_proto, 5);
-		$file_proto = $rootDir.'/<lang>/<lang>'.$file_proto;
-		$file_proto = substr($file_proto, strlen($root)+1);
-		
-		if(!does_translation_exist($txproject.'.'.$slug, $file_proto))
+		$file_proto = $rootDir . '/<lang>/<lang>' . $file_proto;
+		$file_proto = substr($file_proto, strlen($root) + 1);
+
+		if (!does_translation_exist($txproject . '.' . $slug, $file_proto))
 		{
-			echo $rootDir."\n";
+			echo $rootDir . "\n";
 			$cmd = "tx set --auto-local -r $txproject.$slug '$file_proto' --source-lang en-GB";
 			$cmd .= ' --execute';
 
 			//passthru($cmd);
 			$fp = fopen('tx.sh', 'at');
-			fwrite($fp, $cmd."\n");
+			fwrite($fp, $cmd . "\n");
 			fclose($fp);
 		}
 	}
 }
 
-$myRoot = $root.'/translations';
-foreach(new DirectoryIterator($myRoot) as $oArea)
+$myRoot = $root . '/translations';
+foreach (new DirectoryIterator($myRoot) as $oArea)
 {
-	if(!$oArea->isDir()) continue;
-	if($oArea->isDot()) continue;
+	if (!$oArea->isDir())
+	{
+		continue;
+	}
+	if ($oArea->isDot())
+	{
+		continue;
+	}
 	$area = $oArea->getFilename();
-	
-	$areaDir = $myRoot.'/'.$area;
+
+	$areaDir = $myRoot . '/' . $area;
 	$slug = array();
-	switch($area) {
+	switch ($area)
+	{
 		case 'component':
 			$slug[] = $component;
 			break;
-		
+
 		case 'modules':
 			$slug[] = 'mod';
 			break;
-		
+
 		case 'plugins':
 			$slug[] = 'plg';
 			break;
-		
+
 		default:
 			break;
 	}
-	
-	if(empty($slug)) continue;
-	
-	foreach(new DirectoryIterator($areaDir) as $oFolder)
+
+	if (empty($slug))
 	{
-		if(!$oFolder->isDir()) continue;
-		if($oFolder->isDot()) continue;
+		continue;
+	}
+
+	foreach (new DirectoryIterator($areaDir) as $oFolder)
+	{
+		if (!$oFolder->isDir())
+		{
+			continue;
+		}
+		if ($oFolder->isDot())
+		{
+			continue;
+		}
 		$folder = $oFolder->getFilename();
-		
+
 		$slug[] = $folder;
-		$folderDir = $areaDir.'/'.$folder;
-		
-		if(is_dir($folderDir.'/en-GB')) {
+		$folderDir = $areaDir . '/' . $folder;
+
+		if (is_dir($folderDir . '/en-GB'))
+		{
 			// A component
 			call_user_func($action, $slug, $folderDir);
-		} else {
+		}
+		else
+		{
 			// A module or plugin
-			foreach(new DirectoryIterator($folderDir) as $oExtension)
+			foreach (new DirectoryIterator($folderDir) as $oExtension)
 			{
-				if(!$oExtension->isDir()) continue;
-				if($oExtension->isDot()) continue;
+				if (!$oExtension->isDir())
+				{
+					continue;
+				}
+				if ($oExtension->isDot())
+				{
+					continue;
+				}
 				$extension = $oExtension->getFilename();
-				
+
 				$slug[] = $extension;
-				$extensionDir = $folderDir.'/'.$extension;
-				if(is_dir($extensionDir.'/en-GB')) {
+				$extensionDir = $folderDir . '/' . $extension;
+				if (is_dir($extensionDir . '/en-GB'))
+				{
 					call_user_func($action, $slug, $extensionDir);
 				}
 				array_pop($slug);
 			}
 		}
-		
+
 		array_pop($slug);
 	}
 }

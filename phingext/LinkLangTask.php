@@ -1,6 +1,6 @@
 <?php
 require_once 'phing/Task.php';
-require_once dirname(__FILE__).'/LinkTask.php';
+require_once dirname(__FILE__) . '/LinkTask.php';
 
 /**
  * Class LinkLangTask
@@ -17,36 +17,48 @@ class LinkLangTask extends LinkTask
 	/**
 	 * Main entry point for task.
 	 *
-	 * @return 	bool
+	 * @return    bool
 	 */
 	public function main()
 	{
-		$map  = $this->getMap();
+		$map = $this->getMap();
 		$root = $this->getLink();
 		$type = $this->getType();
 		$target = $map;
 
-		foreach(new DirectoryIterator($root) as $oArea)
+		foreach (new DirectoryIterator($root) as $oArea)
 		{
-			if (!$oArea->isDir()) continue;
-			if ($oArea->isDot())  continue;
+			if (!$oArea->isDir())
+			{
+				continue;
+			}
+			if ($oArea->isDot())
+			{
+				continue;
+			}
 			$area = $oArea->getFilename();
-			$areaDir = $root.'/'.$area;
+			$areaDir = $root . '/' . $area;
 
 			$this->log("\t$area\n", Project::MSG_INFO);
 
-			foreach(new DirectoryIterator($areaDir) as $oModule)
+			foreach (new DirectoryIterator($areaDir) as $oModule)
 			{
-				if (!$oModule->isDir()) continue;
-				if ($oModule->isDot())  continue;
+				if (!$oModule->isDir())
+				{
+					continue;
+				}
+				if ($oModule->isDot())
+				{
+					continue;
+				}
 
 				$module = $oModule->getFilename();
-				$moduleDir = $areaDir.'/'.$module;
+				$moduleDir = $areaDir . '/' . $module;
 
 				$this->log("\t\t$module", Project::MSG_INFO);
 
-				$from = $target.'/'.$area.'/'.$module.'/en-GB';
-				$to = $moduleDir.'/language/en-GB';
+				$from = $target . '/' . $area . '/' . $module . '/en-GB';
+				$to = $moduleDir . '/language/en-GB';
 
 				if (!is_dir($from))
 				{

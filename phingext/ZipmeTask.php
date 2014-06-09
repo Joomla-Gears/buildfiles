@@ -9,11 +9,12 @@ require_once 'pclzip.php';
 
 /**
  * Creates a JPA archive
- * @author Nicholas K. Dionysopoulos
- * @version $Id: ZipmeTask.php 409 2011-01-24 09:30:22Z nikosdion $
- * @package akeebabuilder
+ *
+ * @author    Nicholas K. Dionysopoulos
+ * @version   $Id: ZipmeTask.php 409 2011-01-24 09:30:22Z nikosdion $
+ * @package   akeebabuilder
  * @copyright Copyright (c)2009-2014 Nicholas K. Dionysopoulos
- * @license GNU GPL version 3 or, at your option, any later version
+ * @license   GNU GPL version 3 or, at your option, any later version
  */
 class ZipmeTask extends MatchingTask
 {
@@ -40,10 +41,12 @@ class ZipmeTask extends MatchingTask
 	private $includeEmpty = true;
 
 	private $filesets = array();
+
 	private $fileSetFiles = array();
 
 	/**
 	 * Add a new fileset.
+	 *
 	 * @return FileSet
 	 */
 	public function createFileSet()
@@ -56,6 +59,7 @@ class ZipmeTask extends MatchingTask
 
 	/**
 	 * Add a new fileset.
+	 *
 	 * @return FileSet
 	 */
 	public function createZipmeFileSet()
@@ -68,6 +72,7 @@ class ZipmeTask extends MatchingTask
 
 	/**
 	 * Set is the name/location of where to create the zip file.
+	 *
 	 * @param PhingFile $destFile The output of the zip
 	 */
 	public function setDestFile(PhingFile $destFile)
@@ -77,17 +82,20 @@ class ZipmeTask extends MatchingTask
 
 	/**
 	 * Set the include empty dirs flag.
+	 *
 	 * @param  boolean  Flag if empty dirs should be tarred too
+	 *
 	 * @return void
 	 * @access public
 	 */
 	public function setIncludeEmptyDirs($bool)
 	{
-		$this->includeEmpty = (boolean) $bool;
+		$this->includeEmpty = (boolean)$bool;
 	}
 
 	/**
 	 * This is the base directory to look in for things to zip.
+	 *
 	 * @param PhingFile $baseDir
 	 */
 	public function setBasedir(PhingFile $baseDir)
@@ -143,11 +151,11 @@ class ZipmeTask extends MatchingTask
 
 			$this->log("Building ZIP: " . $this->zipFile->__toString(), Project::MSG_INFO);
 
-			$zip = new PclZip( $this->zipFile->getAbsolutePath() );
+			$zip = new PclZip($this->zipFile->getAbsolutePath());
 
 			if ($zip->errorCode() != 1)
 			{
-				throw new Exception("PclZip::open() failed: " . $zip->errorInfo() );
+				throw new Exception("PclZip::open() failed: " . $zip->errorInfo());
 			}
 
 			foreach ($this->filesets as $fs)
@@ -180,7 +188,7 @@ class ZipmeTask extends MatchingTask
 						continue;
 					}
 
-					if (substr(rtrim($fileAbsolutePath,'/\\'), -4 ) == '.svn')
+					if (substr(rtrim($fileAbsolutePath, '/\\'), -4) == '.svn')
 					{
 						continue;
 					}
@@ -189,8 +197,8 @@ class ZipmeTask extends MatchingTask
 				}
 
 				$zip->add($filesToZip,
-					PCLZIP_OPT_ADD_PATH, is_null($this->prefix) ? '' : $this->prefix ,
-					PCLZIP_OPT_REMOVE_PATH, $fsBasedir->getPath() );
+					PCLZIP_OPT_ADD_PATH, is_null($this->prefix) ? '' : $this->prefix,
+					PCLZIP_OPT_REMOVE_PATH, $fsBasedir->getPath());
 			}
 		}
 		catch (IOException $ioe)
@@ -216,14 +224,14 @@ class ZipmeFileSet extends FileSet
 	/**
 	 * The files to zip
 	 *
-	 * @var		null|array
+	 * @var        null|array
 	 */
 	private $files = null;
 
 	/**
 	 * Constructor
 	 *
-	 * @param 	null $fileset
+	 * @param    null $fileset
 	 */
 	public function __construct($fileset = null)
 	{
@@ -238,8 +246,8 @@ class ZipmeFileSet extends FileSet
 	/**
 	 *  Get a list of files and directories specified in the fileset.
 	 *
-	 * @return array 	A list of file and directory names, relative to
-	 *    				the baseDir for the project.
+	 * @return array    A list of file and directory names, relative to
+	 *                    the baseDir for the project.
 	 */
 	public function getFiles(Project $p, $includeEmpty = true)
 	{
@@ -252,7 +260,8 @@ class ZipmeFileSet extends FileSet
 			{
 				// first any empty directories that will not be implicitly added by any of the files
 				$implicitDirs = array();
-				foreach($this->files as $file) {
+				foreach ($this->files as $file)
+				{
 					$implicitDirs[] = dirname($file);
 				}
 
@@ -277,7 +286,7 @@ class ZipmeFileSet extends FileSet
 				// Now add any empty dirs (dirs not covered by the implicit dirs)
 				// to the files array.
 
-				foreach($incDirs as $dir)
+				foreach ($incDirs as $dir)
 				{
 					// we cannot simply use array_diff() since we want to disregard empty/. dirs
 					if ($dir != "" && $dir != "." && !in_array($dir, $implicitDirs))

@@ -70,7 +70,7 @@ class LangTask extends Task
 	{
 		$this->scanBackend();
 		$this->scanFrontend();
-		foreach($this->languages as $tag => $langData)
+		foreach ($this->languages as $tag => $langData)
 		{
 			$this->makeLanguage($tag, $langData);
 		}
@@ -81,26 +81,29 @@ class LangTask extends Task
 		$path = $this->sourcePath . DIRECTORY_SEPARATOR . $this->backendPath;
 		$files = $this->scanDirectory($path);
 
-		foreach($files as $file)
+		foreach ($files as $file)
 		{
-			if( strtolower(substr(basename($file), -4)) != '.ini' ) continue;
-			$basename = basename($file,'.ini');
+			if (strtolower(substr(basename($file), -4)) != '.ini')
+			{
+				continue;
+			}
+			$basename = basename($file, '.ini');
 			$tag = substr($basename, 0, strpos($basename, '.'));
-			if(!array_key_exists($tag, $this->languages))
+			if (!array_key_exists($tag, $this->languages))
 			{
 				$this->languages[$tag] = array(
-					'name'		=> '',
-					'author'	=>	'',
-					'authorurl'	=>	'',
-					'backend'	=> array(),
-					'frontend'	=> array()
+					'name'      => '',
+					'author'    => '',
+					'authorurl' => '',
+					'backend'   => array(),
+					'frontend'  => array()
 				);
 			}
 			$this->languages[$tag]['backend'][] = basename($file);
 			$langData = $this->parse_language($path . DIRECTORY_SEPARATOR . $file);
-			$this->languages[$tag]['name'] = $this->conditionalSet($langData, 'TRANSLATION_LANGUAGE', $this->languages[$tag]['name'] );
-			$this->languages[$tag]['author'] = $this->conditionalSet($langData, 'TRANSLATION_AUTHOR', $this->languages[$tag]['author'] );
-			$this->languages[$tag]['authorurl'] = $this->conditionalSet($langData, 'TRANSLATION_AUTHOR_URL', $this->languages[$tag]['authorurl'] );
+			$this->languages[$tag]['name'] = $this->conditionalSet($langData, 'TRANSLATION_LANGUAGE', $this->languages[$tag]['name']);
+			$this->languages[$tag]['author'] = $this->conditionalSet($langData, 'TRANSLATION_AUTHOR', $this->languages[$tag]['author']);
+			$this->languages[$tag]['authorurl'] = $this->conditionalSet($langData, 'TRANSLATION_AUTHOR_URL', $this->languages[$tag]['authorurl']);
 		}
 	}
 
@@ -109,19 +112,22 @@ class LangTask extends Task
 		$path = $this->sourcePath . DIRECTORY_SEPARATOR . $this->frontendPath;
 		$files = $this->scanDirectory($path);
 
-		foreach($files as $file)
+		foreach ($files as $file)
 		{
-			if( strtolower(substr(basename($file), -4)) != '.ini' ) continue;
-			$basename = basename($file,'.ini');
+			if (strtolower(substr(basename($file), -4)) != '.ini')
+			{
+				continue;
+			}
+			$basename = basename($file, '.ini');
 			$tag = substr($basename, 0, strpos($basename, '.'));
-			if(!array_key_exists($tag, $this->languages))
+			if (!array_key_exists($tag, $this->languages))
 			{
 				$this->languages[$tag] = array(
-					'name'		=> '',
-					'author'	=>	'',
-					'authorurl'	=>	'',
-					'backend'	=> array(),
-					'frontend'	=> array()
+					'name'      => '',
+					'author'    => '',
+					'authorurl' => '',
+					'backend'   => array(),
+					'frontend'  => array()
 				);
 			}
 			$this->languages[$tag]['frontend'][] = basename($file);
@@ -135,7 +141,7 @@ class LangTask extends Task
 		$this->log("Building language package for $tag ({$validname})", Project::MSG_INFO);
 
 		// Create XML file
-		$xmlFilename = $this->destPath . DIRECTORY_SEPARATOR . $tag.'.xml';
+		$xmlFilename = $this->destPath . DIRECTORY_SEPARATOR . $tag . '.xml';
 		$xmlData = <<<FILEDATA
 <?xml version="1.0" encoding="utf-8"?>
 <install version="1.5" client="both" type="language" method="upgrade">
@@ -148,27 +154,27 @@ class LangTask extends Task
     <description><![CDATA[Akeeba Backup {$validname}]]></description>
 
 FILEDATA;
-		if(count($langData['backend']))
+		if (count($langData['backend']))
 		{
 			$xmlData .= <<<FILEDATA
 	<administration>
 		<files folder="backend">
 
 FILEDATA;
-			foreach($langData['backend'] as $fname)
+			foreach ($langData['backend'] as $fname)
 			{
 				$xmlData .= "\t\t\t<filename>$fname</filename>\n";
 			}
 			$xmlData .= "\t\t</files>\n\t</administration>\n";
 		}
-		if(count($langData['frontend']))
+		if (count($langData['frontend']))
 		{
 			$xmlData .= <<<FILEDATA
 	<site>
 		<files folder="frontend">
 
 FILEDATA;
-			foreach($langData['frontend'] as $fname)
+			foreach ($langData['frontend'] as $fname)
 			{
 				$xmlData .= "\t\t\t<filename>$fname</filename>\n";
 			}
@@ -180,37 +186,37 @@ FILEDATA;
 		// Create ZIP file
 		$zipFileName = $this->destPath . DIRECTORY_SEPARATOR . $this->nameTemplate . $tag . '.zip';
 		@unlink($zipFileName);
-		$zip = new PclZip( $zipFileName );
+		$zip = new PclZip($zipFileName);
 
 		// Add XML file
-		$zip->add( array($xmlFilename),
+		$zip->add(array($xmlFilename),
 			PCLZIP_OPT_ADD_PATH, '',
-			PCLZIP_OPT_REMOVE_PATH, $this->destPath );
+			PCLZIP_OPT_REMOVE_PATH, $this->destPath);
 		unlink($xmlFilename);
 
 		// Add frontend files
-		if(count( $langData['frontend'] ))
+		if (count($langData['frontend']))
 		{
-			foreach( $langData['frontend'] as $file )
+			foreach ($langData['frontend'] as $file)
 			{
 				$frontEndPath = $this->sourcePath . DIRECTORY_SEPARATOR . $this->frontendPath;
-				$file = $frontEndPath .	DIRECTORY_SEPARATOR . $file;
-				$zip->add( array($file),
+				$file = $frontEndPath . DIRECTORY_SEPARATOR . $file;
+				$zip->add(array($file),
 					PCLZIP_OPT_ADD_PATH, 'frontend',
-					PCLZIP_OPT_REMOVE_PATH, $frontEndPath );
+					PCLZIP_OPT_REMOVE_PATH, $frontEndPath);
 			}
 		}
 
 		// Add backend files
-		if(count( $langData['backend'] ))
+		if (count($langData['backend']))
 		{
-			foreach( $langData['backend'] as $file )
+			foreach ($langData['backend'] as $file)
 			{
 				$backEndPath = $this->sourcePath . DIRECTORY_SEPARATOR . $this->backendPath;
-				$file = $backEndPath .	DIRECTORY_SEPARATOR . $file;
-				$zip->add( array($file),
+				$file = $backEndPath . DIRECTORY_SEPARATOR . $file;
+				$zip->add(array($file),
 					PCLZIP_OPT_ADD_PATH, 'backend',
-					PCLZIP_OPT_REMOVE_PATH, $backEndPath );
+					PCLZIP_OPT_REMOVE_PATH, $backEndPath);
 			}
 		}
 	}
@@ -221,18 +227,21 @@ FILEDATA;
 		$dirs = array();
 
 		$handle = opendir($directory);
-		if($handle === FALSE) return array();
-		while($aFile = readdir($handle))
+		if ($handle === false)
 		{
-			if( ($aFile != '.') && ($aFile != '..') )
+			return array();
+		}
+		while ($aFile = readdir($handle))
+		{
+			if (($aFile != '.') && ($aFile != '..'))
 			{
-				if(is_file($directory.'/'.$aFile))
+				if (is_file($directory . '/' . $aFile))
 				{
 					$files[] = $aFile;
 				}
 				else
 				{
-					if( ($aFile != '.svn') && is_dir($directory.'/'.$aFile) )
+					if (($aFile != '.svn') && is_dir($directory . '/' . $aFile))
 					{
 						$dirs[] = $aFile;
 					}
@@ -242,21 +251,21 @@ FILEDATA;
 		closedir($handle);
 
 		// Recurse into sub-directories
-		if(count($dirs))
+		if (count($dirs))
 		{
-			foreach($dirs as $dir)
+			foreach ($dirs as $dir)
 			{
-				$morefiles = scanDirectory($directory.'/'.$dir);
-				if(count($morefiles) == 0)
+				$morefiles = scanDirectory($directory . '/' . $dir);
+				if (count($morefiles) == 0)
 				{
 					// Empty directory
 					$files[] = $dir;
 				}
 				else
 				{
-					foreach($morefiles as $aFile)
+					foreach ($morefiles as $aFile)
 					{
-						$files[] = $dir.'/'.$aFile;
+						$files[] = $dir . '/' . $aFile;
 					}
 				}
 			}
@@ -269,30 +278,52 @@ FILEDATA;
 	{
 		$ret = array();
 		$rawdata = file($filename);
-		foreach($rawdata as $line)
+		foreach ($rawdata as $line)
 		{
-			if(substr($line,0,1) == chr(0xEF)) $line=substr($line,3);
+			if (substr($line, 0, 1) == chr(0xEF))
+			{
+				$line = substr($line, 3);
+			}
 			$line = ltrim($line, "\uFEFF");
 			$line = trim(rtrim($line, "\n"));
-			if(substr($line,0,1) == "#") continue;
-			if(substr($line,0,1) == ";") continue;
-			if(empty($line)) continue;
-			if(strpos($line,'=') === false) continue;
-			list($key, $value) = explode('=', $line, 2);
-			if( (substr($value,0,1) == '"') && (substr($value,-1) == '"') )
+			if (substr($line, 0, 1) == "#")
 			{
-				$value = substr($value,1,-1);
+				continue;
+			}
+			if (substr($line, 0, 1) == ";")
+			{
+				continue;
+			}
+			if (empty($line))
+			{
+				continue;
+			}
+			if (strpos($line, '=') === false)
+			{
+				continue;
+			}
+			list($key, $value) = explode('=', $line, 2);
+			if ((substr($value, 0, 1) == '"') && (substr($value, -1) == '"'))
+			{
+				$value = substr($value, 1, -1);
 			}
 			$ret[$key] = $value;
 		}
+
 		return $ret;
 	}
 
 	private function conditionalSet($array, $key, $data)
 	{
-		if(!empty($data)) return $data;
-		if(!array_key_exists($key, $array)) return $data;
+		if (!empty($data))
+		{
+			return $data;
+		}
+		if (!array_key_exists($key, $array))
+		{
+			return $data;
+		}
+
 		return $array[$key];
 	}
-
 }
