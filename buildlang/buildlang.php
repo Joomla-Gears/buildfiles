@@ -231,7 +231,7 @@ foreach ($langs as $tag => $files)
 	// Get paths to temp and output files
 	@mkdir($rootDirectory . '/release/languages');
 	$j20ZIPPath = $rootDirectory . '/release/languages/' . $packageName . '-' . $tag . '-j25.zip';
-	$tempXMLPath = $rootDirectory . '/release/' . $tag . '.xml';
+	$tempXMLPath = $rootDirectory . '/release/' . $packageName . '-' . $tag . '.xml';
 
 	// Start new ZIP files
 	@unlink($j20ZIPPath);
