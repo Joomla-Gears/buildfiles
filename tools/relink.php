@@ -182,6 +182,7 @@ class AkeebaRelink
 	private function _detectJoomlaVersion()
 	{
 		define('_JEXEC', 1);
+		define('JPATH_PLATFORM', 1);
 		define('JPATH_BASE', $this->_siteRoot);
 
 		$file15 = $this->_siteRoot . '/libraries/joomla/version.php';
