@@ -57,6 +57,12 @@ for ($i = 0; $i < $zip->numFiles; $i++)
 		continue;
 	}
 
+	// Ignore .ini files
+	if (substr($filename, -4) == '.ini')
+	{
+		continue;
+	}
+
 	// Get the top-level directory
 	$parts = explode('/', $filename, 2);
 	$basePath = $parts[0];
@@ -82,6 +88,9 @@ for ($i = 0; $i < $zip->numFiles; $i++)
 			break;
 
 		case 'plugins':
+			$baseName = basename($filename);
+			$dirName = dirname($filename);
+
 			$filename = "plugins/$filename";
 			break;
 
@@ -176,5 +185,7 @@ foreach ($fileList as $filename => $fileData)
 
 $phpFile .= "\t)\n);";
 
-$zip->addFromString('component/backend/fileslist.php', $phpFile);
+$zip->close();
+$res = $zip->open($zipPath);
+$zip->addFromString('backend/fileslist.php', $phpFile);
 $zip->close();
