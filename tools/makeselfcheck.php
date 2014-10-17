@@ -57,8 +57,8 @@ for ($i = 0; $i < $zip->numFiles; $i++)
 		continue;
 	}
 
-	// Ignore .ini files
-	if (substr($filename, -4) == '.ini')
+	// Ignore .ini and .txt files
+	if (in_array(substr($filename, -4), ['.ini','.txt']))
 	{
 		continue;
 	}
