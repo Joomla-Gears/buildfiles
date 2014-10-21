@@ -63,6 +63,12 @@ for ($i = 0; $i < $zip->numFiles; $i++)
 		continue;
 	}
 
+	// Ignore .txt files
+	if (substr($filename, -4) == '.txt')
+	{
+		continue;
+	}
+
 	// Get the top-level directory
 	$parts = explode('/', $filename, 2);
 	$basePath = $parts[0];
