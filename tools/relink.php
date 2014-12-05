@@ -26,6 +26,13 @@ if (stristr(php_uname(), 'windows'))
 	define('AKEEBA_RELINK_WINDOWS', 1);
 }
 
+/**
+ * Is this path a symlink?
+ *
+ * @param   string  $path  The path to test
+ *
+ * @return  bool  True if it is a symlink
+ */
 function isLink($path)
 {
 	if (defined('AKEEBA_RELINK_WINDOWS'))
@@ -38,6 +45,14 @@ function isLink($path)
 	}
 }
 
+/**
+ * Create a directory symlink
+ *
+ * @param   string  $from  Directory which already exists
+ * @param   string  $to    Path to the symlink we'll create
+ *
+ * @return  void
+ */
 function symlink_dir($from, $to)
 {
 	if (is_dir($to))
@@ -64,6 +79,14 @@ function symlink_dir($from, $to)
 	}
 }
 
+/**
+ * Create a file symlink
+ *
+ * @param   string  $from  File which already exists
+ * @param   string  $to    Path to the symlink we'll create
+ *
+ * @return  void
+ */
 function symlink_file($from, $to)
 {
 	if (file_exists($to))
@@ -90,6 +113,14 @@ function symlink_file($from, $to)
 	}
 }
 
+/**
+ * Create a file hardlink
+ *
+ * @param   string  $from  File which already exists
+ * @param   string  $to    Path to the hardlink we'll create
+ *
+ * @return  void
+ */
 function hardlink_file($from, $to)
 {
 	if (file_exists($to))
@@ -116,6 +147,14 @@ function hardlink_file($from, $to)
 	}
 }
 
+/**
+ * Required on Windows to turn all forward slashes to backslashes and, conversely, when on Linux / Mac OS X convert all
+ * backslashes to slashes.
+ *
+ * @param   string  $path  The path to convert
+ *
+ * @return  string  The converted path
+ */
 function realpath2($path)
 {
 	if (defined('AKEEBA_RELINK_WINDOWS'))
@@ -151,7 +190,9 @@ class AkeebaRelink
 	/**
 	 * Public constructor. Initialises the class with the user-supplied information.
 	 *
-	 * @param array $config
+	 * @param   array   $config  Configuration parameters. We need root and site.
+	 *
+	 * @return  AkeebaRelink
 	 */
 	public function __construct($config = array())
 	{
@@ -178,6 +219,8 @@ class AkeebaRelink
 
 	/**
 	 * Detect the exact version of a Joomla! site
+	 *
+	 * @return  void
 	 */
 	private function _detectJoomlaVersion()
 	{
@@ -547,7 +590,7 @@ class AkeebaRelink
 	/**
 	 * Scan the component directory and get some useful info
 	 *
-	 * @return type
+	 * @return  void
 	 */
 	private function _scanComponent()
 	{
@@ -777,7 +820,7 @@ class AkeebaRelink
 	/**
 	 * Maps the folders and files for the component
 	 *
-	 * @return array
+	 * @return  array
 	 */
 	private function _mapComponent()
 	{
@@ -856,6 +899,13 @@ class AkeebaRelink
 		);
 	}
 
+	/**
+	 * Maps the folders and files for a module
+	 *
+	 * @param   string  $module  The module path to map
+	 *
+	 * @return  array
+	 */
 	private function _mapModule($module)
 	{
 		$files = array();
@@ -897,6 +947,13 @@ class AkeebaRelink
 		);
 	}
 
+	/**
+	 * Maps the folders and files for a plugin
+	 *
+	 * @param   string  $plugin  The plugin path to map
+	 *
+	 * @return  array
+	 */
 	private function _mapPlugin($plugin)
 	{
 		$files = array();
@@ -969,16 +1026,16 @@ class AkeebaRelink
 		$dirs = array_values($dirs);
 		$files = array_values($files);
 
-		$this->_unlinkDirectories($dirs);
+		$this->unlinkDirectoriesFromList($dirs);
 
 		if (!empty($files))
 		{
-			$this->_unlinkFiles($files);
+			$this->unlinkFilesFromList($files);
 		}
 
 		if (isset($hardfiles) && !empty($hardfiles))
 		{
-			$this->_unlinkFiles($hardfiles);
+			$this->unlinkFilesFromList($hardfiles);
 		}
 	}
 
@@ -1004,10 +1061,10 @@ class AkeebaRelink
 			$dirs = array_values($dirs);
 			$files = array_values($files);
 
-			$this->_unlinkDirectories($dirs);
+			$this->unlinkDirectoriesFromList($dirs);
 			if (!empty($files))
 			{
-				$this->_unlinkFiles($files);
+				$this->unlinkFilesFromList($files);
 			}
 		}
 	}
@@ -1034,10 +1091,10 @@ class AkeebaRelink
 			$dirs = array_values($dirs);
 			$files = array_values($files);
 
-			$this->_unlinkDirectories($dirs);
+			$this->unlinkDirectoriesFromList($dirs);
 			if (!empty($files))
 			{
-				$this->_unlinkFiles($files);
+				$this->unlinkFilesFromList($files);
 			}
 		}
 	}
@@ -1153,7 +1210,7 @@ class AkeebaRelink
 	 *
 	 * @return boolean
 	 */
-	private function _unlinkDirectories($dirs)
+	private function unlinkDirectoriesFromList($dirs)
 	{
 		foreach ($dirs as $dir)
 		{
@@ -1163,7 +1220,7 @@ class AkeebaRelink
 			}
 			elseif (is_dir($dir))
 			{
-				$result = $this->_rmrecursive($dir);
+				$result = $this->removeDirectoryRecursive($dir);
 			}
 			else
 			{
@@ -1185,7 +1242,7 @@ class AkeebaRelink
 	 *
 	 * @return boolean
 	 */
-	private function _unlinkFiles($files)
+	private function unlinkFilesFromList($files)
 	{
 		foreach ($files as $file)
 		{
@@ -1213,7 +1270,7 @@ class AkeebaRelink
 	 *
 	 * @return bool
 	 */
-	private function _rmrecursive($dir)
+	private function removeDirectoryRecursive($dir)
 	{
 		// When the directory is a symlink, don't delete recursively. That would
 		// fuck up the plugins.
@@ -1238,7 +1295,7 @@ class AkeebaRelink
 				}
 				elseif (is_dir($path))
 				{
-					$result = $this->_rmrecursive(realpath2($path));
+					$result = $this->removeDirectoryRecursive(realpath2($path));
 				}
 				else
 				{
@@ -1271,7 +1328,6 @@ Usage:
 
 ENDUSAGE;
 }
-
 
 $year = gmdate('Y');
 echo <<<ENDBANNER
