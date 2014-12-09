@@ -70,6 +70,19 @@ function doLink($from, $to, $type = 'symlink', $path)
 		// Windows doesn't play nice with relative paths in symlinks
 		$realFrom = realpath($realFrom);
 	}
+	else
+	{
+		$parts = explode('/', $to);
+		$prefix = '';
+
+		for ($i = 0; $i < count($parts) - 1; $i++)
+		{
+			$prefix .= '../';
+		}
+
+		$realFrom = $prefix . $from;
+	}
+
 	if (is_file($realTo) || is_dir($realTo) || is_link($realTo) || file_exists($realTo))
 	{
 		if (IS_WINDOWS && is_dir($realTo))
