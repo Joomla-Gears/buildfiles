@@ -62,6 +62,7 @@ function doLink($from, $to, $type = 'symlink', $path)
 {
 	$realTo = $path . '/' . $to;
 	$realFrom = $path . '/' . $from;
+
 	if (IS_WINDOWS)
 	{
 		// Windows doesn't play nice with paths containing UNIX path separators
@@ -70,7 +71,7 @@ function doLink($from, $to, $type = 'symlink', $path)
 		// Windows doesn't play nice with relative paths in symlinks
 		$realFrom = realpath($realFrom);
 	}
-	else
+	elseif ($type == 'symlink')
 	{
 		$parts = explode('/', $to);
 		$prefix = '';
@@ -101,6 +102,7 @@ function doLink($from, $to, $type = 'symlink', $path)
 			return;
 		}
 	}
+
 	if ($type == 'symlink')
 	{
 		$res = @symlink($realFrom, $realTo);
@@ -109,6 +111,7 @@ function doLink($from, $to, $type = 'symlink', $path)
 	{
 		$res = @link($realFrom, $realTo);
 	}
+
 	if (!$res)
 	{
 		if ($type == 'symlink')
