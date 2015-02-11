@@ -187,6 +187,9 @@ class AkeebaRelink
 	/** @var array Information about the component */
 	private $_component = array();
 
+	/** @var array Information about the templates */
+	private $_templates = array();
+
 	/**
 	 * Public constructor. Initialises the class with the user-supplied information.
 	 *
@@ -215,6 +218,7 @@ class AkeebaRelink
 		$this->_scanComponent();
 		$this->_fetchModules();
 		$this->_fetchPlugins();
+		$this->_fetchTemplates();
 	}
 
 	/**
@@ -369,6 +373,62 @@ class AkeebaRelink
 				}
 
 				$this->_plugins[] = $info;
+			}
+		}
+	}
+
+	/**
+	 * Gets the information for all included templates
+	 */
+	private function _fetchTemplates()
+	{
+		// Check if we have site/admin subdirectories, or just a bunch of templates
+		$scanPath = $this->_root . '/templates';
+		if (is_dir($scanPath . '/admin') || is_dir($scanPath . '/site'))
+		{
+			$paths = array(
+				$scanPath . '/admin',
+				$scanPath . '/site',
+			);
+		}
+		else
+		{
+			$paths = array(
+				$scanPath
+			);
+		}
+
+		// Iterate directories
+		$this->_templates = array();
+		foreach ($paths as $path)
+		{
+			if (!is_dir($path) && !isLink($path))
+			{
+				continue;
+			}
+			foreach (new DirectoryIterator($path) as $fileInfo)
+			{
+				if ($fileInfo->isDot())
+				{
+					continue;
+				}
+				if (!$fileInfo->isDir())
+				{
+					continue;
+				}
+
+				$tplPath = $path . '/' . $fileInfo->getFilename();
+				$info = $this->_scanTemplate($tplPath);
+
+				if (!is_array($info))
+				{
+					continue;
+				}
+				if (!array_key_exists('template', $info))
+				{
+					continue;
+				}
+				$this->_templates[] = $info;
 			}
 		}
 	}
@@ -577,6 +637,104 @@ class AkeebaRelink
 				'plugin'    => $plugin,
 				'folder'    => $folder,
 				'path'      => $path,
+				'langPath'  => $langFolder,
+				'langFiles' => $langFiles,
+			);
+
+			unset($xmlDoc);
+
+			return $ret;
+		}
+	}
+
+	/**
+	 * Scans a template directory to fetch the extension information
+	 *
+	 * @param string $path
+	 *
+	 * @return array
+	 */
+	private function _scanTemplate($path)
+	{
+		// Find the XML files
+		foreach (new DirectoryIterator($path) as $fileInfo)
+		{
+			if ($fileInfo->isDot())
+			{
+				continue;
+			}
+			if (!$fileInfo->isFile())
+			{
+				continue;
+			}
+			$fname = $fileInfo->getFilename();
+			if (substr($fname, -4) != '.xml')
+			{
+				continue;
+			}
+
+			$xmlDoc = new DOMDocument;
+			$xmlDoc->load($path . '/' . $fname, LIBXML_NOBLANKS | LIBXML_NOCDATA | LIBXML_NOENT | LIBXML_NONET);
+
+			$rootNodes = $xmlDoc->getElementsByTagname('install');
+			$altRootNodes = $xmlDoc->getElementsByTagname('extension');
+			if ($altRootNodes->length >= 1)
+			{
+				unset($rootNodes);
+				$rootNodes = $altRootNodes;
+			}
+			if ($rootNodes->length < 1)
+			{
+				unset($xmlDoc);
+				continue;
+			}
+
+			$root = $rootNodes->item(0);
+			if (!$root->hasAttributes())
+			{
+				unset($xmlDoc);
+				continue;
+			}
+			if ($root->getAttribute('type') != 'template')
+			{
+				unset($xmlDoc);
+				continue;
+			}
+
+			$template = strtolower($xmlDoc->getElementsByTagName('name')->item(0)->nodeValue);
+
+			if ($xmlDoc->getElementsByTagName('languages')->length < 1)
+			{
+				$langFolder = null;
+				$langFiles = array();
+			}
+			else
+			{
+				$langTag = $xmlDoc->getElementsByTagName('languages')->item(0);
+				$langFolder = $path . '/' . $langTag->getAttribute('folder');
+				$langFiles = array();
+				foreach ($langTag->childNodes as $langFile)
+				{
+					if (!($langFile instanceof DOMElement))
+					{
+						continue;
+					}
+					$tag = $langFile->getAttribute('tag');
+					$lfPath = $langFolder . '/' . $langFile->textContent;
+					$langFiles[$tag][] = $lfPath;
+				}
+			}
+
+			if (empty($template))
+			{
+				unset($xmlDoc);
+				continue;
+			}
+
+			$ret = array(
+				'template'    => $template,
+				'path'      => $path,
+				'client'    => $root->getAttribute('client'),
 				'langPath'  => $langFolder,
 				'langFiles' => $langFiles,
 			);
@@ -1007,6 +1165,54 @@ class AkeebaRelink
 	}
 
 	/**
+	 * Maps the folders and files for a template
+	 *
+	 * @param   string  $template  The template path to map
+	 *
+	 * @return  array
+	 */
+	private function _mapTemplate($template)
+	{
+		$files = array();
+		$dirs = array();
+
+		$basePath = $this->_siteRoot . '/';
+		if ($template['client'] != 'site')
+		{
+			$basePath .= 'administrator/';
+		}
+		$basePath .= 'templates/' . $template['template'];
+
+		$dirs[$template['path']] = $basePath;
+
+		// Language files
+		if ($template['client'] != 'site')
+		{
+			$basePath = $this->_siteRoot . '/administrator/language/';
+		}
+		else
+		{
+			$basePath = $this->_siteRoot . '/language/';
+		}
+		if (!empty($template['langFiles']))
+		{
+			foreach ($template['langFiles'] as $tag => $lfiles)
+			{
+				$path = $basePath . $tag . '/';
+				foreach ($lfiles as $lfile)
+				{
+					$files[$lfile] = $path . basename($lfile);
+				}
+			}
+		}
+
+		return array(
+			'dirs'  => $dirs,
+			'files' => $files,
+		);
+	}
+
+	/**
 	 * Unlinks the component
 	 */
 	public function unlinkComponent()
@@ -1086,6 +1292,36 @@ class AkeebaRelink
 			$files = array();
 
 			$map = $this->_mapPlugin($plugin);
+			extract($map);
+
+			$dirs = array_values($dirs);
+			$files = array_values($files);
+
+			$this->unlinkDirectoriesFromList($dirs);
+			if (!empty($files))
+			{
+				$this->unlinkFilesFromList($files);
+			}
+		}
+	}
+
+	/**
+	 * Unlinks the templates
+	 */
+	public function unlinkTemplates()
+	{
+		if (empty($this->_templates))
+		{
+			return;
+		}
+		foreach ($this->_templates as $template)
+		{
+			echo "Unlinking template " . $template['template'] . ' (' . $template['client'] . ")\n";
+
+			$dirs = array();
+			$files = array();
+
+			$map = $this->_mapTemplate($template);
 			extract($map);
 
 			$dirs = array_values($dirs);
@@ -1189,6 +1425,37 @@ class AkeebaRelink
 			$files = array();
 
 			$map = $this->_mapPlugin($plugin);
+			extract($map);
+
+			foreach ($dirs as $from => $to)
+			{
+				symlink_dir(realpath2($from), realpath2($to));
+			}
+
+			foreach ($files as $from => $to)
+			{
+				symlink_file(realpath2($from), realpath2($to));
+			}
+		}
+	}
+
+	/**
+	 * Relinks the templates
+	 */
+	public function linkTemplates()
+	{
+		if (empty($this->_templates))
+		{
+			return;
+		}
+		foreach ($this->_templates as $template)
+		{
+			echo "Linking template " . $template['template'] . ' (' . $template['client'] . ")\n";
+
+			$dirs = array();
+			$files = array();
+
+			$map = $this->_mapTemplate($template);
 			extract($map);
 
 			foreach ($dirs as $from => $to)
@@ -1361,3 +1628,6 @@ $relink->linkModules();
 
 $relink->unlinkPlugins();
 $relink->linkPlugins();
+
+$relink->unlinkTemplates();
+$relink->linkTemplates();
