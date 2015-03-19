@@ -51,7 +51,16 @@ class GitVersionTask extends SvnBaseTask
 	{
 		$this->setup('info');
 
+		if ($this->workingCopy == '..')
+		{
+			$this->workingCopy = '../';
+		}
+
+		$cwd = getcwd();
+		$this->workingCopy = realpath($this->workingCopy);
+		chdir($this->workingCopy);
 		exec('git log --format=%h -n1 ' . escapeshellarg(realpath($this->workingCopy)), $out);
+		chdir($cwd);
 		$this->project->setProperty($this->getPropertyName(), strtoupper(trim($out[0])));
 	}
 }

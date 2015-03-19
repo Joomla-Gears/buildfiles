@@ -83,7 +83,11 @@ class GitDateTask extends SvnBaseTask
 			$this->workingCopy = '../';
 		}
 
+		$cwd = getcwd();
+		$this->workingCopy = realpath($this->workingCopy);
+		chdir($this->workingCopy);
 		exec('git log --format=%at -n1 ' . escapeshellarg($this->workingCopy), $timestamp);
+		chdir($cwd);
 		$date = date($this->format, trim($timestamp[0]));
 		$this->project->setProperty($this->getPropertyName(), $date);
 	}
