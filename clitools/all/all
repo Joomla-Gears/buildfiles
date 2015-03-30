@@ -1,0 +1,58 @@
+#!/bin/bash
+
+usage () {
+	echo "Usage: %0 pull|push"
+	echo ""
+	echo "pull	Pull from Git"
+	echo "push	Push to Git"
+
+	exit 255
+}
+
+if [ $# -lt 1 ]
+then
+	usage
+
+	exit 255
+fi
+
+for d in */
+do
+	pushd $d > /dev/null
+
+	if [ ! -d ".git" ]
+	then
+		popd > /dev/null
+
+		continue
+	fi
+
+	THISREPO_LINES=`git remote -v | grep git@github.com | wc -l | awk '{print $1}'`
+
+	if [ $THISREPO_LINES -lt 1 ]
+	then
+		popd > /dev/null
+
+		continue
+	fi
+
+	case "$1" in
+		pull )
+			echo "Pulling $d"
+			git pull --all
+			;;
+
+		push )
+			echo "Pushing $d"
+			git push
+			git push --tags
+			;;
+
+		* )
+			echo Unknown command "$1"
+			;;
+	esac
+
+
+	popd > /dev/null
+done
