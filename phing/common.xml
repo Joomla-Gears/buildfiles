@@ -1,0 +1,392 @@
+<?xml version="1.0"?>
+<project name="CommonBuildScript" description="Common phing tasks for building Joomla! extensions"
+         default="setup-properties">
+    <!--
+    You need to import this file in your main Phing file like this:
+
+    <import file="${phing.dir}/../../buildfiles/phing/common.xml" />
+    -->
+
+    <!-- Built in properties -->
+    <!-- ### Project Paths -->
+    <property name="dirs.root" value="${phing.dir}/.." />
+    <property name="dirs.release" value="${dirs.root}/release" />
+    <!-- ### Software and Documentation Paths -->
+    <property name="dirs.component" value="${dirs.root}/component" />
+    <property name="dirs.modules" value="${dirs.root}/modules" />
+    <property name="dirs.plugins" value="${dirs.root}/plugins" />
+    <property name="dirs.documentation" value="${dirs.root}/documentation" />
+    <!-- ### DocBook XML Stylesheet Paths -->
+    <property name="dirs.bin" value="${dirs.root}/build/bin" />
+    <property name="dirs.bin.libxml" value="${dirs.bin}/libxml" />
+    <property name="dirs.bin.fop" value="${dirs.bin}/fop" />
+    <property name="dirs.bin.dbxsl" value="${dirs.bin}/dbxsl" />
+
+    <!-- ### Version numbers -->
+    <property name="version" value="git" />
+
+    <!-- Load externally defined properties -->
+    <!-- ### Project properties -->
+    <property file="${phing.dir}/build.properties" override="true" />
+    <!-- ### Common properties, stored one level above the repository's root -->
+    <property file="${phing.dir}/../../build.properties" override="true" />
+
+    <!-- Custom task definitions -->
+    <taskdef name="gitdate" classname="phingext.GitDateTask" />
+    <taskdef name="gitversion" classname="phingext.GitVersionTask" />
+    <taskdef name="jpa" classname="phingext.JPATask" />
+    <taskdef name="lang" classname="phingext.LangTask" />
+    <taskdef name="linklang" classname="phingext.LinkLangTask" />
+    <taskdef name="linksite" classname="phingext.LinkSiteTask" />
+    <taskdef name="link" classname="phingext.LinkTask" />
+    <taskdef name="sftp" classname="phingext.SftpTask" />
+    <taskdef name="svnversion" classname="phingext.SvnVersionTask" />
+    <taskdef name="twitter" classname="phingext.TwitterUpdateTask" />
+    <taskdef name="zipme" classname="phingext.ZipmeTask" />
+
+    <!--
+    Set up the basic version and build properties required to build files
+    -->
+    <target name="setup-properties" description="Set up version and build properties">
+        <!-- Initialize the build.date timestamp -->
+        <tstamp>
+            <format property="build.date" pattern="%Y-%m-%d" />
+        </tstamp>
+
+        <!-- Initialize the version if it's not set -->
+        <if>
+            <equals arg1="${version}" arg2="git" />
+            <then>
+                <gitversion workingcopy="${dirs.root}" propertyname="git.lastrevision" />
+                <property name="version" value="rev${git.lastrevision}" override="true" />
+            </then>
+        </if>
+    </target>
+
+    <!--
+    Creates the release directory afresh before building anything
+    -->
+    <target name="new-release" description="Create afresh the release directory">
+        <delete dir="${dirs.release}" quiet="true" includeemptydirs="true" />
+        <mkdir dir="${dirs.release}" />
+    </target>
+
+    <!--
+    Transforms a DocBook XML file to PDF format
+
+    docs.input      DocBook XML filename relative to dirs.documentation
+    -->
+    <target name="docbook-pdf" description="Render documentation in PDF format">
+        <basename property="docs.output" file="${docs.input}" suffix=".xml" />
+
+        <exec executable="xsltproc" dir="${dirs.documentation}">
+            <arg value="--nonet" />
+            <arg value="--xinclude" />
+            <arg value="--novalid" />
+
+            <arg value="--stringparam" />
+            <arg value="body.start.indent" />
+            <arg value="0" />
+
+            <arg value="--stringparam" />
+            <arg value="variablelist.term.break.after 1" />
+            <arg value="1" />
+
+            <arg value="--stringparam" />
+            <arg value="variablelist.term.separator" />
+            <arg value="&quot;&quot;" />
+
+            <arg value="--stringparam" />
+            <arg value="variablelist.max.termlength" />
+            <arg value="12" />
+
+            <arg value="--stringparam" />
+            <arg value="section.autolabel" />
+            <arg value="1" />
+
+            <arg value="--stringparam" />
+            <arg value="toc.section.depth" />
+            <arg value="5" />
+
+            <arg value="--stringparam" />
+            <arg value="fop1.extensions" />
+            <arg value="1" />
+
+            <arg value="--output" />
+            <arg file="${dirs.release}/${docs.output}.fo" />
+
+            <arg file="${dirs.bin.dbxsl}/fo/docbook.xsl" />
+
+            <arg file="${dirs.documentation}/${docs.input}" />
+        </exec>
+
+        <exec executable="${dirs.bin.fop}/fop" dir="${dirs.documentation}">
+            <arg value="-fo" />
+            <arg file="${dirs.release}/${docs.output}.fo" />
+
+            <arg value="-pdf" />
+            <arg file="${dirs.release}/${docs.output}.pdf" />
+        </exec>
+
+        <delete file="${dirs.release}/${docs.output}.fo" quiet="true" />
+    </target>
+
+    <!--
+    Transforms a DocBook XML file to ePub format
+
+    docs.input      DocBook XML filename relative to dirs.documentation
+    -->
+    <target name="docbook-epub" description="Render documentation in ePub format">
+        <basename property="docs.output" file="${docs.input}" suffix=".xml" />
+        <dirname property="docs.images" file="${docs.input}" />
+
+        <property name="docs.epubdir" value="${dirs.release}/tmp_${docs.output}" />
+
+        <mkdir dir="${docs.epubdir}" />
+        <mkdir dir="${docs.epubdir}/OEBPS" />
+        <mkdir dir="${docs.epubdir}/OEBPS/images" />
+        <copy todir="${docs.epubdir}/OEBPS/images">
+            <fileset dir="${dirs.documentation}/${docs.images}">
+                <include name="*.png" />
+                <include name="*.jpg" />
+                <include name="*.jpeg" />
+                <include name="*.gif" />
+            </fileset>
+        </copy>
+
+        <exec executable="xsltproc" dir="${dirs.documentation}">
+            <arg value="--nonet" />
+            <arg value="--xinclude" />
+            <arg value="--novalid" />
+
+            <arg value="--stringparam" />
+            <arg value="epub.stylesheet" />
+            <arg value="style.css" />
+
+
+
+            <arg value="--stringparam" />
+            <arg value="body.start.indent" />
+            <arg value="0" />
+
+            <arg value="--stringparam" />
+            <arg value="variablelist.term.break.after 1" />
+            <arg value="1" />
+
+            <arg value="--stringparam" />
+            <arg value="variablelist.term.separator" />
+            <arg value="&quot;&quot;" />
+
+            <arg value="--stringparam" />
+            <arg value="variablelist.max.termlength" />
+            <arg value="12" />
+
+            <arg value="--stringparam" />
+            <arg value="section.autolabel" />
+            <arg value="1" />
+
+            <arg value="--stringparam" />
+            <arg value="toc.section.depth" />
+            <arg value="5" />
+
+            <arg value="--output" />
+            <arg file="${docs.epubdir}/${docs.output}.epub" />
+
+            <arg file="${dirs.bin.dbxsl}/epub3/chunk.xsl" />
+
+            <arg file="${dirs.documentation}/${docs.input}" />
+        </exec>
+
+        <copy file="./epub/mimetype" tofile="${docs.epubdir}/mimetype" overwrite="true" />
+        <copy file="./epub/com.apple.ibooks.display-options.xml" tofile="${docs.epubdir}/META-INF/com.apple.ibooks.display-options.xml" overwrite="true" />
+        <copy file="./epub/docbook-epub.css" tofile="${docs.epubdir}/OEBPS/docbook-epub.css" overwrite="true" />
+
+        <zip destfile="${dirs.release}/${docs.output}.epub" basedir="${docs.epubdir}">
+            <fileset dir="${docs.epubdir}">
+                <include name="**" />
+            </fileset>
+        </zip>
+
+        <delete dir="${docs.epubdir}" quiet="true" />
+    </target>
+
+    <!--
+    Copy DocBook XML documentation to the remote server, for use by Akeeba DocImport³
+
+    scp.dir.docs            Absolute SFTP path where documentation files are stored
+    docsdeploy.path.source  Path to the documentation source, relative to ${dirs.documentation}
+    docsdeploy.path.target  SFTP path to uploaded documentation, relative to ${scp.dir.docs}
+    -->
+    <target name="docbook-deploy" >
+        <basename property="docsdeploy.name" file="${docsdeploy.path.source}" />
+        <echo>Uploading ${docsdeploy.name}</echo>
+        <scp
+                host="${scp.host}"
+                port="${scp.port}"
+                username="${scp.username}"
+                password="${scp.password}"
+                todir="${scp.dir.docs}/${docsdeploy.path.target}"
+                level="debug">
+            <fileset dir="${dirs.documentation}/${docsdeploy.path.source}">
+                <include name="*.xml"/>
+                <include name="images/**"/>
+            </fileset>
+        </scp>
+    </target>
+
+    <!--
+    Uses Akeeba Release maker to deploy new releases to a remote Akeeba Release System installation.
+
+    release.source          Absolute path and filename to the release.json prototype we're going to use
+    release.api.endpoint    URL to the ARS API endpoint
+    release.api.username    Username for the ARS API
+    release.api.password    Password for the ARS API
+    release.scp.dir.core    SFTP directory for the Core release, relative to ${scp.dir}
+    release.scp.dir.pro     SFTP directory for the Pro release, relative to ${scp.dir}
+
+    s3.access               Amazon S3 access key for deploying public uploads
+    s3.secret               Amazon S3 secret key for deploying public uploads
+    s3.bucket               Amazon S3 bucket name for deploying public uploads
+    s3.directory            Amazon S3 directory for deploying public uploads
+
+    scp.host                    SFTP hostname
+    scp.port                    SFTP port
+    scp.username                SFTP username
+    scp.password                SFTP password
+    scp.dir                     SFTP initial directory
+    -->
+    <target name="release" depends="setup-properties" description="Use Akeeba Release Maker to deploy software">
+        <copy file="${release.source}" tofile="${dirs.root}/release.json" overwrite="true">
+            <filterchain id="standard-tokens">
+                <replacetokens begintoken="##" endtoken="##">
+                    <token key="DATE" value="${build.date}" />
+                    <token key="VERSION" value="${version}" />
+
+                    <token key="RELEASEDIR" value="${dirs.release}" />
+                    <token key="REPODIR" value="${dirs.root}" />
+
+                    <token key="API.ENDPOINT" value="${release.api.endpoint}" />
+                    <token key="API.USERNAME" value="${release.api.username}" />
+                    <token key="API.PASSWORD" value="${release.api.password}" />
+
+                    <token key="S3.ACCESS" value="${s3.access}" />
+                    <token key="S3.SECRET" value="${s3.secret}" />
+                    <token key="S3.BUCKET" value="${s3.bucket}" />
+                    <token key="S3.DIRECTORY" value="${s3.directory}" />
+
+                    <token key="SFTP.HOST" value="${scp.host}" />
+                    <token key="SFTP.PORT" value="${scp.port}" />
+                    <token key="SFTP.USERNAME" value="${scp.username}" />
+                    <token key="SFTP.PASSWORD" value="${scp.password}" />
+                    <token key="SFTP.COREDIR" value="${release.scp.dir.core}" />
+                    <token key="SFTP.PRODIR" value="${release.scp.dir.pro}" />
+                </replacetokens>
+            </filterchain>
+        </copy>
+
+        <exec executable="php" dir="${dirs.root}" passthru="true">
+            <arg file="${dirs.root}/../releasemaker/releasemaker/index.php" />
+            <arg file="${dirs.root}/release.json" />
+        </exec>
+
+        <delete file="${dirs.root}/release.json" quiet="true" />
+    </target>
+
+    <!--
+    Copy the latest builds of the software to a remote server over SCP. This is normally used with BleedingEdge type
+    repositories of Akeeba Release System to provide developer preview releases.
+
+    ftpdeploy.pattern.core      Pattern for Core files, e.g. com_akeeba-*-core.zip
+    ftpdeploy.pattern.pro       Pattern for Pro files, e.g. com_akeeba-*-core.zip
+    ftpdeploy.path.core         SFTP path to Core files, relative to ${scp.dir}
+    ftpdeploy.path.pro          SFTP path to Pro files, relative to ${scp.dir}
+
+    scp.host                    SFTP hostname
+    scp.port                    SFTP port
+    scp.username                SFTP username
+    scp.password                SFTP password
+    scp.dir                     SFTP initial directory
+    -->
+    <target name="ftpdeploy" depends="git">
+        <gitversion workingcopy="${dirs.root}" propertyname="git.lastrevision" />
+
+        <if>
+            <isset property="ftpdeploy.pattern.core" />
+            <then>
+                <echo>Uploading Core release</echo>
+                <scp
+                        host="${scp.host}"
+                        port="${scp.port}"
+                        username="${scp.username}"
+                        password="${scp.password}"
+                        todir="${scp.dir}/${ftpdeploy.path.core}/${version}"
+                        level="debug">
+                    <fileset dir="${dirs.root}">
+                        <include name="CHANGELOG"/>
+                    </fileset>
+                    <fileset dir="${dirs.release}">
+                        <include name="${ftpdeploy.pattern.core}"/>
+                    </fileset>
+                </scp>
+            </then>
+        </if>
+
+        <if>
+            <isset property="ftpdeploy.pattern.pro" />
+            <then>
+                <echo>Uploading Professional release</echo>
+                <scp
+                        host="${scp.host}"
+                        port="${scp.port}"
+                        username="${scp.username}"
+                        password="${scp.password}"
+                        todir="${scp.dir}/${ftpdeploy.path.pro}/${version}"
+                        level="debug">
+                    <fileset dir="${dirs.root}">
+                        <include name="CHANGELOG"/>
+                    </fileset>
+                    <fileset dir="${dirs.release}">
+                        <include name="${ftpdeploy.pattern.pro}"/>
+                    </fileset>
+                </scp>
+            </then>
+        </if>
+    </target>
+
+    <!--
+    Generate and upload language files
+    -->
+    <target name="lang" description="Generate and upload language files">
+        <exec executable="php" dir="${dirs.root}/build/buildlang" passthru="true">
+            <arg value="./buildlang.php" />
+            <arg value="${dirs.root}/build.properties;${dirs.root}/../build.properties;${dirs.root}/override.properties" />
+            <arg path="${dirs.root}" />
+            <arg value="${version}" />
+        </exec>
+    </target>
+
+    <!--
+    Internal linker. Symlinks or hardlinks external files / folders into the project, symlinks the language files
+    -->
+    <target name="link" description="Internal linker">
+        <exec executable="php" dir="${dirs.root}" passthru="true">
+            <arg file="${dirs.root}/../buildfiles/tools/link.php" />
+            <arg path="${dirs.root}" />
+        </exec>
+
+        <exec executable="php" dir="${dirs.root}" passthru="true">
+            <arg file="${dirs.root}/../buildfiles/tools/langlink.php" />
+            <arg path="${dirs.root}" />
+        </exec>
+    </target>
+
+    <!--
+    Symlink the component, modules and plugins to a Joomla! installation
+
+    site        Absolute filesystem path to the Joomla! installation
+    -->
+    <target name="relink" description="Project relinker">
+        <exec command="php ../buildfiles/tools/relink.php ${site} ${dirs.root}" dir="${dirs.root}" passthru="true" />
+        <exec command="php ../buildfiles/tools/relinklang.php ${site} ${dirs.root}" dir="${dirs.root}" passthru="true" />
+    </target>
+</project>

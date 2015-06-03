@@ -5,7 +5,7 @@ Feel free to fork and contribute.
 
 ## COPYRIGHT AND DISCLAIMER
 Akeeba Build Tools - Extension builder for Joomla!
-Copyright (c) 2010-2013 Akeeba Ltd
+Copyright (c) 2010-2015 Akeeba Ltd
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

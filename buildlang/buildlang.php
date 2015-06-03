@@ -177,7 +177,33 @@ ENDBANNER;
 // Load the properties
 $propsFile = $argv[1];
 $rootDirectory = realpath($argv[2]);
-$props = parse_ini_file($propsFile);
+
+if (strpos($propsFile, ';') !== false)
+{
+	$propFiles = explode(';', $propsFile);
+	$props = [];
+
+	foreach($propFiles as $propsFile)
+	{
+		if (!file_exists($propsFile))
+		{
+			continue;
+		}
+
+		$newProps = parse_ini_file($propsFile);
+
+		if (!is_array($newProps) || empty($newProps))
+		{
+			continue;
+		}
+
+		$props = array_merge($props, $newProps);
+	}
+}
+else
+{
+	$props = parse_ini_file($propsFile);
+}
 
 // Get some basic parameters
 $packageName = $props['langbuilder.packagename'];
