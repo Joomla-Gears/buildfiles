@@ -229,6 +229,9 @@
                 port="${scp.port}"
                 username="${scp.username}"
                 password="${scp.password}"
+                pubkeyfile="${scp.pubkeyfile}"
+                privkeyfile="${scp.privkeyfile}"
+                privkeyfilepassphrase="${scp.privkeyfilepassphrase}"
                 todir="${scp.dir.docs}/${docsdeploy.path.target}"
                 level="debug">
             <fileset dir="${dirs.documentation}/${docsdeploy.path.source}">
@@ -312,6 +315,10 @@
                     <token key="SFTP.USERNAME" value="${scp.username}" />
                     <token key="SFTP.PASSWORD" value="${scp.password}" />
 
+                    <token key="SFTP.PUBKEYFILE" value="${scp.pubkeyfile}" />
+                    <token key="SFTP.PRIVKEYFILE" value="${scp.privkeyfile}" />
+                    <token key="SFTP.PRIVKEYFILE.PASS" value="${scp.privkeyfilepassphrase}" />
+
                     <token key="CORE.METHOD" value="${release.core.method}" />
                     <token key="CORE.DIR" value="${release.core.dir}" />
                     <token key="CORE.PATTERN" value="${release.core.pattern}" />
@@ -370,6 +377,9 @@
                         port="${scp.port}"
                         username="${scp.username}"
                         password="${scp.password}"
+                        pubkeyfile="${scp.pubkeyfile}"
+                        privkeyfile="${scp.privkeyfile}"
+                        privkeyfilepassphrase="${scp.privkeyfilepassphrase}"
                         todir="${scp.dir}/${ftpdeploy.path.core}/${version}"
                         level="debug">
                     <fileset dir="${dirs.root}">
@@ -391,6 +401,9 @@
                         port="${scp.port}"
                         username="${scp.username}"
                         password="${scp.password}"
+                        pubkeyfile="${scp.pubkeyfile}"
+                        privkeyfile="${scp.privkeyfile}"
+                        privkeyfilepassphrase="${scp.privkeyfilepassphrase}"
                         todir="${scp.dir}/${ftpdeploy.path.pro}/${version}"
                         level="debug">
                     <fileset dir="${dirs.root}">
