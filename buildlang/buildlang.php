@@ -211,7 +211,7 @@ $softwareName = $props['langbuilder.software'];
 $authorName = isset($props['langbuilder.authorname']) ? $props['langbuilder.authorname'] : 'AkeebaBackup.com';
 $authorUrl = isset($props['langbuilder.authorurl']) ? $props['langbuilder.authorurl'] : 'http://www.akeebabackup.com';
 $license = isset($props['langbuilder.license']) ? $props['langbuilder.license'] : 'http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL';
-$langVersions = isset($props['langbuilder.jversions']) ? $props['langbuilder.jversions'] : '1.6/1.7/2.5/3.x';
+$langVersions = isset($props['langbuilder.jversions']) ? $props['langbuilder.jversions'] : '3.x';
 
 // Create an URL-friendly version of the package name
 $packageNameURL = str_replace(' ', '-', strtolower(trim($packageName)));
@@ -245,18 +245,30 @@ date_default_timezone_set('Europe/Athens');
 $date = gmdate('d M Y');
 $year = gmdate('Y');
 
-$langToName = parse_ini_file('map.ini');
+$langToName = parse_ini_file(__DIR__ . '/map.ini');
+$badLanguage = parse_ini_file(__DIR__ . '/badlang.ini');
 
 $langHTMLTable = '';
 $row = 1;
 foreach ($langs as $tag => $files)
 {
+	if (isset($badLanguage[$tag]))
+	{
+		$tag = $badLanguage[$tag];
+	}
+
+	if (!isset($langToName[$tag]))
+	{
+		echo "\033[1;31mUnknown language tag $tag\033[0m\n";
+		continue;
+	}
+
 	$langName = $langToName[$tag];
 	echo "Building $langName ($tag)...\n";
 
 	// Get paths to temp and output files
 	@mkdir($rootDirectory . '/release/languages');
-	$j20ZIPPath = $rootDirectory . '/release/languages/' . $packageName . '-' . $tag . '-j25.zip';
+	$j20ZIPPath = $rootDirectory . '/release/languages/' . $packageName . '-' . $tag . '-j3x.zip';
 	$tempXMLPath = $rootDirectory . '/release/' . $packageName . '-' . $tag . '.xml';
 
 	// Start new ZIP files
@@ -264,7 +276,7 @@ foreach ($langs as $tag => $files)
 	$zip20 = new PclZip($j20ZIPPath);
 
 	// Produce the Joomla! 1.6/1.7/2.5 manifest contents
-	$j20XML = <<<ENDHEAD
+	$j3XML = <<<ENDHEAD
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="file" version="1.6" method="upgrade" client="site">
     <name><![CDATA[$packageName - $tag]]></name>
@@ -281,27 +293,27 @@ ENDHEAD;
 
 	if (array_key_exists('backend', $files))
 	{
-		$j20XML .= "\t\t<files folder=\"backend\" target=\"administrator/language/$tag\">\n";
+		$j3XML .= "\t\t<files folder=\"backend\" target=\"administrator/language/$tag\">\n";
 		foreach ($files['backend'] as $file)
 		{
-			$j20XML .= "\t\t\t<filename>" . baseName($file) . "</filename>\n";
+			$j3XML .= "\t\t\t<filename>" . baseName($file) . "</filename>\n";
 		}
-		$j20XML .= "\t\t</files>\n";
+		$j3XML .= "\t\t</files>\n";
 	}
 	if (array_key_exists('frontend', $files))
 	{
-		$j20XML .= "\t\t<files folder=\"frontend\" target=\"language/$tag\">\n";
+		$j3XML .= "\t\t<files folder=\"frontend\" target=\"language/$tag\">\n";
 		foreach ($files['frontend'] as $file)
 		{
-			$j20XML .= "\t\t\t<filename>" . baseName($file) . "</filename>\n";
+			$j3XML .= "\t\t\t<filename>" . baseName($file) . "</filename>\n";
 		}
-		$j20XML .= "\t\t</files>\n";
+		$j3XML .= "\t\t</files>\n";
 	}
-	$j20XML .= "\t</fileset>\n</extension>";
+	$j3XML .= "\t</fileset>\n</extension>";
 
 	// Add the manifest (J! 2.x)
 	@unlink($tempXMLPath);
-	@file_put_contents($tempXMLPath, $j20XML);
+	@file_put_contents($tempXMLPath, $j3XML);
 	$zip20->add($tempXMLPath,
 		PCLZIP_OPT_ADD_PATH, '',
 		PCLZIP_OPT_REMOVE_PATH, dirname($tempXMLPath)
