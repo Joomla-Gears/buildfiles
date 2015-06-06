@@ -48,6 +48,13 @@
     <taskdef name="zipme" classname="phingext.ZipmeTask" />
 
 	<!--
+	Generate the installation packages and the documentation
+	-->
+	<target name="all" description="Makes everything"
+			depends="git,documentation">
+	</target>
+
+	<!--
 	Generate the installation packages. By default it generates a development build. You can pass a specific version
 	number to make a numbered version release, e.g. `phing git -Dversion=1.2.3` to build version 1.2.3
 	-->
@@ -208,9 +215,9 @@
             <arg file="${dirs.documentation}/${docs.input}" />
         </exec>
 
-        <copy file="./epub/mimetype" tofile="${docs.epubdir}/mimetype" overwrite="true" />
-        <copy file="./epub/com.apple.ibooks.display-options.xml" tofile="${docs.epubdir}/META-INF/com.apple.ibooks.display-options.xml" overwrite="true" />
-        <copy file="./epub/docbook-epub.css" tofile="${docs.epubdir}/OEBPS/docbook-epub.css" overwrite="true" />
+        <copy file="${phing.dir}/epub/mimetype" tofile="${docs.epubdir}/mimetype" overwrite="true" />
+        <copy file="${phing.dir}/epub/com.apple.ibooks.display-options.xml" tofile="${docs.epubdir}/META-INF/com.apple.ibooks.display-options.xml" overwrite="true" />
+        <copy file="${phing.dir}/epub/docbook-epub.css" tofile="${docs.epubdir}/OEBPS/docbook-epub.css" overwrite="true" />
 
         <zip destfile="${dirs.release}/${docs.output}.epub" basedir="${docs.epubdir}">
             <fileset dir="${docs.epubdir}">
@@ -440,7 +447,7 @@
     -->
     <target name="lang" description="Generate and upload language files">
         <exec executable="php" dir="${dirs.root}/build/buildlang" passthru="true" escape="true">
-            <arg value="./buildlang.php" />
+            <arg value="${phing.dir}/buildlang.php" />
             <arg value="${phing.dir}/build.properties;${dirs.root}/../build.properties;${phing.dir}/override.properties" />
             <arg path="${dirs.root}" />
             <arg value="${version}" />
@@ -468,8 +475,8 @@
     site        Absolute filesystem path to the Joomla! installation
     -->
     <target name="relink" description="Project relinker">
-        <exec command="php ../buildfiles/tools/relink.php ${site} ${dirs.root}" dir="${dirs.root}" passthru="true" />
-        <exec command="php ../buildfiles/tools/relinklang.php ${site} ${dirs.root}" dir="${dirs.root}" passthru="true" />
+        <exec command="php ${dirs.root}/../buildfiles/tools/relink.php ${site} ${dirs.root}" dir="${dirs.root}" passthru="true" />
+        <exec command="php ${dirs.root}/../buildfiles/tools/relinklang.php ${site} ${dirs.root}" dir="${dirs.root}" passthru="true" />
     </target>
 
 	<!--
@@ -493,8 +500,7 @@
 	<!--
 	Generates the component installation ZIP files for the Pro and Core releases
 	-->
-	<target name="package-com" description="Builds the component"
-			depends="new-release,setup-properties">
+	<target name="package-com" description="Builds the component">
 
 		<!-- Build the Core package -->
 		<phingcall target="package-com-builder">
@@ -552,7 +558,7 @@
 		</if>
 
 		<!-- Copy the XML manifest file -->
-		<copy file="./templates/${build.template_xml}" tofile="${dirs.component}/${build.component}.xml" overwrite="true">
+		<copy file="${phing.dir}/templates/${build.template_xml}" tofile="${dirs.component}/${build.component}.xml" overwrite="true">
 			<filterchain>
 				<replacetokens begintoken="##" endtoken="##">
 					<token key="DATE" value="${build.date}" />
@@ -564,9 +570,9 @@
 
 		<!-- Copy the version.php file -->
 		<if>
-			<available file="./templates/version.php" property="completely.ignored" />
+			<available file="${phing.dir}/templates/version.php" property="completely.ignored" />
 			<then>
-				<copy file="./templates/version.php" tofile="${dirs.component}/backend/version.php" overwrite="true">
+				<copy file="${phing.dir}/templates/version.php" tofile="${dirs.component}/backend/version.php" overwrite="true">
 					<filterchain>
 						<replacetokens begintoken="##" endtoken="##">
 							<token key="DATE" value="${build.date}" />
@@ -579,7 +585,7 @@
 		</if>
 
 		<!-- Create the package ZIP file -->
-		<zipme basedir="${dirs.component}" destfile="${dirs.release}/${build.package_name}.zip" includeemptydirs="true">
+		<zipme basedir="${dirs.component}" destfile="${dirs.release}/${build.package_name}" includeemptydirs="true">
 			<fileset refid="${build.refid}" />
 		</zipme>
 
@@ -589,7 +595,7 @@
 			<then>
 				<!-- Add self-check file -->
 				<exec executable="php" dir="${dirs.root}" passthru="true">
-					<arg file="./build/tools/makeselfcheck.php " />
+					<arg file="${phing.dir}/build/tools/makeselfcheck.php " />
 					<arg file="${dirs.release}/${build.package_name}.zip" />
 					<arg value="com_${build.component}" />
 					<arg value="${version}" />
@@ -602,7 +608,7 @@
 	<!--
 	Builds the CLI file packages
 	-->
-	<target name="package-files" description="file package for CLI files" depends="new-release,setup-properties">
+	<target name="package-files" description="file package for CLI files">
 		<if>
 			<equals arg1="${build.has_cli}" arg2="1" />
 			<then>
@@ -627,7 +633,7 @@
 	<!--
 	Internal builder task to build one file installation package (Core or Pro) at a time
 	-->
-	<target name="package-files-builder" description="file package for CLI files" depends="new-release,setup-properties">
+	<target name="package-files-builder" description="file package for CLI files">
 		<!-- Determine the name of the XML manifest template file, package file and the fileset reference ID -->
 		<if>
 			<not>
@@ -656,13 +662,13 @@
 				<!-- XML Manifest name: file_something_core.xml -->
 				<property name="build.template_xml" value="file_${build.component}_${build.suffix}.xml" />
 				<!-- Package name: file_something-core.zip -->
-				<property name="build.package_name" value="file_${build.component}-${build.suffix}.zip" />
+				<property name="build.package_name" value="file_${build.component}-${build.suffix}" />
 				<!-- Fileset reference ID: cli-core -->
 				<property name="build.refid" value="cli-${build.suffix}" />
 			</else>
 		</if>
 
-		<copy file="./templates/${build.template_xml}" tofile="${dirs.component}/cli/file_${build.component}.xml" overwrite="true">
+		<copy file="${phing.dir}/templates/${build.template_xml}" tofile="${dirs.component}/cli/file_${build.component}.xml" overwrite="true">
 			<filterchain>
 				<replacetokens begintoken="##" endtoken="##">
 					<token key="DATE" value="${build.date}" />
@@ -671,7 +677,7 @@
 			</filterchain>
 		</copy>
 
-		<zipme basedir="${dirs.component}/cli" destfile="${dirs.release}/${build.package_name}.zip" includeemptydirs="true">
+		<zipme basedir="${dirs.component}/cli" destfile="${dirs.release}/${build.package_name}" includeemptydirs="true">
 			<fileset refid="${build.refid}" />
 		</zipme>
 
@@ -680,7 +686,7 @@
 	<!--
 	Builds all the modules found in the modules/site and modules/admin folders of your repository
 	-->
-	<target name="package-modules" description="Build all modules" depends="new-release,setup-properties">
+	<target name="package-modules" description="Build all modules">
 		<foreach param="dirname" absparam="absname" target="package-module-folder">
 			<fileset dir="${dirs.modules}">
 				<type type="dir" />
@@ -721,7 +727,7 @@
 	<!--
 	Builds all the plugins found in the plugins/* folders of your repository
 	-->
-	<target name="package-plugins" description="Build all plugins" depends="new-release,setup-properties">
+	<target name="package-plugins" description="Build all plugins">
 		<foreach param="dirname" absparam="absname" target="package-plugin-folder">
 			<fileset dir="${dirs.plugins}">
 				<type type="dir" />
@@ -1012,7 +1018,7 @@
 
 		<!-- Create the XML manifest. IMPORTANT: THE TARGET NAME IS ALWAYS pkg_something.xml WITHOUT A SUFFIX TO ALLOW
 		 JOOMLA! TO UPGRADE FROM CORE TO PRO WITHOUT SCREWING UP THE #__extensions ENTRIES!!! -->
-		<copy file="./templates/${build.template_xml}" tofile="${dirs.release}/pkg_${build.component}.xml" overwrite="true">
+		<copy file="${phing.dir}/templates/${build.template_xml}" tofile="${dirs.release}/pkg_${build.component}.xml" overwrite="true">
 			<filterchain>
 				<replacetokens begintoken="##" endtoken="##">
 					<token key="DATE" value="${build.date}" />
@@ -1038,7 +1044,7 @@
 		</if>
 
 		<!-- Create the ZIP file -->
-		<zipme basedir="${dirs.release}" destfile="${build.package_name}" includeemptydirs="true">
+		<zipme basedir="${dirs.release}" destfile="${dirs.release}/${build.package_name}" includeemptydirs="true">
 			<fileset refid="${build.refid}" />
 		</zipme>
 	</target>

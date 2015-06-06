@@ -88,7 +88,7 @@ Before you begin, you need to have the following folder structure in your reposi
 ```
 Repository Root
    +--- build								Phing build files
-   |       +--- template 					Template XML manifest and version.php files
+   |       +--- templates 					Template XML manifest and version.php files
    +--- component							Component files
    |       +--- backend						Back-end files
    |       +--- frontend					Front-end files
@@ -150,7 +150,7 @@ A note about the `package` ID. The build script will create ZIP files following 
 file_something.zip, pkg_system_whatever.zip, mod_site_whatever.zip, mod_admin_whatever.zip. These are the files you need
 to reference in your `<fileset>`.
 
-You will need the following XML files in your `build/template` directory:
+You will need the following XML files in your `build/templates` directory:
 
 * **something.xml** The Joomla! XML manifest for the component installation ZIP file
 * **file_something.xml** The Joomla! XML manifest for the CLI scripts' file extension type installation ZIP file
@@ -183,7 +183,7 @@ IMPORTANT: Even though the com_ and file_ ZIP files have a core/pro suffix the a
 com_something and file_something for BOTH the Core and Pro packages. This allows you to upgrade from Core to Pro without
  messing up the `#__extensions` table's records.
 
-You will need the following XML files in your `build/template` directory:
+You will need the following XML files in your `build/templates` directory:
 
 * **something_pro.xml** The Joomla! XML manifest for the component installation ZIP file
 * **file_something_pro.xml** The Joomla! XML manifest for the CLI scripts' file extension type installation ZIP file
