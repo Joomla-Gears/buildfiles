@@ -1,7 +1,12 @@
 # Akeeba Build Tools
+
 Akeeba Build Tools is an extension builder for Joomla!. It contains the common build files of the Akeeba extensions, but can also be used for building your own Joomla! extensions. Akeeba Build Tools is NOT a standalone builder, it needs an extension specific Phing build file.
 
 Feel free to fork and contribute.
+
+## Quick documentation links
+
+Learn more about the [Common Phing Script](phing/README.md).
 
 ## COPYRIGHT AND DISCLAIMER
 Akeeba Build Tools - Extension builder for Joomla!
