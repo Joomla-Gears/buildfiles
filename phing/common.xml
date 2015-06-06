@@ -284,13 +284,24 @@
     scp.dir                     SFTP initial directory
     -->
     <target name="release" depends="setup-properties" description="Use Akeeba Release Maker to deploy software">
-        <!-- If release.json is not specified set the default value ${phing.dir}/templates/release.json -->
+        <!-- If release.json is not specified use either ${phing.dir}/templates/release.json or
+         if it doesn't exist our default release.json file -->
         <if>
             <not>
                 <isset property="release.source" />
             </not>
             <then>
-                <property name="release.source" value="${phing.dir}/templates/release.json" />
+				<if>
+					<available property="totally.ignored" file="${phing.dir}/templates/release.json" />
+					<then>
+						<property name="release.source" value="${phing.dir}/templates/release.json" />
+					</then>
+					<else>
+						<property name="release.source" value="${phing.dir.common}/release.json" />
+					</else>
+				</if>
+
+
             </then>
         </if>
 
