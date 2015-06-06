@@ -43,7 +43,6 @@
     <taskdef name="linklang" classname="phingext.LinkLangTask" />
     <taskdef name="linksite" classname="phingext.LinkSiteTask" />
     <taskdef name="link" classname="phingext.LinkTask" />
-    <taskdef name="sftp" classname="phingext.SftpTask" />
     <taskdef name="svnversion" classname="phingext.SvnVersionTask" />
     <taskdef name="twitter" classname="phingext.TwitterUpdateTask" />
     <taskdef name="zipme" classname="phingext.ZipmeTask" />
