@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <project name="common" basedir="." description="Common phing tasks for building Joomla! extensions"
-         default="setup-properties">
+         default="git">
     <!--
     You need to import this file in your main Phing file like this:
 
@@ -46,6 +46,14 @@
     <taskdef name="svnversion" classname="phingext.SvnVersionTask" />
     <taskdef name="twitter" classname="phingext.TwitterUpdateTask" />
     <taskdef name="zipme" classname="phingext.ZipmeTask" />
+
+	<!--
+	Generate the installation packages. By default it generates a development build. You can pass a specific version
+	number to make a numbered version release, e.g. `phing git -Dversion=1.2.3` to build version 1.2.3
+	-->
+	<target name="git" description="Makes only packages, not the documentation"
+			depends="new-release,setup-properties,component-packages">
+	</target>
 
     <!--
     Set up the basic version and build properties required to build files
@@ -452,4 +460,575 @@
         <exec command="php ../buildfiles/tools/relink.php ${site} ${dirs.root}" dir="${dirs.root}" passthru="true" />
         <exec command="php ../buildfiles/tools/relinklang.php ${site} ${dirs.root}" dir="${dirs.root}" passthru="true" />
     </target>
+
+	<!--
+	====================================================================================================
+	Tasks - Joomla! packages for FOF 3 extensions
+	====================================================================================================
+	-->
+
+	<!--
+	Builds the Core and Pro installation packages for you. Called by the `git` task. If you need to include other
+	stuff –library packages, file packages, template packages, other extension packages not present in this
+	repository– you can create a task to put the necessary packages in the `release` folder and then override the
+	`component-packages` target, adding the dependencies BEFORE package-pkg. For example:
+
+	<target name="component-packages" depends="my-stuff,some-other-stuff,package-pkg" />
+
+	DO NOT OVERRIDE THE OTHER TASKS INVOLVED IN PACKAGE BUILDING. Please consult the README.md for information.
+	-->
+	<target name="component-packages" depends="package-pkg" />
+
+	<!--
+	Generates the component installation ZIP files for the Pro and Core releases
+	-->
+	<target name="package-com" description="Builds the component"
+			depends="new-release,setup-properties">
+
+		<!-- Build the Core package -->
+		<phingcall target="package-com-builder">
+			<property name="build.is_pro" value="0" />
+		</phingcall>
+
+		<if>
+			<equals arg1="${build.has_pro}" arg2="1" />
+			<then>
+				<!-- Build the Pro package -->
+				<phingcall target="package-com-builder">
+					<property name="build.is_pro" value="1" />
+				</phingcall>
+			</then>
+		</if>
+
+	</target>
+
+	<!--
+	Internal builder task to build one component installation package (Core or Pro) at a time
+	-->
+	<target name="package-com-builder" description="Builds a component package archive">
+		<!-- Determine the name of the XML manifest template file, package file and the fileset reference ID -->
+		<if>
+			<not>
+				<equals arg1="${build.has_pro}" arg2="1" />
+			</not>
+			<then>
+				<!-- No Pro/Core version, do not use a suffix -->
+				<!-- XML Manifest name: something.xml -->
+				<property name="build.template_xml" value="${build.component}.xml" />
+				<!-- Package name: com_something.zip -->
+				<property name="build.package_name" value="com_${build.component}.zip" />
+				<!-- Fileset reference ID: component -->
+				<property name="build.refid" value="component" />
+			</then>
+			<else>
+				<!-- Distinct Pro / Core versions, use a suffix -->
+				<if>
+					<equals arg1="${build.is_pro}" arg2="1" />
+					<then>
+						<property name="build.suffix" value="pro" />
+					</then>
+					<else>
+						<property name="build.suffix" value="core" />
+					</else>
+				</if>
+				<!-- XML Manifest name: something_core.xml -->
+				<property name="build.template_xml" value="${build.component}_${build.suffix}.xml" />
+				<!-- Package name: com_something-core.zip -->
+				<property name="build.package_name" value="com_${build.component}-${build.suffix}.zip" />
+				<!-- Fileset reference ID: component-core -->
+				<property name="build.refid" value="component-${build.suffix}" />
+			</else>
+		</if>
+
+		<!-- Copy the XML manifest file -->
+		<copy file="./templates/${build.template_xml}" tofile="${dirs.component}/${build.component}.xml" overwrite="true">
+			<filterchain>
+				<replacetokens begintoken="##" endtoken="##">
+					<token key="DATE" value="${build.date}" />
+					<token key="VERSION" value="${version}" />
+					<token key="PRO" value="${build.is_pro}" />
+				</replacetokens>
+			</filterchain>
+		</copy>
+
+		<!-- Copy the version.php file -->
+		<if>
+			<available file="./templates/version.php" property="completely.ignored" />
+			<then>
+				<copy file="./templates/version.php" tofile="${dirs.component}/backend/version.php" overwrite="true">
+					<filterchain>
+						<replacetokens begintoken="##" endtoken="##">
+							<token key="DATE" value="${build.date}" />
+							<token key="VERSION" value="${version}" />
+							<token key="PRO" value="${build.is_pro}" />
+						</replacetokens>
+					</filterchain>
+				</copy>
+			</then>
+		</if>
+
+		<!-- Create the package ZIP file -->
+		<zipme basedir="${dirs.component}" destfile="${dirs.release}/${build.package_name}.zip" includeemptydirs="true">
+			<fileset refid="${build.refid}" />
+		</zipme>
+
+		<!-- TODO Rewrite Self-Check to support packages instead of old-style components -->
+		<if>
+			<equals arg1="${build.selfcheck}" arg2="1" />
+			<then>
+				<!-- Add self-check file -->
+				<exec executable="php" dir="${dirs.root}" passthru="true">
+					<arg file="./build/tools/makeselfcheck.php " />
+					<arg file="${dirs.release}/${build.package_name}.zip" />
+					<arg value="com_${build.component}" />
+					<arg value="${version}" />
+					<arg value="${build.date}" />
+				</exec>
+			</then>
+		</if>
+	</target>
+
+	<!--
+	Builds the CLI file packages
+	-->
+	<target name="package-files" description="file package for CLI files" depends="new-release,setup-properties">
+		<if>
+			<equals arg1="${build.has_cli}" arg2="1" />
+			<then>
+				<!-- Build the Core file package -->
+				<phingcall target="package-files-builder">
+					<property name="build.is_pro" value="0" />
+				</phingcall>
+
+				<if>
+					<equals arg1="${build.has_pro}" arg2="1" />
+					<then>
+						<!-- Build the Pro file package -->
+						<phingcall target="package-files-builder">
+							<property name="build.is_pro" value="1" />
+						</phingcall>
+					</then>
+				</if>
+			</then>
+		</if>
+	</target>
+
+	<!--
+	Internal builder task to build one file installation package (Core or Pro) at a time
+	-->
+	<target name="package-files-builder" description="file package for CLI files" depends="new-release,setup-properties">
+		<!-- Determine the name of the XML manifest template file, package file and the fileset reference ID -->
+		<if>
+			<not>
+				<equals arg1="${build.has_pro}" arg2="1" />
+			</not>
+			<then>
+				<!-- No Pro/Core version, do not use a suffix -->
+				<!-- XML Manifest name: file_something.xml -->
+				<property name="build.template_xml" value="file_${build.component}.xml" />
+				<!-- Package name: file_something.zip -->
+				<property name="build.package_name" value="file_${build.component}.zip" />
+				<!-- Fileset reference ID: cli -->
+				<property name="build.refid" value="cli" />
+			</then>
+			<else>
+				<!-- Distinct Pro / Core versions, use a suffix -->
+				<if>
+					<equals arg1="${build.is_pro}" arg2="1" />
+					<then>
+						<property name="build.suffix" value="pro" />
+					</then>
+					<else>
+						<property name="build.suffix" value="core" />
+					</else>
+				</if>
+				<!-- XML Manifest name: file_something_core.xml -->
+				<property name="build.template_xml" value="file_${build.component}_${build.suffix}.xml" />
+				<!-- Package name: file_something-core.zip -->
+				<property name="build.package_name" value="file_${build.component}-${build.suffix}.zip" />
+				<!-- Fileset reference ID: cli-core -->
+				<property name="build.refid" value="cli-${build.suffix}" />
+			</else>
+		</if>
+
+		<copy file="./templates/${build.template_xml}" tofile="${dirs.component}/cli/file_${build.component}.xml" overwrite="true">
+			<filterchain>
+				<replacetokens begintoken="##" endtoken="##">
+					<token key="DATE" value="${build.date}" />
+					<token key="VERSION" value="${version}" />
+				</replacetokens>
+			</filterchain>
+		</copy>
+
+		<zipme basedir="${dirs.component}/cli" destfile="${dirs.release}/${build.package_name}.zip" includeemptydirs="true">
+			<fileset refid="${build.refid}" />
+		</zipme>
+
+	</target>
+
+	<!--
+	Builds all the modules found in the modules/site and modules/admin folders of your repository
+	-->
+	<target name="package-modules" description="Build all modules" depends="new-release,setup-properties">
+		<foreach param="dirname" absparam="absname" target="package-module-folder">
+			<fileset dir="${dirs.modules}">
+				<type type="dir" />
+				<depth max="0" min="0" />
+			</fileset>
+		</foreach>
+	</target>
+
+	<!--
+	Internal builder task to process all modules inside the modules/site or modules/admin folder of your repository
+	-->
+	<target name="package-module-folder" description="Iterate over the modules in an area (site, admin) directory">
+		<property name="module_area" value="${dirname}" />
+
+		<foreach param="module_name" absparam="module_dir" target="package-module-item">
+			<fileset dir="${absname}">
+				<type type="dir" />
+				<depth max="0" min="0" />
+			</fileset>
+		</foreach>
+	</target>
+
+	<!--
+	Internal builder task to build one module installation package at a time
+	-->
+	<target name="package-module-item" description="Package a single module">
+		<echo message="Packaging module ${module_area}/${module_name}" />
+
+		<property name="module_package" value="${dirs.release}/mod_${module_name}.zip" />
+
+		<zipme basedir="${module_dir}" destfile="${module_package}" includeemptydirs="true">
+			<fileset dir="${module_dir}">
+				<include name="**" />
+			</fileset>
+		</zipme>
+	</target>
+
+	<!--
+	Builds all the plugins found in the plugins/* folders of your repository
+	-->
+	<target name="package-plugins" description="Build all plugins" depends="new-release,setup-properties">
+		<foreach param="dirname" absparam="absname" target="package-plugin-folder">
+			<fileset dir="${dirs.plugins}">
+				<type type="dir" />
+				<depth max="0" min="0" />
+			</fileset>
+		</foreach>
+	</target>
+
+	<!--
+	Internal builder task to process all plugins inside a plugins/whatever folder of your repository, e.g. plugins/system
+	-->
+	<target name="package-plugin-folder" description="Iterate over the plugins in an area (system, user, ...) directory">
+		<property name="plugin_area" value="${dirname}" />
+
+		<foreach param="plugin_name" absparam="plugin_dir" target="package-plugin-item">
+			<fileset dir="${absname}">
+				<type type="dir" />
+				<depth max="0" min="0" />
+			</fileset>
+		</foreach>
+	</target>
+
+	<!--
+	Internal builder task to build one plugin installation package at a time
+	-->
+	<target name="package-plugin-item" description="Package a single plugin">
+		<echo message="Packaging plugin ${plugin_area}/${plugin_name}" />
+
+		<property name="plugin_package" value="${dirs.release}/plg_${plugin_area}_${plugin_name}.zip" />
+
+		<zipme basedir="${plugin_dir}" destfile="${plugin_package}" includeemptydirs="true">
+			<fileset dir="${plugin_dir}">
+				<include name="**" />
+			</fileset>
+		</zipme>
+	</target>
+
+	<!--
+	Internal task to put the correct FOF 3 package in your release directory as lib_fof30.zip
+
+	If you are building a dev release (the name contains the string dev, rev, git or svn) we'll include a dev build of
+	FOF 3. THIS IS NOT RECOMMENDED. It must only be used for TESTING, never on live sites!
+
+	If you are building a regular, numeric versioned released the latest FOF 3 package available from akeebabackup.com
+	will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASES.
+	-->
+	<target name="package-fof" description="Copy the FOF 3 installation package to the release directory">
+		<!-- Start by building a dev build of FOF... -->
+		<phing phingfile="build.xml" dir="${dirs.root}/../fof3/build" inheritAll="false" target="git">
+			<property name="dirs.root" value="${dirs.root}/../fof3" />
+		</phing>
+
+		<!-- ...and copy it to the release directory -->
+		<copy todir="${dirs.release}" overwrite="true">
+			<mapper type="regexp" from="^(lib_fof30)(-.*)\.zip$" to="\1.zip" />
+			<fileset dir="${dirs.root}/../fof3/release">
+				<include name="lib_fof30-*.zip" />
+			</fileset>
+		</copy>
+
+		<if>
+			<or>
+				<contains string="${version}" substring="rev" />
+				<contains string="${version}" substring="dev" />
+				<contains string="${version}" substring="git" />
+				<contains string="${version}" substring="svn" />
+			</or>
+			<else>
+				<!-- Get the FOF update XML file -->
+				<httpget url="http://cdn.akeebabackup.com/updates/fof3.xml" dir="${dirs.release}" filename="fof.tmp" followRedirects="true" />
+
+				<!-- Extract the latest FOF version and download location -->
+				<xslt todir="${dirs.release}" style="${phing.dir}/tools/foflatest.xslt">
+					<mapper type="glob" from="*.tmp" to="*.xml" />
+					<fileset dir="${dirs.release}">
+						<include name="fof.tmp" />
+					</fileset>
+				</xslt>
+				<delete file="${dirs.release}/fof.tmp" />
+				<xmlproperty file="${dirs.release}/fof.xml" />
+				<echo message="Latest FOF version ${latestFof.version} - ${latestFof.download}" />
+
+				<!-- Make sure there is a cache directory, or create it -->
+				<if>
+					<available file="${dirs.root}/../buildfiles/cache" />
+					<else>
+						<mkdir dir="${dirs.root}/../buildfiles/cache" />
+					</else>
+				</if>
+
+				<!-- Get the FOF version from the cache -->
+				<property name="cache_file_exists" value="0" />
+				<available file="${dirs.root}/../buildfiles/cache/fof.xml" property="cache_file_exists" value="1" />
+
+				<if>
+					<equals arg1="${cache_file_exists}" arg2="1" />
+					<then>
+						<xmlproperty file="${dirs.root}/../buildfiles/cache/fof.xml" keepRoot="false" prefix="fofcache." />
+					</then>
+					<else>
+						<property name="fofcache.version" value="0.0.0" />
+						<property name="fofcache.download" value="" />
+					</else>
+				</if>
+
+				<echo message="${latestFof.version} - ${fofcache.version}" />
+
+				<!-- If there is a newer version of FOF available, download it to the cache and update the cached versions -->
+				<php expression="version_compare('${latestFof.version}','${fofcache.version}','gt') ? 1 : 0" returnProperty="has_newer_fof" />
+				<if>
+					<equals arg1="${has_newer_fof}" arg2="1" />
+					<then>
+						<httpget url="${latestFof.download}" dir="${dirs.root}/../buildfiles/cache" filename="lib_fof30.zip" followRedirects="true" />
+						<copy file="${dirs.release}/fof.xml" todir="${dirs.root}/../buildfiles/cache" />
+					</then>
+				</if>
+
+				<!-- Copy the cached FOF release -->
+				<copy file="${dirs.root}/../buildfiles/cache/lib_fof30.zip" todir="${dirs.release}" />
+
+				<!-- Clean up -->
+				<delete file="${dirs.release}/fof.xml" />
+			</else>
+		</if>
+	</target>
+
+	<!--
+	Internal task to put the correct Akeeba Strapper package in your release directory as file_strapper30.zip
+
+	If you are building a dev release (the name contains the string dev, rev, git or svn) we'll include a dev build of
+	Strapper. THIS IS NOT RECOMMENDED. It must only be used for TESTING, never on live sites!
+
+	If you are building a regular, numeric versioned released the latest Strapper package available from akeebabackup.com
+	will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASES.
+	-->
+	<target name="package-strapper" description="Copy the Akeeba Strapper 3 installation package to the release directory">
+		<!-- Start by building a dev build of Strapper... -->
+		<phing phingfile="build.xml" dir="${dirs.root}/../strapper/build" inheritAll="false" target="git">
+			<property name="dirs.root" value="${dirs.root}/../strapper" />
+		</phing>
+
+		<!-- ...and copy it to the release directory -->
+		<copy todir="${dirs.release}" overwrite="true">
+			<mapper type="regexp" from="^(file_strapper30)(-.*)\.zip$" to="\1.zip" />
+			<fileset dir="${dirs.root}/../strapper/release">
+				<include name="file_strapper30-*.zip" />
+			</fileset>
+		</copy>
+
+		<if>
+			<or>
+				<contains string="${version}" substring="rev" />
+				<contains string="${version}" substring="dev" />
+				<contains string="${version}" substring="git" />
+				<contains string="${version}" substring="svn" />
+			</or>
+			<else>
+				<!-- Get the Strapper update XML file -->
+				<httpget url="http://cdn.akeebabackup.com/updates/strapper.xml" dir="${dirs.release}" filename="strapper.tmp" followRedirects="true" />
+
+				<!-- Extract the latest Strapper version and download location -->
+				<xslt todir="${dirs.release}" style="${phing.dir}/tools/strapperlatest.xslt">
+					<mapper type="glob" from="*.tmp" to="*.xml" />
+					<fileset dir="${dirs.release}">
+						<include name="strapper.tmp" />
+					</fileset>
+				</xslt>
+				<delete file="${dirs.release}/strapper.tmp" />
+				<xmlproperty file="${dirs.release}/strapper.xml" />
+				<echo message="Latest Akeeba Strapper version ${latestStrapper.version} - ${latestStrapper.download}" />
+
+				<!-- Make sure there is a cache directory, or create it -->
+				<if>
+					<available file="${dirs.root}/../buildfiles/cache" />
+					<else>
+						<mkdir dir="${dirs.root}/../buildfiles/cache" />
+					</else>
+				</if>
+
+				<!-- Get the Strapper version from the cache -->
+				<property name="cache_file_exists" value="0" />
+				<available file="${dirs.root}/../buildfiles/cache/strapper.xml" property="cache_file_exists" value="1" />
+
+				<if>
+					<equals arg1="${cache_file_exists}" arg2="1" />
+					<then>
+						<xmlproperty file="${dirs.root}/../buildfiles/cache/strapper.xml" keepRoot="false" prefix="strappercache." />
+					</then>
+					<else>
+						<property name="strappercache.version" value="0.0.0" />
+						<property name="strappercache.download" value="" />
+					</else>
+				</if>
+
+				<echo message="${latestStrapper.version} - ${strappercache.version}" />
+
+				<!-- If there is a newer version of Strapper available, download it to the cache and update the cached versions -->
+				<php expression="version_compare('${latestStrapper.version}','${strappercache.version}','gt') ? 1 : 0" returnProperty="has_newer_strapper" />
+				<if>
+					<equals arg1="${has_newer_strapper}" arg2="1" />
+					<then>
+						<httpget url="${latestStrapper.download}" dir="${dirs.root}/../buildfiles/cache" filename="file_strapper30.zip" followRedirects="true" />
+						<copy file="${dirs.release}/strapper.xml" todir="${dirs.root}/../buildfiles/cache" />
+					</then>
+				</if>
+
+				<!-- Copy the cached Strapper release -->
+				<copy file="${dirs.root}/../buildfiles/cache/file_strapper30.zip" todir="${dirs.release}" />
+
+				<!-- Clean up -->
+				<delete file="${dirs.release}/strapper.xml" />
+			</else>
+		</if>
+	</target>
+
+	<!--
+	Builds all Core and Pro packages (pkg_something*.zip)
+	-->
+	<target name="package-pkg" description="Installation package (pkg_something)" depends="new-release, setup-properties, package-com, package-files, package-modules, package-plugins, package-fof, package-strapper">
+
+		<!-- Build the Core package -->
+		<phingcall target="package-pkg-builder">
+			<property name="build.is_pro" value="0" />
+		</phingcall>
+
+		<if>
+			<equals arg1="${build.has_pro}" arg2="1" />
+			<then>
+				<!-- Build the Pro package -->
+				<phingcall target="package-pkg-builder">
+					<property name="build.is_pro" value="1" />
+				</phingcall>
+
+				<!-- Clean up -->
+				<delete>
+					<fileset refid="package-core" />
+					<fileset refid="package-pro" />
+				</delete>
+			</then>
+			<else>
+				<!-- Clean up -->
+				<delete>
+					<fileset refid="package" />
+				</delete>
+			</else>
+		</if>
+
+	</target>
+
+	<!--
+	Internal task to build one installation package (Core or Pro) at a time.
+	-->
+	<target name="package-pkg-builder" description="Create an installation package">
+
+		<!-- Determine the name of the XML manifest template file, package file and the fileset reference ID -->
+		<if>
+			<not>
+				<equals arg1="${build.has_pro}" arg2="1" />
+			</not>
+			<then>
+				<!-- No Pro/Core version, do not use a suffix -->
+				<!-- XML Manifest name: pkg_something.xml -->
+				<property name="build.template_xml" value="pkg_${build.component}.xml" />
+				<!-- Package name: pkg_something-1.2.3.zip -->
+				<property name="build.package_name" value="pkg_${build.component}-${version}.zip" />
+				<!-- Fileset reference ID: package -->
+				<property name="build.refid" value="package" />
+			</then>
+			<else>
+				<!-- Distinct Pro / Core versions, use a suffix -->
+				<if>
+					<equals arg1="${build.is_pro}" arg2="1" />
+					<then>
+						<property name="build.suffix" value="pro" />
+					</then>
+					<else>
+						<property name="build.suffix" value="core" />
+					</else>
+				</if>
+				<!-- XML Manifest name: pkg_something_core.xml -->
+				<property name="build.template_xml" value="pkg_${build.component}_${build.suffix}.xml" />
+				<!-- Package name: pkg_something-1.2.3-core.zip -->
+				<property name="build.package_name" value="pkg_${build.component}-${version}-${build.suffix}.zip" />
+				<!-- Fileset reference ID: package-core -->
+				<property name="build.refid" value="package-${build.suffix}" />
+			</else>
+		</if>
+
+		<!-- Create the XML manifest. IMPORTANT: THE TARGET NAME IS ALWAYS pkg_something.xml WITHOUT A SUFFIX TO ALLOW
+		 JOOMLA! TO UPGRADE FROM CORE TO PRO WITHOUT SCREWING UP THE #__extensions ENTRIES!!! -->
+		<copy file="./templates/${build.template_xml}" tofile="${dirs.release}/pkg_${build.component}.xml" overwrite="true">
+			<filterchain>
+				<replacetokens begintoken="##" endtoken="##">
+					<token key="DATE" value="${build.date}" />
+					<token key="VERSION" value="${version}" />
+				</replacetokens>
+			</filterchain>
+		</copy>
+
+		<!-- Copy the LICENSE.txt file, if present -->
+		<if>
+			<available property="completely.ignored" file="${dirs.component}/LICENSE.txt" />
+			<then>
+				<copy file="${dirs.component}/LICENSE.txt" tofile="${dirs.release}/LICENSE.txt" overwrite="true" />
+			</then>
+		</if>
+
+		<!-- Copy the script.something.php installation script file, if present -->
+		<if>
+			<available property="completely.ignored" file="${dirs.component}/script.${build.component}.php" />
+			<then>
+				<copy file="${dirs.component}/script.${build.component}.php" tofile="${dirs.release}/script.${build.component}.php" overwrite="true" />
+			</then>
+		</if>
+
+		<!-- Create the ZIP file -->
+		<zipme basedir="${dirs.release}" destfile="${build.package_name}" includeemptydirs="true">
+			<fileset refid="${build.refid}" />
+		</zipme>
+	</target>
 </project>
