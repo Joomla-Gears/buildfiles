@@ -668,18 +668,27 @@
 			</else>
 		</if>
 
-		<copy file="${phing.dir}/templates/${build.template_xml}" tofile="${dirs.component}/cli/file_${build.component}.xml" overwrite="true">
-			<filterchain>
-				<replacetokens begintoken="##" endtoken="##">
-					<token key="DATE" value="${build.date}" />
-					<token key="VERSION" value="${version}" />
-				</replacetokens>
-			</filterchain>
-		</copy>
+		<!-- TODO If ${phing.dir}/templates/${build.template_xml} not exists do nothing -->
+		<if>
+			<available file="${phing.dir}/templates/${build.template_xml}" />
+			<then>
+				<copy file="${phing.dir}/templates/${build.template_xml}" tofile="${dirs.component}/cli/file_${build.component}.xml" overwrite="true">
+					<filterchain>
+						<replacetokens begintoken="##" endtoken="##">
+							<token key="DATE" value="${build.date}" />
+							<token key="VERSION" value="${version}" />
+						</replacetokens>
+					</filterchain>
+				</copy>
 
-		<zipme basedir="${dirs.component}/cli" destfile="${dirs.release}/${build.package_name}" includeemptydirs="true">
-			<fileset refid="${build.refid}" />
-		</zipme>
+				<zipme basedir="${dirs.component}/cli" destfile="${dirs.release}/${build.package_name}" includeemptydirs="true">
+					<fileset refid="${build.refid}" />
+				</zipme>
+			</then>
+			<else>
+				<delete file="${dirs.release}/${build.package_name}" failonerror="false" />
+			</else>
+		</if>
 
 	</target>
 
