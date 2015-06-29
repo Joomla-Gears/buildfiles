@@ -662,7 +662,7 @@
 				<!-- XML Manifest name: file_something_core.xml -->
 				<property name="build.template_xml" value="file_${build.component}_${build.suffix}.xml" />
 				<!-- Package name: file_something-core.zip -->
-				<property name="build.package_name" value="file_${build.component}-${build.suffix}" />
+				<property name="build.package_name" value="file_${build.component}-${build.suffix}.zip" />
 				<!-- Fileset reference ID: cli-core -->
 				<property name="build.refid" value="cli-${build.suffix}" />
 			</else>

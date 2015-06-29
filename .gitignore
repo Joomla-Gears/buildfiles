@@ -2,3 +2,4 @@
 /phing-latest.phar
 /cache/fof.xml
 /cache/lib_*.zip
+/cache
