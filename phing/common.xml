@@ -917,11 +917,11 @@
 				</if>
 
 				<!-- Get the Strapper version from the cache -->
-				<property name="cache_file_exists" value="0" />
-				<available file="${dirs.root}/../buildfiles/cache/strapper.xml" property="cache_file_exists" value="1" />
+				<property name="strapper_cache_file_exists" value="0" />
+				<available file="${dirs.root}/../buildfiles/cache/strapper.xml" property="strapper_cache_file_exists" value="1" />
 
 				<if>
-					<equals arg1="${cache_file_exists}" arg2="1" />
+					<equals arg1="${strapper_cache_file_exists}" arg2="1" />
 					<then>
 						<xmlproperty file="${dirs.root}/../buildfiles/cache/strapper.xml" keepRoot="false" prefix="strappercache." />
 					</then>
