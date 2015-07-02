@@ -372,7 +372,7 @@
             <arg file="${dirs.root}/release.json" />
         </exec>
 
-        <!--<delete file="${dirs.root}/release.json" quiet="true" />-->
+        <delete file="${dirs.root}/release.json" quiet="true" />
     </target>
 
     <!--
