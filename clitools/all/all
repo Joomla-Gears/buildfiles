@@ -71,7 +71,8 @@ do
 			;;
 
 		status )
-			i=`expr $(git status --porcelain 2>/dev/null| egrep "^(M| M)" | wc -l)`
+			#i=`expr $(git status --porcelain 2>/dev/null| egrep "^(M| M)" | wc -l)`
+			i=`expr $(git status --porcelain 2>/dev/null| wc -l)`
 			if [ $i -ne 0 ]
 			then
 				echo -e $COLOR_LIGHT_RED"Dirty $COLOR_CYAN$d"$COLOR_NC
