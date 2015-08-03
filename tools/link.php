@@ -107,7 +107,14 @@ function doLink($from, $to, $type = 'symlink', $path)
 	{
 		if(IS_WINDOWS)
 		{
-			$cmd = 'mklink /D "' . $realTo . '" "' . $realFrom . '"';
+			$extraArguments = '';
+
+			if (is_dir($realFrom))
+			{
+				$extraArguments = ' /D ';
+			}
+
+			$cmd = 'mklink ' . $extraArguments .' "' . $realTo . '" "' . $realFrom . '"';
 			$res = exec($cmd);
 		}
 		else
