@@ -784,19 +784,6 @@
 	will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASES.
 	-->
 	<target name="package-fof" description="Copy the FOF 3 installation package to the release directory">
-		<!-- Start by building a dev build of FOF... -->
-		<phing phingfile="build.xml" dir="${dirs.root}/../fof3/build" inheritAll="false" target="git">
-			<property name="dirs.root" value="${dirs.root}/../fof3" />
-		</phing>
-
-		<!-- ...and copy it to the release directory -->
-		<copy todir="${dirs.release}" overwrite="true">
-			<mapper type="regexp" from="^(lib_fof30)(-.*)\.zip$" to="\1.zip" />
-			<fileset dir="${dirs.root}/../fof3/release">
-				<include name="lib_fof30-*.zip" />
-			</fileset>
-		</copy>
-
 		<if>
 			<or>
 				<contains string="${version}" substring="rev" />
@@ -804,6 +791,25 @@
 				<contains string="${version}" substring="git" />
 				<contains string="${version}" substring="svn" />
 			</or>
+            <then>
+                <!-- Start by building a dev build of FOF... -->
+                <gitversion workingcopy="${dirs.root}/../fof3" propertyname="git.fof.lastrevision" />
+                <gitdate workingcopy="${dirs.root}/../fof3" propertyname="git.fof.timestamp" />
+                <property name="fof.version" value="rev${git.fof.lastrevision}-${git.fof.timestamp}" override="true" />
+
+                <phing phingfile="build.xml" dir="${dirs.root}/../fof3/build" inheritAll="false" target="git">
+                    <property name="dirs.root" value="${dirs.root}/../fof3" />
+                    <property name="version" value="${fof.version}" />
+                </phing>
+
+                <!-- ...and copy it to the release directory -->
+                <copy todir="${dirs.release}" overwrite="true">
+                    <mapper type="regexp" from="^(lib_fof30)(-.*)\.zip$" to="\1.zip" />
+                    <fileset dir="${dirs.root}/../fof3/release">
+                        <include name="lib_fof30-*.zip" />
+                    </fileset>
+                </copy>
+            </then>
 			<else>
 				<!-- Get the FOF update XML file -->
 				<httpget url="http://cdn.akeebabackup.com/updates/fof3.xml" dir="${dirs.release}" filename="fof.tmp" followRedirects="true" />
@@ -873,19 +879,6 @@
 	will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASES.
 	-->
 	<target name="package-strapper" description="Copy the Akeeba Strapper 3 installation package to the release directory">
-		<!-- Start by building a dev build of Strapper... -->
-		<phing phingfile="build.xml" dir="${dirs.root}/../strapper/build" inheritAll="false" target="git">
-			<property name="dirs.root" value="${dirs.root}/../strapper" />
-		</phing>
-
-		<!-- ...and copy it to the release directory -->
-		<copy todir="${dirs.release}" overwrite="true">
-			<mapper type="regexp" from="^(file_strapper30)(-.*)\.zip$" to="\1.zip" />
-			<fileset dir="${dirs.root}/../strapper/release">
-				<include name="file_strapper30-*.zip" />
-			</fileset>
-		</copy>
-
 		<if>
 			<or>
 				<contains string="${version}" substring="rev" />
@@ -893,6 +886,25 @@
 				<contains string="${version}" substring="git" />
 				<contains string="${version}" substring="svn" />
 			</or>
+            <then>
+                <!-- Start by building a dev build of Strapper... -->
+                <gitversion workingcopy="${dirs.root}/../strapper" propertyname="git.strapper.lastrevision" />
+                <gitdate workingcopy="${dirs.root}/../strapper" propertyname="git.strapper.timestamp" />
+                <property name="strapper.version" value="rev${git.strapper.lastrevision}-${git.strapper.timestamp}" override="true" />
+
+                <phing phingfile="build.xml" dir="${dirs.root}/../strapper/build" inheritAll="false" target="git">
+                    <property name="dirs.root" value="${dirs.root}/../strapper" />
+                    <property name="version" value="${strapper.version}/../strapper" />
+                </phing>
+
+                <!-- ...and copy it to the release directory -->
+                <copy todir="${dirs.release}" overwrite="true">
+                    <mapper type="regexp" from="^(file_strapper30)(-.*)\.zip$" to="\1.zip" />
+                    <fileset dir="${dirs.root}/../strapper/release">
+                        <include name="file_strapper30-*.zip" />
+                    </fileset>
+                </copy>
+            </then>
 			<else>
 				<!-- Get the Strapper update XML file -->
 				<httpget url="http://cdn.akeebabackup.com/updates/strapper.xml" dir="${dirs.release}" filename="strapper.tmp" followRedirects="true" />
