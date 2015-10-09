@@ -894,7 +894,7 @@
 
                 <phing phingfile="build.xml" dir="${dirs.root}/../strapper/build" inheritAll="false" target="git">
                     <property name="dirs.root" value="${dirs.root}/../strapper" />
-                    <property name="version" value="${strapper.version}/../strapper" />
+                    <property name="version" value="${strapper.version}" />
                 </phing>
 
                 <!-- ...and copy it to the release directory -->
