@@ -446,8 +446,8 @@
     Generate and upload language files
     -->
     <target name="lang" description="Generate and upload language files">
-        <exec executable="php" dir="${dirs.root}/build/buildlang" passthru="true" escape="true">
-            <arg value="${phing.dir}/buildlang.php" />
+        <exec executable="php" dir="${dirs.root}/../buildfiles/buildlang" passthru="true" escape="true">
+            <arg value="${dirs.root}/../buildfiles/buildlang/buildlang.php" />
             <arg value="${phing.dir}/build.properties;${dirs.root}/../build.properties;${phing.dir}/override.properties" />
             <arg path="${dirs.root}" />
             <arg value="${version}" />
