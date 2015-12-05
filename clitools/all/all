@@ -1,21 +1,20 @@
 #!/bin/bash
 
 usage () {
-	echo "Usage: %0 pull|push|status"
+	echo -e $COLOR_BROWN"Usage: %0 <command>"$COLOR_NC
 	echo ""
+	echo -e $COLOR_BLUE"All repositories"$COLOR_NC
 	echo "pull	  Pull from Git"
 	echo "push	  Push to Git"
 	echo "status  Report repositories with uncommitted changes"
+	echo -e $COLOR_BLUE"Using Akeeba Build Files"$COLOR_NC
+	echo "link    Internal relink"
+	echo -e $COLOR_BLUE"Using Transifex"$COLOR_NC
+	echo "txpush  Push source translations to Trasnifex"
+	echo "txpull  Pull all translations from Transifex"
 
 	exit 255
 }
-
-if [ $# -lt 1 ]
-then
-	usage
-
-	exit 255
-fi
 
 COLOR_NC='\033[0m'
 COLOR_WHITE='\033[1;37m'
@@ -34,6 +33,13 @@ COLOR_BROWN='\033[0;33m'
 COLOR_YELLOW='\033[1;33m'
 COLOR_GRAY='\033[0;30m'
 COLOR_LIGHT_GRAY='\033[0;37m'
+
+if [ $# -lt 1 ]
+then
+	usage
+
+	exit 255
+fi
 
 echo -e $COLOR_WHITE"All – Loop all Git repositories"$COLOR_NC
 echo ""
@@ -76,6 +82,31 @@ do
 			if [ $i -ne 0 ]
 			then
 				echo -e $COLOR_LIGHT_RED"Dirty $COLOR_CYAN$d"$COLOR_NC
+			fi
+			;;
+			
+		link )
+			if [ -d build ]
+			then
+				echo -e "\n"$COLOR_BROWN"Linking $COLOR_CYAN$d"$COLOR_NC
+				cd build
+				phing link
+			fi
+			;;
+
+		txpush )
+			if [ -f ./.tx/config ]
+			then
+				echo -e "\n"$COLOR_PURPLE"Pushing translations for $COLOR_CYAN$d"$COLOR_NC
+				tx push -s
+			fi
+			;;
+
+		txpull )
+			if [ -f ./.tx/config ]
+			then
+				echo -e "\n"$COLOR_PURPLE"Pulling translations for $COLOR_CYAN$d"$COLOR_NC
+				tx pull -a
 			fi
 			;;
 
