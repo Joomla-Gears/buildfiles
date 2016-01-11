@@ -1,4 +1,11 @@
 <?php
+/**
+ * Akeeba Build Files
+ *
+ * @package    buildfiles
+ * @copyright  (c) 2010-2016 Akeeba Ltd
+ */
+
 define('IS_WINDOWS', substr(PHP_OS, 0, 3) == 'WIN');
 
 require_once 'phing/Task.php';

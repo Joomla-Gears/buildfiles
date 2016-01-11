@@ -1,4 +1,10 @@
 #!/bin/bash
+#
+# Akeeba Build Files
+#
+# @package    buildfiles
+# @copyright  (c) 2010-2016 Akeeba Ltd
+#
 
 usage () {
 	echo -e $COLOR_BROWN"Usage: %0 <command>"$COLOR_NC

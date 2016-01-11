@@ -1,4 +1,11 @@
 <?php
+/**
+ * Akeeba Build Files
+ *
+ * @package    buildfiles
+ * @copyright  (c) 2010-2016 Akeeba Ltd
+ */
+
 function doTheHippyHippyShake($root, $target)
 {
 	foreach (new DirectoryIterator($root) as $oArea)

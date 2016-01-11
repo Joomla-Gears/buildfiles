@@ -1,4 +1,10 @@
 <?php
+/**
+ * Akeeba Build Files
+ *
+ * @package    buildfiles
+ * @copyright  (c) 2010-2016 Akeeba Ltd
+ */
 
 define('_JPA_MAJOR', 1); // JPA Format major version number
 define('_JPA_MINOR', 0); // JPA Format minor version number

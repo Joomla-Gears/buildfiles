@@ -1,4 +1,10 @@
 <?php
+/**
+ * Akeeba Build Files
+ *
+ * @package    buildfiles
+ * @copyright  (c) 2010-2016 Akeeba Ltd
+ */
 require_once '../phingext/pclzip.php';
 
 function scan($root)

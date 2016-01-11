@@ -1,8 +1,9 @@
 <?php
 /**
- * @package		jadmintools
- * @copyright	2014 Nicholas K. Dionysopoulos / Akeeba Ltd 
- * @license		GNU GPL version 3 or later
+ * Akeeba Build Files
+ *
+ * @package    buildfiles
+ * @copyright  (c) 2010-2016 Akeeba Ltd
  */
 
 $zipPath = $argv[1];

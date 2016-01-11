@@ -1,5 +1,12 @@
 <?php
 /**
+ * Akeeba Build Files
+ *
+ * @package    buildfiles
+ * @copyright  (c) 2010-2016 Akeeba Ltd
+ */
+
+/**
  * When you initialise a new Transifex language it doesn't set type = INI,
  * preventing you from managing the language. This is how we fix it.
  */

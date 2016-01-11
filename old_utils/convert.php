@@ -1,9 +1,9 @@
 <?php
 /**
- * @package   Akeeba
- * @copyright 2009-2014 Nicholas K. Dionysopoulos
+ * Akeeba Build Files
  *
- * This script converts Joomla! 1.5.x language files to Joomla! 1.6
+ * @package    buildfiles
+ * @copyright  (c) 2010-2016 Akeeba Ltd
  */
 
 define('DS', DIRECTORY_SEPARATOR);

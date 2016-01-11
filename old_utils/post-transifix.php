@@ -1,5 +1,12 @@
 <?php
 /**
+ * Akeeba Build Files
+ *
+ * @package    buildfiles
+ * @copyright  (c) 2010-2016 Akeeba Ltd
+ */
+
+/**
  * Fixes the translation folders after you pull them in from Transifex…
  */
 

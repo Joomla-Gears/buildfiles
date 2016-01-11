@@ -1,5 +1,12 @@
 <?php
 /**
+ * Akeeba Build Files
+ *
+ * @package    buildfiles
+ * @copyright  (c) 2010-2016 Akeeba Ltd
+ */
+
+/**
  * Automatically compares the new and old component repositories, figuring out
  * which files and folders have been removed from the old component's repo.
  */
