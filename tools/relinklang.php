@@ -286,6 +286,7 @@ class AkeebaRelinkLanguage
 
 			$mainRoot = realpath($mainRoot);
 
+			$this->scanAwfComponent($mainRoot);
 			$this->scanComponent($mainRoot);
 			$this->scanModules($mainRoot);
 			$this->scanPlugins($mainRoot);
@@ -341,6 +342,66 @@ class AkeebaRelinkLanguage
 
 					$this->sources[$siteSide][$directory->getFilename()][] = $directory->getPathname();
 				}
+			}
+		}
+	}
+
+	/**
+	 * Scan for AWF-based component translations
+	 *
+	 * @param   string  $mainRoot  The top-level directory where all of extension translations are stored
+	 *
+	 * @return  void
+	 */
+	protected function scanAwfComponent($mainRoot)
+	{
+		// Get the root folder of the component translations
+		$root = realpath($mainRoot);
+
+		// Make sure the directory exists
+		if (empty($root) || !is_dir($root))
+		{
+			return;
+		}
+
+		$ldi = new DirectoryIterator($root);
+
+		foreach ($ldi as $langDir)
+		{
+			if ($langDir->isDot() || !$langDir->isDir())
+			{
+				continue;
+			}
+
+			$directoryName = $langDir->getFilename();
+
+			if (in_array($directoryName, array(
+				'_pages',
+				'component',
+				'plugins',
+				'modules',
+			)))
+			{
+				continue;
+			}
+
+			$langRoot      = realpath($root . '/' . $directoryName);
+			$di            = new DirectoryIterator($langRoot);
+
+			foreach ($di as $directory)
+			{
+				if ($directory->isDot() || !$directory->isDir())
+				{
+					continue;
+				}
+
+				// e.g. $this->sources['site']['en-GB'] =  /repodir/component/backend/app/languages/foobar/en-GB
+				if (!isset($this->sources['admin'][$directory->getFilename()]))
+				{
+					$this->sources['admin'][$directory->getFilename()] = [];
+				}
+
+				$this->sources['admin'][$directory->getFilename()][] = $directory->getPathname();
 			}
 		}
 	}
