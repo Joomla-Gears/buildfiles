@@ -50,7 +50,7 @@ Akeeba Build Files
     <taskdef name="linksite" classname="phingext.LinkSiteTask" />
     <taskdef name="link" classname="phingext.LinkTask" />
     <taskdef name="svnversion" classname="phingext.SvnVersionTask" />
-    <taskdef name="twitter" classname="phingext.TwitterUpdateTask" />
+    <!--<taskdef name="twitter" classname="phingext.TwitterUpdateTask" />-->
     <taskdef name="zipme" classname="phingext.ZipmeTask" />
 
 	<!--
