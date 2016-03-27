@@ -27,6 +27,8 @@ Akeeba Build Files
     <property name="dirs.bin.libxml" value="${dirs.bin}/libxml" />
     <property name="dirs.bin.fop" value="${dirs.bin}/fop" />
     <property name="dirs.bin.dbxsl" value="${dirs.bin}/dbxsl" />
+	<!-- ### Should I include Strapper in the build? -->
+	<property name="build.strapper" value="1" />
 
     <!-- ### Version numbers -->
     <property name="version" value="git" />
@@ -886,87 +888,93 @@ Akeeba Build Files
 	-->
 	<target name="package-strapper" description="Copy the Akeeba Strapper 3 installation package to the release directory">
 		<if>
-			<or>
-				<contains string="${version}" substring="rev" />
-				<contains string="${version}" substring="dev" />
-				<contains string="${version}" substring="git" />
-				<contains string="${version}" substring="svn" />
-			</or>
+			<!-- Only build when the build.strapper property is true -->
+			<istrue value="${build.strapper}" />
             <then>
-                <!-- Start by building a dev build of Strapper... -->
-                <gitversion workingcopy="${dirs.root}/../strapper" propertyname="git.strapper.lastrevision" />
-                <gitdate workingcopy="${dirs.root}/../strapper" propertyname="git.strapper.timestamp" />
-                <property name="strapper.version" value="rev${git.strapper.lastrevision}-${git.strapper.timestamp}" override="true" />
-
-                <phing phingfile="build.xml" dir="${dirs.root}/../strapper/build" inheritAll="false" target="git">
-                    <property name="dirs.root" value="${dirs.root}/../strapper" />
-                    <property name="version" value="${strapper.version}" />
-                </phing>
-
-                <!-- ...and copy it to the release directory -->
-                <copy todir="${dirs.release}" overwrite="true">
-                    <mapper type="regexp" from="^(file_strapper30)(-.*)\.zip$" to="\1.zip" />
-                    <fileset dir="${dirs.root}/../strapper/release">
-                        <include name="file_strapper30-*.zip" />
-                    </fileset>
-                </copy>
-            </then>
-			<else>
-				<!-- Get the Strapper update XML file -->
-				<httpget url="http://cdn.akeebabackup.com/updates/strapper.xml" dir="${dirs.release}" filename="strapper.tmp" followRedirects="true" />
-
-				<!-- Extract the latest Strapper version and download location -->
-				<xslt todir="${dirs.release}" style="${phing.dir}/tools/strapperlatest.xslt">
-					<mapper type="glob" from="*.tmp" to="*.xml" />
-					<fileset dir="${dirs.release}">
-						<include name="strapper.tmp" />
-					</fileset>
-				</xslt>
-				<delete file="${dirs.release}/strapper.tmp" />
-				<xmlproperty file="${dirs.release}/strapper.xml" />
-				<echo message="Latest Akeeba Strapper version ${latestStrapper.version} - ${latestStrapper.download}" />
-
-				<!-- Make sure there is a cache directory, or create it -->
 				<if>
-					<available file="${dirs.root}/../buildfiles/cache" />
-					<else>
-						<mkdir dir="${dirs.root}/../buildfiles/cache" />
-					</else>
-				</if>
-
-				<!-- Get the Strapper version from the cache -->
-				<property name="strapper_cache_file_exists" value="0" />
-				<available file="${dirs.root}/../buildfiles/cache/strapper.xml" property="strapper_cache_file_exists" value="1" />
-
-				<if>
-					<equals arg1="${strapper_cache_file_exists}" arg2="1" />
+					<or>
+						<contains string="${version}" substring="rev" />
+						<contains string="${version}" substring="dev" />
+						<contains string="${version}" substring="git" />
+						<contains string="${version}" substring="svn" />
+					</or>
 					<then>
-						<xmlproperty file="${dirs.root}/../buildfiles/cache/strapper.xml" keepRoot="false" prefix="strappercache." />
+						<!-- Start by building a dev build of Strapper... -->
+						<gitversion workingcopy="${dirs.root}/../strapper" propertyname="git.strapper.lastrevision" />
+						<gitdate workingcopy="${dirs.root}/../strapper" propertyname="git.strapper.timestamp" />
+						<property name="strapper.version" value="rev${git.strapper.lastrevision}-${git.strapper.timestamp}" override="true" />
+
+						<phing phingfile="build.xml" dir="${dirs.root}/../strapper/build" inheritAll="false" target="git">
+							<property name="dirs.root" value="${dirs.root}/../strapper" />
+							<property name="version" value="${strapper.version}" />
+						</phing>
+
+						<!-- ...and copy it to the release directory -->
+						<copy todir="${dirs.release}" overwrite="true">
+							<mapper type="regexp" from="^(file_strapper30)(-.*)\.zip$" to="\1.zip" />
+							<fileset dir="${dirs.root}/../strapper/release">
+								<include name="file_strapper30-*.zip" />
+							</fileset>
+						</copy>
 					</then>
 					<else>
-						<property name="strappercache.version" value="0.0.0" />
-						<property name="strappercache.download" value="" />
+						<!-- Get the Strapper update XML file -->
+						<httpget url="http://cdn.akeebabackup.com/updates/strapper.xml" dir="${dirs.release}" filename="strapper.tmp" followRedirects="true" />
+
+						<!-- Extract the latest Strapper version and download location -->
+						<xslt todir="${dirs.release}" style="${phing.dir}/tools/strapperlatest.xslt">
+							<mapper type="glob" from="*.tmp" to="*.xml" />
+							<fileset dir="${dirs.release}">
+								<include name="strapper.tmp" />
+							</fileset>
+						</xslt>
+						<delete file="${dirs.release}/strapper.tmp" />
+						<xmlproperty file="${dirs.release}/strapper.xml" />
+						<echo message="Latest Akeeba Strapper version ${latestStrapper.version} - ${latestStrapper.download}" />
+
+						<!-- Make sure there is a cache directory, or create it -->
+						<if>
+							<available file="${dirs.root}/../buildfiles/cache" />
+							<else>
+								<mkdir dir="${dirs.root}/../buildfiles/cache" />
+							</else>
+						</if>
+
+						<!-- Get the Strapper version from the cache -->
+						<property name="strapper_cache_file_exists" value="0" />
+						<available file="${dirs.root}/../buildfiles/cache/strapper.xml" property="strapper_cache_file_exists" value="1" />
+
+						<if>
+							<equals arg1="${strapper_cache_file_exists}" arg2="1" />
+							<then>
+								<xmlproperty file="${dirs.root}/../buildfiles/cache/strapper.xml" keepRoot="false" prefix="strappercache." />
+							</then>
+							<else>
+								<property name="strappercache.version" value="0.0.0" />
+								<property name="strappercache.download" value="" />
+							</else>
+						</if>
+
+						<echo message="${latestStrapper.version} - ${strappercache.version}" />
+
+						<!-- If there is a newer version of Strapper available, download it to the cache and update the cached versions -->
+						<php expression="version_compare('${latestStrapper.version}','${strappercache.version}','gt') ? 1 : 0" returnProperty="has_newer_strapper" />
+						<if>
+							<equals arg1="${has_newer_strapper}" arg2="1" />
+							<then>
+								<httpget url="${latestStrapper.download}" dir="${dirs.root}/../buildfiles/cache" filename="file_strapper30.zip" followRedirects="true" />
+								<copy file="${dirs.release}/strapper.xml" todir="${dirs.root}/../buildfiles/cache" />
+							</then>
+						</if>
+
+						<!-- Copy the cached Strapper release -->
+						<copy file="${dirs.root}/../buildfiles/cache/file_strapper30.zip" todir="${dirs.release}" />
+
+						<!-- Clean up -->
+						<delete file="${dirs.release}/strapper.xml" />
 					</else>
 				</if>
-
-				<echo message="${latestStrapper.version} - ${strappercache.version}" />
-
-				<!-- If there is a newer version of Strapper available, download it to the cache and update the cached versions -->
-				<php expression="version_compare('${latestStrapper.version}','${strappercache.version}','gt') ? 1 : 0" returnProperty="has_newer_strapper" />
-				<if>
-					<equals arg1="${has_newer_strapper}" arg2="1" />
-					<then>
-						<httpget url="${latestStrapper.download}" dir="${dirs.root}/../buildfiles/cache" filename="file_strapper30.zip" followRedirects="true" />
-						<copy file="${dirs.release}/strapper.xml" todir="${dirs.root}/../buildfiles/cache" />
-					</then>
-				</if>
-
-				<!-- Copy the cached Strapper release -->
-				<copy file="${dirs.root}/../buildfiles/cache/file_strapper30.zip" todir="${dirs.release}" />
-
-				<!-- Clean up -->
-				<delete file="${dirs.release}/strapper.xml" />
-			</else>
+			</then>
 		</if>
 	</target>
 
