@@ -317,7 +317,20 @@ class AkeebaRelink
 	{
 		// Check if we have site/admin subdirectories, or just a bunch of modules
 		$scanPath = $this->_root . '/plugins';
-		if (is_dir($scanPath . '/system') || is_dir($scanPath . '/content') || is_dir($scanPath . '/user'))
+
+		$possibleFolders = ['system', 'content', 'user', 'search', 'finder'];
+		$hasPossibleFolder = false;
+
+		foreach ($possibleFolders as $folder)
+		{
+			if (is_dir($scanPath . '/' . $folder))
+			{
+				$hasPossibleFolder = true;
+				break;
+			}
+		}
+
+		if ($hasPossibleFolder)
 		{
 			$paths = array();
 			foreach (new DirectoryIterator($scanPath) as $fileInfo)
