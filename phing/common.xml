@@ -299,6 +299,9 @@ Akeeba Build Files
     scp.dir                     SFTP initial directory
     -->
     <target name="release" depends="setup-properties" description="Use Akeeba Release Maker to deploy software">
+        <phingcall target="onBeforeRelease">
+        </phingcall>
+
         <!-- If release.json is not specified use either ${phing.dir}/templates/release.json or
          if it doesn't exist our default release.json file -->
         <if>
@@ -381,6 +384,17 @@ Akeeba Build Files
         </exec>
 
         <delete file="${dirs.root}/release.json" quiet="true" />
+
+        <phingcall target="onAfterRelease">
+        </phingcall>
+    </target>
+
+    <!-- Runs before "release". Put any custom actions here. You can NOT set/modify variables, see https://www.phing.info/docs/guide/trunk/PhingCallTask.html -->
+    <target name="onBeforeRelease">
+    </target>
+
+    <!-- Runs after "release". Put any custom actions here. You can NOT set/modify variables, see https://www.phing.info/docs/guide/trunk/PhingCallTask.html -->
+    <target name="onAfterRelease">
     </target>
 
     <!--
