@@ -101,8 +101,12 @@ function linkTranslations($root, $target)
 				{
 					if (!@unlink($to))
 					{
-						echo "\tCannot remove old link\n";
-						continue;
+						// Windows can't unlink a symlink to a dir, hence the need to rmdir.
+						if (!@rmdir($to))
+						{
+							echo "\tCannot remove old link\n";
+							continue;
+						}
 					}
 				}
 			}
