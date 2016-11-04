@@ -834,7 +834,7 @@ Akeeba Build Files
             </then>
 			<else>
 				<!-- Get the FOF update XML file -->
-				<httpget url="http://cdn.akeebabackup.com/updates/fof3.xml" dir="${dirs.release}" filename="fof.tmp" followRedirects="true" />
+				<httpget url="https://akeeba-cdn.s3.amazonaws.com/updates/fof3.xml" dir="${dirs.release}" filename="fof.tmp" followRedirects="true" />
 
 				<!-- Extract the latest FOF version and download location -->
 				<xslt todir="${dirs.release}" style="${phing.dir}/tools/foflatest.xslt">
@@ -933,7 +933,7 @@ Akeeba Build Files
 					</then>
 					<else>
 						<!-- Get the Strapper update XML file -->
-						<httpget url="http://cdn.akeebabackup.com/updates/strapper.xml" dir="${dirs.release}" filename="strapper.tmp" followRedirects="true" />
+						<httpget url="https://akeeba-cdn.s3.amazonaws.com/updates/strapper.xml" dir="${dirs.release}" filename="strapper.tmp" followRedirects="true" />
 
 						<!-- Extract the latest Strapper version and download location -->
 						<xslt todir="${dirs.release}" style="${phing.dir}/tools/strapperlatest.xslt">
