@@ -95,6 +95,13 @@ function doLink($from, $to, $type = 'symlink', $path)
 		{
 			$res = @unlink($realTo);
 		}
+
+        if (!$res && is_dir($realTo))
+        {
+            // This is an actual directory, not an old symlink
+            $res = recursiveUnlink($realTo);
+        }
+
 		if (!$res)
 		{
 			echo "FAILED UNLINK  : $realTo\n";
@@ -138,6 +145,59 @@ function doLink($from, $to, $type = 'symlink', $path)
 			echo "FAILED LINK    : $realTo\n";
 		}
 	}
+}
+
+function recursiveUnlink($dir)
+{
+    $return = true;
+
+    try
+    {
+        $dh = new DirectoryIterator($dir);
+
+        foreach ($dh as $file)
+        {
+            if ($file->isDot())
+            {
+                continue;
+            }
+
+            if ($file->isDir())
+            {
+                // We have to try the rmdir in case this is a Windows directory symlink OR an empty folder.
+                $deleteFolderResult = @rmdir($file->getPathname());
+
+                // If rmdir failed (non-empty, real folder) we have to recursively delete it
+                if (!$deleteFolderResult)
+                {
+                    $deleteFolderResult = recursiveUnlink($file->getPathname());
+                    $return = $return && $deleteFolderResult;
+                }
+
+                if (!$deleteFolderResult)
+                {
+                    // echo "  Failed deleting folder {$file->getPathname()}\n";
+                }
+            }
+
+            // We have to try the rmdir in case this is a Windows directory symlink.
+            $deleteFileResult = @rmdir($file->getPathname()) || @unlink($file->getPathname());
+            $return = $return && $deleteFileResult;
+
+            if (!$deleteFileResult)
+            {
+                // echo "  Failed deleting file {$file->getPathname()}\n";
+            }
+        }
+
+        $return = $return && @rmdir($dir);
+
+        return $return;
+    }
+    catch (Exception $e)
+    {
+        return false;
+    }
 }
 
 function showUsage()
