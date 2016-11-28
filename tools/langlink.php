@@ -130,12 +130,14 @@ function linkTranslations($root, $target)
 			{
 				$f = translateWinPath($from);
 				$t = translateWinPath($to);
-				$cmd = 'mklink /D "' . $to . '" "' . $from . '"';
+				$relativeFrom = getRelativePath($to, $from);
+				$cmd = 'mklink /D "' . $to . '" "' . $relativeFrom . '"';
 				exec($cmd);
 			}
 			else
 			{
-				@symlink($from, $to);
+				$relativeFrom = getRelativePath($to, $from);
+				@symlink($relativeFrom, $to);
 			}
 
 			echo "\tLINKED\n";
@@ -152,6 +154,47 @@ Usage:
 	php $file /path/to/repository
 
 ENDUSAGE;
+}
+
+function getRelativePath($from, $to)
+{
+	// some compatibility fixes for Windows paths
+	$from = is_dir($from) ? rtrim($from, '\/') . '/' : $from;
+	$to   = is_dir($to) ? rtrim($to, '\/') . '/' : $to;
+	$from = str_replace('\\', '/', $from);
+	$to   = str_replace('\\', '/', $to);
+
+	$from    = explode('/', $from);
+	$to      = explode('/', $to);
+	$relPath = $to;
+
+	foreach ($from as $depth => $dir)
+	{
+		// find first non-matching dir
+		if ($dir === $to[$depth])
+		{
+			// ignore this directory
+			array_shift($relPath);
+		}
+		else
+		{
+			// get number of remaining dirs to $from
+			$remaining = count($from) - $depth;
+			if ($remaining > 1)
+			{
+				// add traversals up to first matching dir
+				$padLength = (count($relPath) + $remaining - 1) * -1;
+				$relPath   = array_pad($relPath, $padLength, '..');
+				break;
+			}
+			else
+			{
+				$relPath[0] = '.' . DIRECTORY_SEPARATOR . $relPath[0];
+			}
+		}
+	}
+
+	return implode(DIRECTORY_SEPARATOR, $relPath);
 }
 
 $year = gmdate('Y');
@@ -172,6 +215,7 @@ if ($argc < 2)
 }
 
 $repoRoot = $argv[1];
+$repoRoot = realpath($repoRoot);
 
 $root = $repoRoot . '/modules';
 $target = $repoRoot . '/translations/modules';

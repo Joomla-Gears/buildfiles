@@ -60,20 +60,20 @@ function TranslateWinPath($p_path)
 
 function doLink($from, $to, $type = 'symlink', $path)
 {
-	$realTo = $path . '/' . $to;
+	$realTo   = $path . '/' . $to;
 	$realFrom = $path . '/' . $from;
 
 	if (IS_WINDOWS)
 	{
 		// Windows doesn't play nice with paths containing UNIX path separators
-		$realTo = TranslateWinPath($realTo);
+		$realTo   = TranslateWinPath($realTo);
 		$realFrom = TranslateWinPath($realFrom);
 		// Windows doesn't play nice with relative paths in symlinks
 		$realFrom = realpath($realFrom);
 	}
 	elseif ($type == 'symlink')
 	{
-		$parts = explode('/', $to);
+		$parts  = explode('/', $to);
 		$prefix = '';
 
 		for ($i = 0; $i < count($parts) - 1; $i++)
@@ -96,11 +96,17 @@ function doLink($from, $to, $type = 'symlink', $path)
 			$res = @unlink($realTo);
 		}
 
-        if (!$res && is_dir($realTo))
-        {
-            // This is an actual directory, not an old symlink
-            $res = recursiveUnlink($realTo);
-        }
+		// Invalid symlinks are not reported as directories but require @rmdir to delete them because FREAKING WINDOWS.
+		if (!$res && IS_WINDOWS)
+		{
+			$res = @rmdir($realTo);
+		}
+
+		if (!$res && is_dir($realTo))
+		{
+			// This is an actual directory, not an old symlink
+			$res = recursiveUnlink($realTo);
+		}
 
 		if (!$res)
 		{
@@ -112,7 +118,7 @@ function doLink($from, $to, $type = 'symlink', $path)
 
 	if ($type == 'symlink')
 	{
-		if(IS_WINDOWS)
+		if (IS_WINDOWS)
 		{
 			$extraArguments = '';
 
@@ -121,13 +127,15 @@ function doLink($from, $to, $type = 'symlink', $path)
 				$extraArguments = ' /D ';
 			}
 
-			$cmd = 'mklink ' . $extraArguments .' "' . $realTo . '" "' . $realFrom . '"';
+			$relativeFrom = getRelativePath($realTo, $realFrom);
+			$cmd = 'mklink ' . $extraArguments . ' "' . $realTo . '" "' . $relativeFrom . '"';
 			$res = exec($cmd);
 		}
 		else
 		{
-			$res = @symlink($realFrom, $realTo);
-		}		
+			$relativeFrom = getRelativePath($realTo, $realFrom);
+			$res = @symlink($relativeFrom, $realTo);
+		}
 	}
 	elseif ($type == 'link')
 	{
@@ -149,55 +157,55 @@ function doLink($from, $to, $type = 'symlink', $path)
 
 function recursiveUnlink($dir)
 {
-    $return = true;
+	$return = true;
 
-    try
-    {
-        $dh = new DirectoryIterator($dir);
+	try
+	{
+		$dh = new DirectoryIterator($dir);
 
-        foreach ($dh as $file)
-        {
-            if ($file->isDot())
-            {
-                continue;
-            }
+		foreach ($dh as $file)
+		{
+			if ($file->isDot())
+			{
+				continue;
+			}
 
-            if ($file->isDir())
-            {
-                // We have to try the rmdir in case this is a Windows directory symlink OR an empty folder.
-                $deleteFolderResult = @rmdir($file->getPathname());
+			if ($file->isDir())
+			{
+				// We have to try the rmdir in case this is a Windows directory symlink OR an empty folder.
+				$deleteFolderResult = @rmdir($file->getPathname());
 
-                // If rmdir failed (non-empty, real folder) we have to recursively delete it
-                if (!$deleteFolderResult)
-                {
-                    $deleteFolderResult = recursiveUnlink($file->getPathname());
-                    $return = $return && $deleteFolderResult;
-                }
+				// If rmdir failed (non-empty, real folder) we have to recursively delete it
+				if (!$deleteFolderResult)
+				{
+					$deleteFolderResult = recursiveUnlink($file->getPathname());
+					$return             = $return && $deleteFolderResult;
+				}
 
-                if (!$deleteFolderResult)
-                {
-                    // echo "  Failed deleting folder {$file->getPathname()}\n";
-                }
-            }
+				if (!$deleteFolderResult)
+				{
+					// echo "  Failed deleting folder {$file->getPathname()}\n";
+				}
+			}
 
-            // We have to try the rmdir in case this is a Windows directory symlink.
-            $deleteFileResult = @rmdir($file->getPathname()) || @unlink($file->getPathname());
-            $return = $return && $deleteFileResult;
+			// We have to try the rmdir in case this is a Windows directory symlink.
+			$deleteFileResult = @rmdir($file->getPathname()) || @unlink($file->getPathname());
+			$return           = $return && $deleteFileResult;
 
-            if (!$deleteFileResult)
-            {
-                // echo "  Failed deleting file {$file->getPathname()}\n";
-            }
-        }
+			if (!$deleteFileResult)
+			{
+				// echo "  Failed deleting file {$file->getPathname()}\n";
+			}
+		}
 
-        $return = $return && @rmdir($dir);
+		$return = $return && @rmdir($dir);
 
-        return $return;
-    }
-    catch (Exception $e)
-    {
-        return false;
-    }
+		return $return;
+	}
+	catch (Exception $e)
+	{
+		return false;
+	}
 }
 
 function showUsage()
@@ -209,6 +217,47 @@ Usage:
 	php $file /path/to/repository
 
 ENDUSAGE;
+}
+
+function getRelativePath($from, $to)
+{
+	// some compatibility fixes for Windows paths
+	$from = is_dir($from) ? rtrim($from, '\/') . '/' : $from;
+	$to   = is_dir($to) ? rtrim($to, '\/') . '/' : $to;
+	$from = str_replace('\\', '/', $from);
+	$to   = str_replace('\\', '/', $to);
+
+	$from    = explode('/', $from);
+	$to      = explode('/', $to);
+	$relPath = $to;
+
+	foreach ($from as $depth => $dir)
+	{
+		// find first non-matching dir
+		if ($dir === $to[$depth])
+		{
+			// ignore this directory
+			array_shift($relPath);
+		}
+		else
+		{
+			// get number of remaining dirs to $from
+			$remaining = count($from) - $depth;
+			if ($remaining > 1)
+			{
+				// add traversals up to first matching dir
+				$padLength = (count($relPath) + $remaining - 1) * -1;
+				$relPath   = array_pad($relPath, $padLength, '..');
+				break;
+			}
+			else
+			{
+				$relPath[0] = '.' . DIRECTORY_SEPARATOR . $relPath[0];
+			}
+		}
+	}
+
+	return implode(DIRECTORY_SEPARATOR, $relPath);
 }
 
 if (!isset($repoRoot))
@@ -232,6 +281,8 @@ ENDBANNER;
 
 	$repoRoot = $argv[1];
 }
+
+$repoRoot = realpath($repoRoot);
 
 if (!file_exists($repoRoot . '/build/templates/link.php'))
 {
