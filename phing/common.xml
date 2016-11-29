@@ -323,14 +323,27 @@ Akeeba Build Files
             </then>
         </if>
 
+        <propertyregex property="dirs.release.translated"
+                       override="true"
+                       subject="${dirs.release}"
+                       pattern="\\"
+                       replace="/"
+                       casesensitive="true" />
+        <propertyregex property="dirs.root.translated"
+                       override="true"
+                       subject="${dirs.release}"
+                       pattern="\\"
+                       replace="/"
+                       casesensitive="true" />
+
         <copy file="${release.source}" tofile="${dirs.root}/release.json" overwrite="true">
             <filterchain id="standard-tokens">
                 <replacetokens begintoken="##" endtoken="##">
                     <token key="DATE" value="${build.date}" />
                     <token key="VERSION" value="${version}" />
 
-                    <token key="RELEASEDIR" value="${dirs.release}" />
-                    <token key="REPODIR" value="${dirs.root}" />
+                    <token key="RELEASEDIR" value="${dirs.release.translated}" />
+                    <token key="REPODIR" value="${dirs.root.translated}" />
                     <token key="RELEASECATEGORY" value="${release.category}" />
                     <token key="UPDATEMETHOD" value="${release.updatemethod}" />
 
