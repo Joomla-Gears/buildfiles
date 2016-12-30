@@ -1,4 +1,4 @@
-$Id: README 681290 2008-07-31 07:44:51Z jeremias $
+$Id: README 1723323 2016-01-06 13:51:04Z ssteiner $
 
 ==============================================================================
   APACHE FOP  -  README
@@ -16,21 +16,21 @@ Contents of this file:
 
 
 What is FOP?
----------------
+------------
 
-Apache FOP is the world's first print formatter driven by XSL formatting 
-objects. It is a Java application that reads a formatting object tree 
-conforming to the XSL 1.1 Recommendation (05 December 2006) and then turns it 
-into a PDF document, certain other output formats or allows you to preview it 
-directly on screen. Some parts of the XSL 1.1 specification (work in progress!)
-have also been implemented.
+Apache FOP is a print formatter driven by XSL formatting objects. It is a Java
+application that reads a formatting object tree conforming to the XSL 1.1
+Recommendation (05 December 2006) and then turns it into a PDF document,
+certain other output formats or allows you to preview it directly on screen.
+Note that not all parts of the XSL 1.1 specification have yet been
+implemented.
 
 Apache FOP is part of Apache's XML Graphics project. The homepage of Apache 
 FOP is http://xmlgraphics.apache.org/fop/.
     
     
 Legal Information
----------------------
+-----------------
 
 Apache FOP is published under the Apache License version 2.0. For the license
 text, please see the following files:
@@ -47,11 +47,14 @@ License version 2.0:
   Info: src/java/org/apache/fop/pdf/sRGB Color Space Profile.icm.LICENSE.txt
 - K3 3 of 9 barcode font (TrueType)
   File: examples/fo/advanced/K3.TTF
-  Info: example/fo/advanced/K3.README
+  Info: examples/fo/advanced/K3.README
+- DejaVu LGC Serif font (TrueType)
+  File: test/resources/fonts/DejaVuLGCSerif.ttf
+  Info: test/resources/fonts/DejaVuLGCSerif.LICENSE
 
     
 Where to get help?
----------------------    
+------------------
     
 http://xmlgraphics.apache.org/fop/gethelp.html
     
@@ -67,7 +70,7 @@ Please report bugs to bugzilla at http://issues.apache.org/bugzilla/
 
 
 How do I build FOP?
-----------------------
+-------------------
 
 If you've downloaded a binary distribution, you don't need to build
 FOP.
@@ -77,7 +80,7 @@ http://xmlgraphics.apache.org/fop/stable/compiling.html
 
 
 How do I run FOP?
---------------------
+-----------------
 
 Simply by typing "fop" on the command-line. Without any parameters you
 will receive a screen with instruction on how to call FOP from the
@@ -89,6 +92,126 @@ http://xmlgraphics.apache.org/fop/stable/running.html
 ==============================================================================
   RELEASE NOTES
 ==============================================================================
+
+Version 2.1
+===========
+
+Major Changes in Version 2.1
+----------------------------
+
+* Add PreloaderRawPNG to handle images ImageIO cant
+* Support Barcode4J page number
+* Support CMYK JPEG in AFP
+* Support IPD change on last page
+* Support PDF/UA
+* Support TrueType fonts in PCL
+* Support Truetype for AFP
+* Support for PDF/A-3
+
+This release also contains a number of bug fixes.
+
+Version 2.0
+===========
+
+Java 6 or later is the minimum runtime environment needed.
+
+Because of changes to the API, the version number has been bumped to 2.0.
+
+Major Changes in Version 2.0
+----------------------------
+
+* Side float support
+* Whitespace Management Extension
+* fo:inline-container partial support
+* Improved support for complex scripts
+* PDF Linearization
+* Support OpenType CFF fonts
+* Subset support for Type 1 fonts
+* Support for AES 256 PDF encryption
+* SVG graphics can use FOP custom fonts
+
+This release also contains a number of bug fixes.
+
+Version 1.1
+===========
+
+This release of Apache FOP primarily addresses bug fixes and also adds a number
+of new features. See below for details.
+
+Compliance
+----------
+
+This release implements the XSL 1.0 and 1.1 recommendations to a relatively
+high degree of compliance. See the compliance page
+http://xmlgraphics.apache.org/fop/compliance.html for further details.
+
+Known issues
+------------
+
+A detailed list of known issues in this release is available at
+http://xmlgraphics.apache.org/fop/1.1/knownissues_overview.html.
+
+Major Changes in Version 1.1
+----------------------------
+
+* Adds support for complex scripts.
+* Adds support for TTF fonts in PostScript.
+* Adds support for PDF Object Streams.
+* Adds support for PDF 128-bit encryption.
+
+A more detailed list of changes in this release is available at
+http://xmlgraphics.apache.org/fop/1.1/changes_1.1.html.
+
+A more detailed list of changes in this and earlier releases is available at
+http://xmlgraphics.apache.org/fop/changes.html.
+
+Version 1.0
+===========
+
+This is a production grade release of Apache FOP.
+It contains many bug fixes and new features. See below for details.
+
+Compliance
+----------
+
+This release implements the XSL 1.0 and 1.1 recommendations to a high
+degree of compliance. See the compliance page
+http://xmlgraphics.apache.org/fop/compliance.html for a detailed
+overview.
+
+Known issues
+------------
+
+The known issues of this release are listed at
+http://xmlgraphics.apache.org/fop/1.0/knownissues_overview.html.
+
+Major Changes in Version 1.0
+----------------------------
+
+* Added support for addressing all glyphs available in a Type 1 font
+* Added support for auto-configuring TrueType Collections. XML font
+  metrics files for *.ttc fonts are not required anymore.
+* Added support for rendering pages using Java Printing System.
+* Support character-by-character font-selection strategy on
+  fo:character element.
+* Implemented word-by-ford font-selection strategy on text.
+* AFP Output: Various enhancements
+* FOP now creates ToUnicode CMaps for single-byte fonts that don't use
+  built-in encodings
+* Introduced a new, additional intermediate format optimized for
+  performance. See the intermediate format documentation for details.
+* Added an initial set of extensions for prepress support.
+* Added limited support for different page widths within a page-sequence.
+* Added support for TrueType fonts with symbol character maps (like
+  "Wingdings" and "Symbol").
+* Added an event handling framework which allows to get better feedback
+  from within FOP with the ability to customize problem management.
+
+The long list of changes in this release is available at
+http://xmlgraphics.apache.org/fop/1.0/changes_1.0.html.
+
+The long list of changes in this and earlier releases is available at
+http://xmlgraphics.apache.org/fop/changes.html.
 
 Version 0.95
 ============
