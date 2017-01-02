@@ -1,7 +1,7 @@
 <?php
 /**
  * Akeeba Build Tools - System linker
- * Copyright (c)2010-2016 Akeeba Ltd
+ * Copyright (c)2010-2017 Akeeba Ltd
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

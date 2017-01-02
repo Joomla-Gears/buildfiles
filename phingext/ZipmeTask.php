@@ -3,7 +3,7 @@
  * Akeeba Build Files
  *
  * @package    buildfiles
- * @copyright  (c) 2010-2016 Akeeba Ltd
+ * @copyright  (c) 2010-2017 Akeeba Ltd
  */
 
 require_once "phing/Task.php";
