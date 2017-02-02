@@ -331,7 +331,7 @@ Akeeba Build Files
                        casesensitive="true" />
         <propertyregex property="dirs.root.translated"
                        override="true"
-                       subject="${dirs.release}"
+                       subject="${dirs.root}"
                        pattern="\\"
                        replace="/"
                        casesensitive="true" />
