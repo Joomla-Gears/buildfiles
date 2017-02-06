@@ -29,6 +29,8 @@ Akeeba Build Files
     <property name="dirs.bin.dbxsl" value="${dirs.bin}/dbxsl" />
 	<!-- ### Should I include Strapper in the build? -->
 	<property name="build.strapper" value="1" />
+    <!-- ### Should I include FOF in the build? -->
+	<property name="build.fof" value="1" />
 
     <!-- ### Version numbers -->
     <property name="version" value="git" />
@@ -819,89 +821,95 @@ Akeeba Build Files
 	will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASES.
 	-->
 	<target name="package-fof" description="Copy the FOF 3 installation package to the release directory">
-		<if>
-			<or>
-				<contains string="${version}" substring="rev" />
-				<contains string="${version}" substring="dev" />
-				<contains string="${version}" substring="git" />
-				<contains string="${version}" substring="svn" />
-			</or>
+        <if>
+            <!-- Only build when the build.fof property is true -->
+            <istrue value="${build.fof}" />
             <then>
-                <!-- Start by building a dev build of FOF... -->
-                <gitversion workingcopy="${dirs.root}/../fof3" propertyname="git.fof.lastrevision" />
-                <gitdate workingcopy="${dirs.root}/../fof3" propertyname="git.fof.timestamp" />
-                <property name="fof.version" value="rev${git.fof.lastrevision}-${git.fof.timestamp}" override="true" />
+                <if>
+                    <or>
+                        <contains string="${version}" substring="rev" />
+                        <contains string="${version}" substring="dev" />
+                        <contains string="${version}" substring="git" />
+                        <contains string="${version}" substring="svn" />
+                    </or>
+                    <then>
+                        <!-- Start by building a dev build of FOF... -->
+                        <gitversion workingcopy="${dirs.root}/../fof3" propertyname="git.fof.lastrevision" />
+                        <gitdate workingcopy="${dirs.root}/../fof3" propertyname="git.fof.timestamp" />
+                        <property name="fof.version" value="rev${git.fof.lastrevision}-${git.fof.timestamp}" override="true" />
 
-                <phing phingfile="build.xml" dir="${dirs.root}/../fof3/build" inheritAll="false" target="git">
-                    <property name="dirs.root" value="${dirs.root}/../fof3" />
-                    <property name="version" value="${fof.version}" />
-                </phing>
+                        <phing phingfile="build.xml" dir="${dirs.root}/../fof3/build" inheritAll="false" target="git">
+                            <property name="dirs.root" value="${dirs.root}/../fof3" />
+                            <property name="version" value="${fof.version}" />
+                        </phing>
 
-                <!-- ...and copy it to the release directory -->
-                <copy todir="${dirs.release}" overwrite="true">
-                    <mapper type="regexp" from="^(lib_fof30)(-.*)\.zip$" to="\1.zip" />
-                    <fileset dir="${dirs.root}/../fof3/release">
-                        <include name="lib_fof30-*.zip" />
-                    </fileset>
-                </copy>
+                        <!-- ...and copy it to the release directory -->
+                        <copy todir="${dirs.release}" overwrite="true">
+                            <mapper type="regexp" from="^(lib_fof30)(-.*)\.zip$" to="\1.zip" />
+                            <fileset dir="${dirs.root}/../fof3/release">
+                                <include name="lib_fof30-*.zip" />
+                            </fileset>
+                        </copy>
+                    </then>
+                    <else>
+                        <!-- Get the FOF update XML file -->
+                        <httpget url="https://akeeba-cdn.s3.amazonaws.com/updates/fof3.xml" dir="${dirs.release}" filename="fof.tmp" followRedirects="true" />
+
+                        <!-- Extract the latest FOF version and download location -->
+                        <xslt todir="${dirs.release}" style="${phing.dir}/tools/foflatest.xslt">
+                            <mapper type="glob" from="*.tmp" to="*.xml" />
+                            <fileset dir="${dirs.release}">
+                                <include name="fof.tmp" />
+                            </fileset>
+                        </xslt>
+                        <delete file="${dirs.release}/fof.tmp" />
+                        <xmlproperty file="${dirs.release}/fof.xml" />
+                        <echo message="Latest FOF version ${latestFof.version} - ${latestFof.download}" />
+
+                        <!-- Make sure there is a cache directory, or create it -->
+                        <if>
+                            <available file="${dirs.root}/../buildfiles/cache" />
+                            <else>
+                                <mkdir dir="${dirs.root}/../buildfiles/cache" />
+                            </else>
+                        </if>
+
+                        <!-- Get the FOF version from the cache -->
+                        <property name="cache_file_exists" value="0" />
+                        <available file="${dirs.root}/../buildfiles/cache/fof.xml" property="cache_file_exists" value="1" />
+
+                        <if>
+                            <equals arg1="${cache_file_exists}" arg2="1" />
+                            <then>
+                                <xmlproperty file="${dirs.root}/../buildfiles/cache/fof.xml" keepRoot="false" prefix="fofcache." />
+                            </then>
+                            <else>
+                                <property name="fofcache.version" value="0.0.0" />
+                                <property name="fofcache.download" value="" />
+                            </else>
+                        </if>
+
+                        <echo message="${latestFof.version} - ${fofcache.version}" />
+
+                        <!-- If there is a newer version of FOF available, download it to the cache and update the cached versions -->
+                        <php expression="version_compare('${latestFof.version}','${fofcache.version}','gt') ? 1 : 0" returnProperty="has_newer_fof" />
+                        <if>
+                            <equals arg1="${has_newer_fof}" arg2="1" />
+                            <then>
+                                <httpget url="${latestFof.download}" dir="${dirs.root}/../buildfiles/cache" filename="lib_fof30.zip" followRedirects="true" />
+                                <copy file="${dirs.release}/fof.xml" todir="${dirs.root}/../buildfiles/cache" />
+                            </then>
+                        </if>
+
+                        <!-- Copy the cached FOF release -->
+                        <copy file="${dirs.root}/../buildfiles/cache/lib_fof30.zip" todir="${dirs.release}" />
+
+                        <!-- Clean up -->
+                        <delete file="${dirs.release}/fof.xml" />
+                    </else>
+                </if>
             </then>
-			<else>
-				<!-- Get the FOF update XML file -->
-				<httpget url="https://akeeba-cdn.s3.amazonaws.com/updates/fof3.xml" dir="${dirs.release}" filename="fof.tmp" followRedirects="true" />
-
-				<!-- Extract the latest FOF version and download location -->
-				<xslt todir="${dirs.release}" style="${phing.dir}/tools/foflatest.xslt">
-					<mapper type="glob" from="*.tmp" to="*.xml" />
-					<fileset dir="${dirs.release}">
-						<include name="fof.tmp" />
-					</fileset>
-				</xslt>
-				<delete file="${dirs.release}/fof.tmp" />
-				<xmlproperty file="${dirs.release}/fof.xml" />
-				<echo message="Latest FOF version ${latestFof.version} - ${latestFof.download}" />
-
-				<!-- Make sure there is a cache directory, or create it -->
-				<if>
-					<available file="${dirs.root}/../buildfiles/cache" />
-					<else>
-						<mkdir dir="${dirs.root}/../buildfiles/cache" />
-					</else>
-				</if>
-
-				<!-- Get the FOF version from the cache -->
-				<property name="cache_file_exists" value="0" />
-				<available file="${dirs.root}/../buildfiles/cache/fof.xml" property="cache_file_exists" value="1" />
-
-				<if>
-					<equals arg1="${cache_file_exists}" arg2="1" />
-					<then>
-						<xmlproperty file="${dirs.root}/../buildfiles/cache/fof.xml" keepRoot="false" prefix="fofcache." />
-					</then>
-					<else>
-						<property name="fofcache.version" value="0.0.0" />
-						<property name="fofcache.download" value="" />
-					</else>
-				</if>
-
-				<echo message="${latestFof.version} - ${fofcache.version}" />
-
-				<!-- If there is a newer version of FOF available, download it to the cache and update the cached versions -->
-				<php expression="version_compare('${latestFof.version}','${fofcache.version}','gt') ? 1 : 0" returnProperty="has_newer_fof" />
-				<if>
-					<equals arg1="${has_newer_fof}" arg2="1" />
-					<then>
-						<httpget url="${latestFof.download}" dir="${dirs.root}/../buildfiles/cache" filename="lib_fof30.zip" followRedirects="true" />
-						<copy file="${dirs.release}/fof.xml" todir="${dirs.root}/../buildfiles/cache" />
-					</then>
-				</if>
-
-				<!-- Copy the cached FOF release -->
-				<copy file="${dirs.root}/../buildfiles/cache/lib_fof30.zip" todir="${dirs.release}" />
-
-				<!-- Clean up -->
-				<delete file="${dirs.release}/fof.xml" />
-			</else>
-		</if>
+        </if>
 	</target>
 
 	<!--
