@@ -73,6 +73,11 @@ function doLink($from, $to, $type = 'symlink', $path)
 	}
 	elseif ($type == 'symlink')
 	{
+		// Um, that seems to be the simplest way?
+		$realFrom = realpath($realFrom);
+
+		// No idea what I was trying to do here
+		/**
 		$parts  = explode('/', $to);
 		$prefix = '';
 
@@ -82,6 +87,7 @@ function doLink($from, $to, $type = 'symlink', $path)
 		}
 
 		$realFrom = $prefix . $from;
+		/**/
 	}
 
 	if (is_file($realTo) || is_dir($realTo) || is_link($realTo) || file_exists($realTo))
