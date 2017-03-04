@@ -231,22 +231,6 @@ function recursiveUnlink($dir)
 }
 
 /**
- * Display the usave of this tool
- *
- * @return  void
- */
-function showUsage()
-{
-	$file = basename(__FILE__);
-	echo <<<ENDUSAGE
-
-Usage:
-	php $file /path/to/repository
-
-ENDUSAGE;
-}
-
-/**
  * Get the relative path between two folders
  *
  * @param   string  $pathToConvert  Convert this folder to a location relative to $from
@@ -294,6 +278,22 @@ function getRelativePath($pathToConvert, $basePath)
 	}
 
 	return implode(DIRECTORY_SEPARATOR, $relPath);
+}
+
+/**
+ * Display the usave of this tool
+ *
+ * @return  void
+ */
+function showUsage()
+{
+	$file = basename(__FILE__);
+	echo <<<ENDUSAGE
+
+Usage:
+	php $file /path/to/repository
+
+ENDUSAGE;
 }
 
 if (!isset($repoRoot))

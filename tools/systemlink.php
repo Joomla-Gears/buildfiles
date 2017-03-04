@@ -24,96 +24,253 @@
 define('IS_WINDOWS', substr(PHP_OS, 0, 3) == 'WIN');
 
 /**
- * Translate a windows path
+ * Create a link
  *
- * @param   string  $p_path  The path to translate
- *
- * @return  string  The translated path
+ * @param   string  $from  The location of the file which already exists
+ * @param   string  $to    The symlink to be created
+ * @param   string  $type  The type of link to create: symlink (symbolic link) or link (hard link)
+ * @param   string  $path  The path that $to and $form are relative to
  */
-function systemlink_TranslateWinPath( $p_path )
+function doLink($from, $to, $type = 'symlink', $path = null)
 {
-    $is_unc = false;
+	$realTo   = $to;
+	$realFrom = $from;
 
-    if (IS_WINDOWS)
-    {
-        // Is this a UNC path?
-        $is_unc = (substr($p_path, 0, 2) == '\\\\') || (substr($p_path, 0, 2) == '//');
-        // Change potential windows directory separator
-        if ((strpos($p_path, '\\') > 0) || (substr($p_path, 0, 1) == '\\')){
-            $p_path = strtr($p_path, '\\', '/');
-        }
-    }
+	if (!empty($path))
+	{
+		$realTo   = $path . '/' . $to;
+		$realFrom = $path . '/' . $from;
+	}
 
-    // Remove multiple slashes
-    $p_path = str_replace('///','/',$p_path);
-    $p_path = str_replace('//','/',$p_path);
+	if (IS_WINDOWS)
+	{
+		// Windows doesn't play nice with paths containing UNIX path separators
+		$realTo   = TranslateWinPath($realTo);
+		$realFrom = TranslateWinPath($realFrom);
 
-    // Fix UNC paths
-    if($is_unc)
-    {
-        $p_path = '//'.ltrim($p_path,'/');
-    }
+		// Windows doesn't play nice with relative paths in symlinks
+		$realFrom = realpath($realFrom);
+	}
+	elseif ($type == 'symlink')
+	{
+		$realFrom = realpath($realFrom);
+	}
 
-    return $p_path;
+	if (is_file($realTo) || is_dir($realTo) || is_link($realTo) || file_exists($realTo))
+	{
+		if (IS_WINDOWS && is_dir($realTo))
+		{
+			// Windows can't unlink() directory symlinks; it needs rmdir() to be used instead
+			$res = @rmdir($realTo);
+		}
+		else
+		{
+			$res = @unlink($realTo);
+		}
+
+		// Invalid symlinks are not reported as directories but require @rmdir to delete them because FREAKING WINDOWS.
+		if (!$res && IS_WINDOWS)
+		{
+			$res = @rmdir($realTo);
+		}
+
+		if (!$res && is_dir($realTo))
+		{
+			// This is an actual directory, not an old symlink
+			$res = recursiveUnlink($realTo);
+		}
+
+		if (!$res)
+		{
+			echo "FAILED UNLINK  : $realTo\n";
+
+			return;
+		}
+	}
+
+	if ($type == 'symlink')
+	{
+		if (IS_WINDOWS)
+		{
+			$extraArguments = '';
+
+			if (is_dir($realFrom))
+			{
+				$extraArguments = ' /D ';
+			}
+
+			$relativeFrom = getRelativePath($realTo, $realFrom);
+			$cmd = 'mklink ' . $extraArguments . ' "' . $realTo . '" "' . $relativeFrom . '"';
+			$res = exec($cmd);
+		}
+		else
+		{
+			$relativeFrom = getRelativePath($realTo, $realFrom);
+			$res = @symlink($relativeFrom, $realTo);
+		}
+	}
+	elseif ($type == 'link')
+	{
+		$res = @link($realFrom, $realTo);
+	}
+
+	if (!$res)
+	{
+		if ($type == 'symlink')
+		{
+			echo "FAILED SYMLINK : $realTo\n";
+		}
+		elseif ($type == 'link')
+		{
+			echo "FAILED LINK    : $realTo\n";
+		}
+	}
 }
 
 /**
- * @param   string  $realFrom
- * @param   string  $realTo
- * @param   string  $type
+ * Normalize Windows or mixed Windows and UNIX paths to UNIX style
  *
- * @throws Exception
+ * @param   string  $path  The path to nromalize
+ *
+ * @return  string
  */
-function systemlink_createLink($realFrom, $realTo, $type = 'symlink')
+function TranslateWinPath($path)
 {
-    if(IS_WINDOWS)
-    {
-        // Windows doesn't play nice with paths containing UNIX path separators
-        $realTo   = TranslateWinPath($realTo);
-        $realFrom = TranslateWinPath($realFrom);
+	$is_unc = false;
 
-        // Windows doesn't play nice with relative paths in symlinks
-        $realFrom = realpath($realFrom);
-    }
+	if (IS_WINDOWS)
+	{
+		// Is this a UNC path?
+		$is_unc = (substr($path, 0, 2) == '\\\\') || (substr($path, 0, 2) == '//');
 
-    if(is_file($realTo) || is_dir($realTo) || is_link($realTo) || file_exists($realTo))
-    {
-        if(IS_WINDOWS && is_dir($realTo))
-        {
-            // Windows can't unlink() directory symlinks; it needs rmdir() to be used instead
-            $res = @rmdir($realTo);
-        }
-        else
-        {
-            $res = @unlink($realTo);
-        }
+		// Change potential windows directory separator
+		if ((strpos($path, '\\') > 0) || (substr($path, 0, 1) == '\\'))
+		{
+			$path = strtr($path, '\\', '/');
+		}
+	}
 
-        if(!$res)
-        {
-            echo "FAILED UNLINK  : $realTo\n";
-        }
-    }
+	// Remove multiple slashes
+	$path = str_replace('///', '/', $path);
+	$path = str_replace('//', '/', $path);
 
-    if($type == 'symlink')
-    {
-        $res = @symlink($realFrom, $realTo);
-    }
-    elseif($type == 'link')
-    {
-        $res = @link($realFrom, $realTo);
-    }
+	// Fix UNC paths
+	if ($is_unc)
+	{
+		$path = '//' . ltrim($path, '/');
+	}
 
-    if(!$res)
-    {
-        if($type == 'symlink')
-        {
-            echo "FAILED SYMLINK : $realTo\n";
-        }
-        elseif($type == 'link')
-        {
-            echo ("FAILED LINK    : $realTo\n");
-        }
-    }
+	return $path;
+}
+
+/**
+ * Recursively delete a directory
+ *
+ * @param   string  $dir  The directory to remove
+ *
+ * @return  bool  True on success
+ */
+function recursiveUnlink($dir)
+{
+	$return = true;
+
+	try
+	{
+		$dh = new DirectoryIterator($dir);
+
+		foreach ($dh as $file)
+		{
+			if ($file->isDot())
+			{
+				continue;
+			}
+
+			if ($file->isDir())
+			{
+				// We have to try the rmdir in case this is a Windows directory symlink OR an empty folder.
+				$deleteFolderResult = @rmdir($file->getPathname());
+
+				// If rmdir failed (non-empty, real folder) we have to recursively delete it
+				if (!$deleteFolderResult)
+				{
+					$deleteFolderResult = recursiveUnlink($file->getPathname());
+					$return             = $return && $deleteFolderResult;
+				}
+
+				if (!$deleteFolderResult)
+				{
+					// echo "  Failed deleting folder {$file->getPathname()}\n";
+				}
+			}
+
+			// We have to try the rmdir in case this is a Windows directory symlink.
+			$deleteFileResult = @rmdir($file->getPathname()) || @unlink($file->getPathname());
+			$return           = $return && $deleteFileResult;
+
+			if (!$deleteFileResult)
+			{
+				// echo "  Failed deleting file {$file->getPathname()}\n";
+			}
+		}
+
+		$return = $return && @rmdir($dir);
+
+		return $return;
+	}
+	catch (Exception $e)
+	{
+		return false;
+	}
+}
+
+/**
+ * Get the relative path between two folders
+ *
+ * @param   string  $pathToConvert  Convert this folder to a location relative to $from
+ * @param   string  $basePath       Base folder
+ *
+ * @return  string  The relative path
+ */
+function getRelativePath($pathToConvert, $basePath)
+{
+	// Some compatibility fixes for Windows paths
+	$pathToConvert = is_dir($pathToConvert) ? rtrim($pathToConvert, '\/') . '/' : $pathToConvert;
+	$basePath      = is_dir($basePath) ? rtrim($basePath, '\/') . '/' : $basePath;
+	$pathToConvert = str_replace('\\', '/', $pathToConvert);
+	$basePath      = str_replace('\\', '/', $basePath);
+
+	$pathToConvert = explode('/', $pathToConvert);
+	$basePath      = explode('/', $basePath);
+	$relPath       = $basePath;
+
+	foreach ($pathToConvert as $depth => $dir)
+	{
+		// find first non-matching dir
+		if ($dir === $basePath[$depth])
+		{
+			// ignore this directory
+			array_shift($relPath);
+		}
+		else
+		{
+			// get number of remaining dirs to $pathToConvert
+			$remaining = count($pathToConvert) - $depth;
+
+			if ($remaining > 1)
+			{
+				// add traversals up to first matching dir
+				$padLength = (count($relPath) + $remaining - 1) * -1;
+				$relPath   = array_pad($relPath, $padLength, '..');
+				break;
+			}
+			else
+			{
+				$relPath[0] = '.' . DIRECTORY_SEPARATOR . $relPath[0];
+			}
+		}
+	}
+
+	return implode(DIRECTORY_SEPARATOR, $relPath);
 }
 
 $options = getopt('s:d:t:', array('source:', 'destination:', 'type:'));
@@ -135,4 +292,4 @@ if(!in_array($type, array('link', 'symlink')))
     return;
 }
 
-systemlink_createLink($source, $dest, $type);
+doLink($source, $dest, $type);
