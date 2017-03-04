@@ -30,64 +30,73 @@ $symlink_folders = array();
 
 define('IS_WINDOWS', substr(PHP_OS, 0, 3) == 'WIN');
 
-function TranslateWinPath($p_path)
+/**
+ * Normalize Windows or mixed Windows and UNIX paths to UNIX style
+ *
+ * @param   string  $path  The path to nromalize
+ *
+ * @return  string
+ */
+function TranslateWinPath($path)
 {
 	$is_unc = false;
 
 	if (IS_WINDOWS)
 	{
 		// Is this a UNC path?
-		$is_unc = (substr($p_path, 0, 2) == '\\\\') || (substr($p_path, 0, 2) == '//');
+		$is_unc = (substr($path, 0, 2) == '\\\\') || (substr($path, 0, 2) == '//');
+
 		// Change potential windows directory separator
-		if ((strpos($p_path, '\\') > 0) || (substr($p_path, 0, 1) == '\\'))
+		if ((strpos($path, '\\') > 0) || (substr($path, 0, 1) == '\\'))
 		{
-			$p_path = strtr($p_path, '\\', '/');
+			$path = strtr($path, '\\', '/');
 		}
 	}
 
 	// Remove multiple slashes
-	$p_path = str_replace('///', '/', $p_path);
-	$p_path = str_replace('//', '/', $p_path);
+	$path = str_replace('///', '/', $path);
+	$path = str_replace('//', '/', $path);
 
 	// Fix UNC paths
 	if ($is_unc)
 	{
-		$p_path = '//' . ltrim($p_path, '/');
+		$path = '//' . ltrim($path, '/');
 	}
 
-	return $p_path;
+	return $path;
 }
 
-function doLink($from, $to, $type = 'symlink', $path)
+/**
+ * Create a link
+ *
+ * @param   string  $from  The location of the file which already exists
+ * @param   string  $to    The symlink to be created
+ * @param   string  $type  The type of link to create: symlink (symbolic link) or link (hard link)
+ * @param   string  $path  The path that $to and $form are relative to
+ */
+function doLink($from, $to, $type = 'symlink', $path = null)
 {
-	$realTo   = $path . '/' . $to;
-	$realFrom = $path . '/' . $from;
+	$realTo   = $to;
+	$realFrom = $from;
+
+	if (!empty($path))
+	{
+		$realTo   = $path . '/' . $to;
+		$realFrom = $path . '/' . $from;
+	}
 
 	if (IS_WINDOWS)
 	{
 		// Windows doesn't play nice with paths containing UNIX path separators
 		$realTo   = TranslateWinPath($realTo);
 		$realFrom = TranslateWinPath($realFrom);
+
 		// Windows doesn't play nice with relative paths in symlinks
 		$realFrom = realpath($realFrom);
 	}
 	elseif ($type == 'symlink')
 	{
-		// Um, that seems to be the simplest way?
 		$realFrom = realpath($realFrom);
-
-		// No idea what I was trying to do here
-		/**
-		$parts  = explode('/', $to);
-		$prefix = '';
-
-		for ($i = 0; $i < count($parts) - 1; $i++)
-		{
-			$prefix .= '../';
-		}
-
-		$realFrom = $prefix . $from;
-		/**/
 	}
 
 	if (is_file($realTo) || is_dir($realTo) || is_link($realTo) || file_exists($realTo))
@@ -161,6 +170,13 @@ function doLink($from, $to, $type = 'symlink', $path)
 	}
 }
 
+/**
+ * Recursively delete a directory
+ *
+ * @param   string  $dir  The directory to remove
+ *
+ * @return  bool  True on success
+ */
 function recursiveUnlink($dir)
 {
 	$return = true;
@@ -214,6 +230,11 @@ function recursiveUnlink($dir)
 	}
 }
 
+/**
+ * Display the usave of this tool
+ *
+ * @return  void
+ */
 function showUsage()
 {
 	$file = basename(__FILE__);
@@ -225,30 +246,39 @@ Usage:
 ENDUSAGE;
 }
 
-function getRelativePath($from, $to)
+/**
+ * Get the relative path between two folders
+ *
+ * @param   string  $pathToConvert  Convert this folder to a location relative to $from
+ * @param   string  $basePath       Base folder
+ *
+ * @return  string  The relative path
+ */
+function getRelativePath($pathToConvert, $basePath)
 {
-	// some compatibility fixes for Windows paths
-	$from = is_dir($from) ? rtrim($from, '\/') . '/' : $from;
-	$to   = is_dir($to) ? rtrim($to, '\/') . '/' : $to;
-	$from = str_replace('\\', '/', $from);
-	$to   = str_replace('\\', '/', $to);
+	// Some compatibility fixes for Windows paths
+	$pathToConvert = is_dir($pathToConvert) ? rtrim($pathToConvert, '\/') . '/' : $pathToConvert;
+	$basePath      = is_dir($basePath) ? rtrim($basePath, '\/') . '/' : $basePath;
+	$pathToConvert = str_replace('\\', '/', $pathToConvert);
+	$basePath      = str_replace('\\', '/', $basePath);
 
-	$from    = explode('/', $from);
-	$to      = explode('/', $to);
-	$relPath = $to;
+	$pathToConvert = explode('/', $pathToConvert);
+	$basePath      = explode('/', $basePath);
+	$relPath       = $basePath;
 
-	foreach ($from as $depth => $dir)
+	foreach ($pathToConvert as $depth => $dir)
 	{
 		// find first non-matching dir
-		if ($dir === $to[$depth])
+		if ($dir === $basePath[$depth])
 		{
 			// ignore this directory
 			array_shift($relPath);
 		}
 		else
 		{
-			// get number of remaining dirs to $from
-			$remaining = count($from) - $depth;
+			// get number of remaining dirs to $pathToConvert
+			$remaining = count($pathToConvert) - $depth;
+
 			if ($remaining > 1)
 			{
 				// add traversals up to first matching dir
