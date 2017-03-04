@@ -7,9 +7,8 @@
  */
 
 require_once 'phing/Task.php';
-require_once 'phing/tasks/ext/svn/SvnBaseTask.php';
 
-class GitDateTask extends SvnBaseTask
+class GitDateTask extends Task
 {
 	/**
 	 * Git.date
@@ -17,6 +16,13 @@ class GitDateTask extends SvnBaseTask
 	 * @var    string
 	 */
 	private $propertyName = "git.date";
+
+	/**
+	 * The working copy.
+	 *
+	 * @var        string
+	 */
+	private $workingCopy;
 
 	/**
 	 * The date format. Uses Unix timestamp by default.
@@ -28,14 +34,29 @@ class GitDateTask extends SvnBaseTask
 	private $format = 'U';
 
 	/**
-	 * The working copy.
+	 * Sets the path to the working copy
 	 *
-	 * @var        string
+	 * @param   string  $workingCopy
 	 */
-	private $workingCopy;
+	public function setWorkingCopy($workingCopy)
+	{
+		$this->workingCopy = $workingCopy;
+	}
+
+	/**
+	 * Returns the path to the working copy
+	 *
+	 * @return  string
+	 */
+	public function getWorkingCopy()
+	{
+		return $this->workingCopy;
+	}
 
 	/**
 	 * Sets the name of the property to use
+	 *
+	 * @param   string $propertyName
 	 */
 	function setPropertyName($propertyName)
 	{
@@ -44,6 +65,8 @@ class GitDateTask extends SvnBaseTask
 
 	/**
 	 * Returns the name of the property to use
+	 *
+	 * @return  string
 	 */
 	function getPropertyName()
 	{
@@ -51,15 +74,9 @@ class GitDateTask extends SvnBaseTask
 	}
 
 	/**
-	 * Sets the path to the working copy
-	 */
-	function setWorkingCopy($wc)
-	{
-		$this->workingCopy = $wc;
-	}
-
-	/**
 	 * Gets the date format
+	 *
+	 * @return  string
 	 */
 	function getFormat()
 	{
@@ -69,7 +86,7 @@ class GitDateTask extends SvnBaseTask
 	/**
 	 * Sets the date format
 	 *
-	 * @param    $format
+	 * @param   string  $format
 	 */
 	function setFormat($format)
 	{
@@ -79,22 +96,22 @@ class GitDateTask extends SvnBaseTask
 	/**
 	 * The main entry point
 	 *
-	 * @throws BuildException
+	 * @throws  BuildException
 	 */
 	function main()
 	{
-		$this->setup('info');
-
 		if ($this->workingCopy == '..')
 		{
 			$this->workingCopy = '../';
 		}
 
-		$cwd = getcwd();
+		$cwd               = getcwd();
 		$this->workingCopy = realpath($this->workingCopy);
+
 		chdir($this->workingCopy);
 		exec('git log --format=%at -n1 ' . escapeshellarg($this->workingCopy), $timestamp);
 		chdir($cwd);
+
 		$date = date($this->format, trim($timestamp[0]));
 		$this->project->setProperty($this->getPropertyName(), $date);
 	}

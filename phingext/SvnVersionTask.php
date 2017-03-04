@@ -14,12 +14,6 @@ putenv("DYLD_LIBRARY_PATH=''");
 
 /**
  * SVN latest tree version to Phing property
- *
- * @version   $Id: SvnVersionTask.php 690 2011-06-02 19:58:58Z nikosdion $
- * @package   akeebabuilder
- * @copyright Copyright (c)2009-2014 Nicholas K. Dionysopoulos
- * @license   GNU GPL version 3 or, at your option, any later version
- * @author    nicholas
  */
 class SvnVersionTask extends SvnBaseTask
 {
