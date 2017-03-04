@@ -499,6 +499,17 @@ class AkeebaRelink
 				}
 			}
 
+			// Get the media folder
+			$mediaFolder      = null;
+			$mediaDestination = null;
+			$allMediaTags     = $xmlDoc->getElementsByTagName('media');
+
+			if ($allMediaTags->length >= 1)
+			{
+				$mediaFolder      = $path . '/' . (string) $allMediaTags->item(0)->getAttribute('folder');
+				$mediaDestination = (string) $allMediaTags->item(0)->getAttribute('destination');
+			}
+
 			if (empty($module))
 			{
 				unset($xmlDoc);
@@ -506,11 +517,13 @@ class AkeebaRelink
 			}
 
 			$ret = [
-				'module'    => $module,
-				'path'      => $path,
-				'client'    => $root->getAttribute('client'),
-				'langPath'  => $langFolder,
-				'langFiles' => $langFiles,
+				'module'           => $module,
+				'path'             => $path,
+				'client'           => $root->getAttribute('client'),
+				'langPath'         => $langFolder,
+				'langFiles'        => $langFiles,
+				'mediaFolder'      => $mediaFolder,
+				'mediaDestination' => $mediaDestination,
 			];
 
 			unset($xmlDoc);
@@ -611,6 +624,17 @@ class AkeebaRelink
 				}
 			}
 
+			// Get the media folder
+			$mediaFolder      = null;
+			$mediaDestination = null;
+			$allMediaTags     = $xmlDoc->getElementsByTagName('media');
+
+			if ($allMediaTags->length >= 1)
+			{
+				$mediaFolder      = $path . '/' . (string) $allMediaTags->item(0)->getAttribute('folder');
+				$mediaDestination = $allMediaTags->item(0)->getAttribute('destination');
+			}
+
 			if (empty($plugin))
 			{
 				unset($xmlDoc);
@@ -618,11 +642,13 @@ class AkeebaRelink
 			}
 
 			$ret = [
-				'plugin'    => $plugin,
-				'folder'    => $folder,
-				'path'      => $path,
-				'langPath'  => $langFolder,
-				'langFiles' => $langFiles,
+				'plugin'           => $plugin,
+				'folder'           => $folder,
+				'path'             => $path,
+				'langPath'         => $langFolder,
+				'langFiles'        => $langFiles,
+				'mediaFolder'      => $mediaFolder,
+				'mediaDestination' => $mediaDestination,
 			];
 
 			unset($xmlDoc);
@@ -840,12 +866,14 @@ class AkeebaRelink
 			}
 
 			// Get the media folder
-			$mediaFolder  = null;
-			$allMediaTags = $xmlDoc->getElementsByTagName('media');
+			$mediaFolder      = null;
+			$mediaDestination = null;
+			$allMediaTags     = $xmlDoc->getElementsByTagName('media');
 
 			if ($allMediaTags->length >= 1)
 			{
-				$mediaFolder = $path . '/' . $allMediaTags->item(0)->getAttribute('folder');
+				$mediaFolder      = $path . '/' . (string) $allMediaTags->item(0)->getAttribute('folder');
+				$mediaDestination = $allMediaTags->item(0)->getAttribute('destination');
 			}
 
 			// Do we have a CLI folder
@@ -955,15 +983,16 @@ class AkeebaRelink
 			}
 
 			$this->component = [
-				'component'      => $component,
-				'siteFolder'     => $siteFolder,
-				'adminFolder'    => $adminFolder,
-				'mediaFolder'    => $mediaFolder,
-				'cliFolder'      => $cliFolder,
-				'siteLangPath'   => $langFolderSite,
-				'siteLangFiles'  => $langFilesSite,
-				'adminLangPath'  => $langFolderAdmin,
-				'adminLangFiles' => $langFilesAdmin,
+				'component'        => $component,
+				'siteFolder'       => $siteFolder,
+				'adminFolder'      => $adminFolder,
+				'mediaFolder'      => $mediaFolder,
+				'mediaDestination' => $mediaDestination,
+				'cliFolder'        => $cliFolder,
+				'siteLangPath'     => $langFolderSite,
+				'siteLangFiles'    => $langFilesSite,
+				'adminLangPath'    => $langFolderAdmin,
+				'adminLangFiles'   => $langFilesAdmin,
 			];
 
 			unset($xmlDoc);
@@ -993,8 +1022,14 @@ class AkeebaRelink
 		// Media directory
 		if ($this->component['mediaFolder'])
 		{
-			$dirs[$this->component['mediaFolder']] =
-				$this->siteRoot . '/media/' . $this->component['component'];
+			$destination = $this->siteRoot . '/media/' . $this->component['component'];;
+
+			if (isset($this->component['mediaDestination']) && !empty($this->component['mediaDestination']))
+			{
+				$destination = $this->siteRoot . '/media/' . $this->component['mediaDestination'];
+			}
+
+			$dirs[$this->component['mediaFolder']] = $destination;
 		}
 
 		// CLI files
@@ -1101,6 +1136,19 @@ class AkeebaRelink
 			}
 		}
 
+		// Media directory
+		if ($module['mediaFolder'])
+		{
+			$destination = $this->siteRoot . '/media/mod_' . $module['client'] . '_' . $module['module'];
+
+			if (isset($module['mediaDestination']) && !empty($module['mediaDestination']))
+			{
+				$destination = $this->siteRoot . '/media/' . $module['mediaDestination'];
+			}
+
+			$dirs[$module['mediaFolder']] = $destination;
+		}
+
 		return [
 			'dirs'  => $dirs,
 			'files' => $files,
@@ -1137,6 +1185,19 @@ class AkeebaRelink
 					$files[$lfile] = $path . basename($lfile);
 				}
 			}
+		}
+
+		// Media directory
+		if ($plugin['mediaFolder'])
+		{
+			$destination = $this->siteRoot . '/media/plg_' . $plugin['folder'] . '_' . $plugin['plugin'];
+
+			if (isset($plugin['mediaDestination']) && !empty($plugin['mediaDestination']))
+			{
+				$destination = $this->siteRoot . '/media/' . $plugin['mediaDestination'];
+			}
+
+			$dirs[$plugin['mediaFolder']] = $destination;
 		}
 
 		return [
