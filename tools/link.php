@@ -273,7 +273,7 @@ if (!isset($repoRoot))
 Akeeba Build Tools - Linker
 Internal file and directory symlinker
 -------------------------------------------------------------------------------
-Copyright ©2010-$year Nicholas K. Dionysopoulos / AkeebaBackup.com
+Copyright ©2010-$year Akeeba Ltd
 Distributed under the GNU General Public License v3 or later
 -------------------------------------------------------------------------------
 

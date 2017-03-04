@@ -165,30 +165,52 @@ function realpath2($path)
 
 class AkeebaRelink
 {
-	/** @var string The path to the sources */
+	/**
+	 * The path to the sources
+	 *
+	 * @var   string
+	 */
 	private $repositoryRoot = null;
 
-	/** @var string The path to the site's root */
+	/**
+	 * The path to the site's root
+	 *
+	 * @var   string
+	 */
 	private $siteRoot = null;
 
-	/** @var array Information about the modules */
+	/**
+	 * Information about the modules
+	 *
+	 * @var   array
+	 */
 	private $modules = array();
 
-	/** @var array Information about the plugins */
+	/**
+	 * Information about the plugins
+	 *
+	 * @var   array
+	 */
 	private $plugins = array();
 
-	/** @var array Information about the component */
+	/**
+	 * Information about the component
+	 *
+	 * @var   array
+	 */
 	private $component = array();
 
-	/** @var array Information about the templates */
+	/**
+	 * Information about the templates
+	 *
+	 * @var   array
+	 */
 	private $templates = array();
 
 	/**
 	 * Public constructor. Initialises the class with the user-supplied information.
 	 *
 	 * @param   array   $config  Configuration parameters. We need root and site.
-	 *
-	 * @return  void
 	 */
 	public function __construct($config = array())
 	{
@@ -214,26 +236,28 @@ class AkeebaRelink
 
 	/**
 	 * Gets the information for all included modules
+	 *
+	 * @return  void
 	 */
 	private function _fetchModules()
 	{
 		// Check if we have site/admin subdirectories, or just a bunch of modules
 		$scanPath = $this->repositoryRoot . '/modules';
 
-		$paths = array(
+		$paths = [
 			$scanPath,
-		);
+		];
 
 		if (is_dir($scanPath . '/admin') || is_dir($scanPath . '/site'))
 		{
-			$paths = array(
+			$paths = [
 				$scanPath . '/admin',
 				$scanPath . '/site',
-			);
+			];
 		}
 
 		// Iterate directories
-		$this->modules = array();
+		$this->modules = [];
 
 		foreach ($paths as $path)
 		{
@@ -250,7 +274,7 @@ class AkeebaRelink
 				}
 
 				$modPath = $path . '/' . $fileInfo->getFilename();
-				$info = $this->_scanModule($modPath);
+				$info    = $this->_scanModule($modPath);
 
 				if (!is_array($info) || !array_key_exists('module', $info))
 				{
@@ -264,13 +288,15 @@ class AkeebaRelink
 
 	/**
 	 * Gets the information for all included plugins
+	 *
+	 * @return  void
 	 */
 	private function _fetchPlugins()
 	{
 		// Check if we have site/admin subdirectories, or just a bunch of modules
 		$scanPath = $this->repositoryRoot . '/plugins';
 
-		$possibleFolders = ['system', 'content', 'user', 'search', 'finder'];
+		$possibleFolders   = ['system', 'content', 'user', 'search', 'finder'];
 		$hasPossibleFolder = false;
 
 		foreach ($possibleFolders as $folder)
@@ -282,13 +308,13 @@ class AkeebaRelink
 			}
 		}
 
-		$paths = array(
+		$paths = [
 			$scanPath,
-		);
+		];
 
 		if ($hasPossibleFolder)
 		{
-			$paths = array();
+			$paths = [];
 
 			foreach (new DirectoryIterator($scanPath) as $fileInfo)
 			{
@@ -302,7 +328,7 @@ class AkeebaRelink
 		}
 
 		// Iterate directories
-		$this->plugins = array();
+		$this->plugins = [];
 
 		foreach ($paths as $path)
 		{
@@ -319,7 +345,7 @@ class AkeebaRelink
 				}
 
 				$plgPath = $path . '/' . $fileInfo->getFilename();
-				$info = $this->_scanPlugin($plgPath);
+				$info    = $this->_scanPlugin($plgPath);
 
 				if (!is_array($info) || !array_key_exists('plugin', $info))
 				{
@@ -333,26 +359,28 @@ class AkeebaRelink
 
 	/**
 	 * Gets the information for all included templates
+	 *
+	 * @return  void
 	 */
 	private function _fetchTemplates()
 	{
 		// Check if we have site/admin subdirectories, or just a bunch of templates
 		$scanPath = $this->repositoryRoot . '/templates';
 
-		$paths = array(
+		$paths = [
 			$scanPath,
-		);
+		];
 
 		if (is_dir($scanPath . '/admin') || is_dir($scanPath . '/site'))
 		{
-			$paths = array(
+			$paths = [
 				$scanPath . '/admin',
 				$scanPath . '/site',
-			);
+			];
 		}
 
 		// Iterate directories
-		$this->templates = array();
+		$this->templates = [];
 
 		foreach ($paths as $path)
 		{
@@ -369,7 +397,7 @@ class AkeebaRelink
 				}
 
 				$tplPath = $path . '/' . $fileInfo->getFilename();
-				$info = $this->_scanTemplate($tplPath);
+				$info    = $this->_scanTemplate($tplPath);
 
 				if (!is_array($info) || !array_key_exists('template', $info))
 				{
@@ -384,9 +412,9 @@ class AkeebaRelink
 	/**
 	 * Scans a module directory to fetch the extension information
 	 *
-	 * @param string $path
+	 * @param   string  $path  The module path to scan
 	 *
-	 * @return array
+	 * @return  array
 	 */
 	private function _scanModule($path)
 	{
@@ -408,7 +436,7 @@ class AkeebaRelink
 			$xmlDoc = new DOMDocument;
 			$xmlDoc->load($path . '/' . $fname, LIBXML_NOBLANKS | LIBXML_NOCDATA | LIBXML_NOENT | LIBXML_NONET);
 
-			$rootNodes = $xmlDoc->getElementsByTagname('install');
+			$rootNodes    = $xmlDoc->getElementsByTagname('install');
 			$altRootNodes = $xmlDoc->getElementsByTagname('extension');
 
 			if ($altRootNodes->length >= 1)
@@ -438,7 +466,7 @@ class AkeebaRelink
 			}
 
 			$module = '';
-			$files = $xmlDoc->getElementsByTagName('files')->item(0)->childNodes;
+			$files  = $xmlDoc->getElementsByTagName('files')->item(0)->childNodes;
 
 			/** @var DOMElement $file */
 			foreach ($files as $file)
@@ -450,13 +478,13 @@ class AkeebaRelink
 			}
 
 			$langFolder = null;
-			$langFiles = array();
+			$langFiles  = [];
 
 			if ($xmlDoc->getElementsByTagName('languages')->length >= 1)
 			{
-				$langTag = $xmlDoc->getElementsByTagName('languages')->item(0);
+				$langTag    = $xmlDoc->getElementsByTagName('languages')->item(0);
 				$langFolder = $path . '/' . $langTag->getAttribute('folder');
-				$langFiles = array();
+				$langFiles  = [];
 
 				foreach ($langTag->childNodes as $langFile)
 				{
@@ -465,8 +493,8 @@ class AkeebaRelink
 						continue;
 					}
 
-					$tag = $langFile->getAttribute('tag');
-					$lfPath = $langFolder . '/' . $langFile->textContent;
+					$tag               = $langFile->getAttribute('tag');
+					$lfPath            = $langFolder . '/' . $langFile->textContent;
 					$langFiles[$tag][] = $lfPath;
 				}
 			}
@@ -477,13 +505,13 @@ class AkeebaRelink
 				continue;
 			}
 
-			$ret = array(
+			$ret = [
 				'module'    => $module,
 				'path'      => $path,
 				'client'    => $root->getAttribute('client'),
 				'langPath'  => $langFolder,
 				'langFiles' => $langFiles,
-			);
+			];
 
 			unset($xmlDoc);
 
@@ -494,9 +522,9 @@ class AkeebaRelink
 	/**
 	 * Scans a plugin directory to fetch the extension information
 	 *
-	 * @param string $path
+	 * @param   string  $path  The plugin path to scan
 	 *
-	 * @return array
+	 * @return  array
 	 */
 	private function _scanPlugin($path)
 	{
@@ -518,7 +546,7 @@ class AkeebaRelink
 			$xmlDoc = new DOMDocument;
 			$xmlDoc->load($path . '/' . $fname, LIBXML_NOBLANKS | LIBXML_NOCDATA | LIBXML_NOENT | LIBXML_NONET);
 
-			$rootNodes = $xmlDoc->getElementsByTagname('install');
+			$rootNodes    = $xmlDoc->getElementsByTagname('install');
 			$altRootNodes = $xmlDoc->getElementsByTagname('extension');
 
 			if ($altRootNodes->length >= 1)
@@ -550,7 +578,7 @@ class AkeebaRelink
 			$folder = $root->getAttribute('group');
 
 			$plugin = '';
-			$files = $xmlDoc->getElementsByTagName('files')->item(0)->childNodes;
+			$files  = $xmlDoc->getElementsByTagName('files')->item(0)->childNodes;
 
 			/** @var DOMElement $file */
 			foreach ($files as $file)
@@ -562,13 +590,13 @@ class AkeebaRelink
 			}
 
 			$langFolder = null;
-			$langFiles = array();
+			$langFiles  = [];
 
 			if ($xmlDoc->getElementsByTagName('languages')->length >= 1)
 			{
-				$langTag = $xmlDoc->getElementsByTagName('languages')->item(0);
+				$langTag    = $xmlDoc->getElementsByTagName('languages')->item(0);
 				$langFolder = $path . '/' . $langTag->getAttribute('folder');
-				$langFiles = array();
+				$langFiles  = [];
 
 				foreach ($langTag->childNodes as $langFile)
 				{
@@ -577,8 +605,8 @@ class AkeebaRelink
 						continue;
 					}
 
-					$tag = $langFile->getAttribute('tag');
-					$lfPath = $langFolder . '/' . $langFile->textContent;
+					$tag               = $langFile->getAttribute('tag');
+					$lfPath            = $langFolder . '/' . $langFile->textContent;
 					$langFiles[$tag][] = $lfPath;
 				}
 			}
@@ -589,13 +617,13 @@ class AkeebaRelink
 				continue;
 			}
 
-			$ret = array(
+			$ret = [
 				'plugin'    => $plugin,
 				'folder'    => $folder,
 				'path'      => $path,
 				'langPath'  => $langFolder,
 				'langFiles' => $langFiles,
-			);
+			];
 
 			unset($xmlDoc);
 
@@ -606,9 +634,9 @@ class AkeebaRelink
 	/**
 	 * Scans a template directory to fetch the extension information
 	 *
-	 * @param string $path
+	 * @param   string   $path  The template path to scan
 	 *
-	 * @return array
+	 * @return  array
 	 */
 	private function _scanTemplate($path)
 	{
@@ -630,7 +658,7 @@ class AkeebaRelink
 			$xmlDoc = new DOMDocument;
 			$xmlDoc->load($path . '/' . $fname, LIBXML_NOBLANKS | LIBXML_NOCDATA | LIBXML_NOENT | LIBXML_NONET);
 
-			$rootNodes = $xmlDoc->getElementsByTagname('install');
+			$rootNodes    = $xmlDoc->getElementsByTagname('install');
 			$altRootNodes = $xmlDoc->getElementsByTagname('extension');
 
 			if ($altRootNodes->length >= 1)
@@ -662,13 +690,13 @@ class AkeebaRelink
 			$template = strtolower($xmlDoc->getElementsByTagName('name')->item(0)->nodeValue);
 
 			$langFolder = null;
-			$langFiles = array();
+			$langFiles  = [];
 
 			if ($xmlDoc->getElementsByTagName('languages')->length >= 1)
 			{
-				$langTag = $xmlDoc->getElementsByTagName('languages')->item(0);
+				$langTag    = $xmlDoc->getElementsByTagName('languages')->item(0);
 				$langFolder = $path . '/' . $langTag->getAttribute('folder');
-				$langFiles = array();
+				$langFiles  = [];
 
 				foreach ($langTag->childNodes as $langFile)
 				{
@@ -677,8 +705,8 @@ class AkeebaRelink
 						continue;
 					}
 
-					$tag = $langFile->getAttribute('tag');
-					$lfPath = $langFolder . '/' . $langFile->textContent;
+					$tag               = $langFile->getAttribute('tag');
+					$lfPath            = $langFolder . '/' . $langFile->textContent;
 					$langFiles[$tag][] = $lfPath;
 				}
 			}
@@ -689,13 +717,13 @@ class AkeebaRelink
 				continue;
 			}
 
-			$ret = array(
-				'template'    => $template,
+			$ret = [
+				'template'  => $template,
 				'path'      => $path,
 				'client'    => $root->getAttribute('client'),
 				'langPath'  => $langFolder,
 				'langFiles' => $langFiles,
-			);
+			];
 
 			unset($xmlDoc);
 
@@ -712,7 +740,7 @@ class AkeebaRelink
 	{
 		$path = $this->repositoryRoot . '/component';
 
-		$this->component = array(
+		$this->component = [
 			'component'      => '',
 			'siteFolder'     => '',
 			'adminFolder'    => '',
@@ -722,7 +750,7 @@ class AkeebaRelink
 			'siteLangFiles'  => '',
 			'adminLangPath'  => '',
 			'adminLangFiles' => '',
-		);
+		];
 
 		if (!is_dir($path))
 		{
@@ -747,7 +775,7 @@ class AkeebaRelink
 			$xmlDoc = new DOMDocument;
 			$xmlDoc->load($path . '/' . $fname, LIBXML_NOBLANKS | LIBXML_NOCDATA | LIBXML_NOENT | LIBXML_NONET);
 
-			$rootNodes = $xmlDoc->getElementsByTagname('install');
+			$rootNodes    = $xmlDoc->getElementsByTagname('install');
 			$altRootNodes = $xmlDoc->getElementsByTagname('extension');
 
 			if ($altRootNodes->length >= 1)
@@ -785,18 +813,18 @@ class AkeebaRelink
 			}
 
 			// Get the <files> tags for front and back-end
-			$siteFolder = $path;
+			$siteFolder   = $path;
 			$allFilesTags = $xmlDoc->getElementsByTagName('files');
-			$nodePath0 = $allFilesTags->item(0)->getNodePath();
+			$nodePath0    = $allFilesTags->item(0)->getNodePath();
 
-			if (in_array($nodePath0, array('/install/files', '/extension/files')))
+			if (in_array($nodePath0, ['/install/files', '/extension/files']))
 			{
-				$siteFilesTag = $allFilesTags->item(0);
+				$siteFilesTag  = $allFilesTags->item(0);
 				$adminFilesTag = $allFilesTags->item(1);
 			}
 			else
 			{
-				$siteFilesTag = $allFilesTags->item(1);
+				$siteFilesTag  = $allFilesTags->item(1);
 				$adminFilesTag = $allFilesTags->item(0);
 			}
 
@@ -812,7 +840,7 @@ class AkeebaRelink
 			}
 
 			// Get the media folder
-			$mediaFolder = null;
+			$mediaFolder  = null;
 			$allMediaTags = $xmlDoc->getElementsByTagName('media');
 
 			if ($allMediaTags->length >= 1)
@@ -829,15 +857,15 @@ class AkeebaRelink
 			}
 
 			// Get the <languages> tags for front and back-end
-			$langFolderSite = $path;
-			$langFolderAdmin = $path;
-			$allLanguagesTags = $xmlDoc->getElementsByTagName('languages');
-			$nodePath0 = '';
-			$nodePath1 = '';
-			$siteLanguagesTag = '';
+			$langFolderSite    = $path;
+			$langFolderAdmin   = $path;
+			$allLanguagesTags  = $xmlDoc->getElementsByTagName('languages');
+			$nodePath0         = '';
+			$nodePath1         = '';
+			$siteLanguagesTag  = '';
 			$adminLanguagesTag = '';
-			$langFilesSite = array();
-			$langFilesAdmin = array();
+			$langFilesSite     = [];
+			$langFilesAdmin    = [];
 
 			// Do I have any language tag defined in the "old" way?
 			if ($allLanguagesTags->item(0))
@@ -849,7 +877,7 @@ class AkeebaRelink
 					$nodePath1 = $allLanguagesTags->item(1)->getNodePath();
 				}
 
-				if (in_array($nodePath0, array('/install/languages', '/extension/languages')))
+				if (in_array($nodePath0, ['/install/languages', '/extension/languages']))
 				{
 					$siteLanguagesTag = $allLanguagesTags->item(0);
 
@@ -886,7 +914,7 @@ class AkeebaRelink
 				}
 
 				// Get the frontend languages
-				$langFilesSite = array();
+				$langFilesSite = [];
 
 				if ($siteLanguagesTag && $siteLanguagesTag->hasChildNodes())
 				{
@@ -897,13 +925,13 @@ class AkeebaRelink
 							continue;
 						}
 
-						$tag = $langFile->getAttribute('tag');
+						$tag                   = $langFile->getAttribute('tag');
 						$langFilesSite[$tag][] = $langFolderSite . '/' . $langFile->textContent;
 					}
 				}
 
 				// Get the backend languages
-				$langFilesAdmin = array();
+				$langFilesAdmin = [];
 
 				if ($adminLanguagesTag && $adminLanguagesTag->hasChildNodes())
 				{
@@ -914,7 +942,7 @@ class AkeebaRelink
 							continue;
 						}
 
-						$tag = $langFile->getAttribute('tag');
+						$tag                    = $langFile->getAttribute('tag');
 						$langFilesAdmin[$tag][] = $langFolderAdmin . '/' . $langFile->textContent;
 					}
 				}
@@ -926,7 +954,7 @@ class AkeebaRelink
 				continue;
 			}
 
-			$this->component = array(
+			$this->component = [
 				'component'      => $component,
 				'siteFolder'     => $siteFolder,
 				'adminFolder'    => $adminFolder,
@@ -936,7 +964,7 @@ class AkeebaRelink
 				'siteLangFiles'  => $langFilesSite,
 				'adminLangPath'  => $langFolderAdmin,
 				'adminLangFiles' => $langFilesAdmin,
-			);
+			];
 
 			unset($xmlDoc);
 
@@ -951,16 +979,16 @@ class AkeebaRelink
 	 */
 	private function _mapComponent()
 	{
-		$files = array();
-		$hardfiles = array();
+		$files     = [];
+		$hardfiles = [];
 
 		// Frontend and backend directories
-		$dirs = array(
+		$dirs = [
 			$this->component['siteFolder']  =>
 				$this->siteRoot . '/components/' . $this->component['component'],
 			$this->component['adminFolder'] =>
 				$this->siteRoot . '/administrator/components/' . $this->component['component'],
-		);
+		];
 
 		// Media directory
 		if ($this->component['mediaFolder'])
@@ -1023,11 +1051,11 @@ class AkeebaRelink
 			}
 		}
 
-		return array(
+		return [
 			'dirs'      => $dirs,
 			'files'     => $files,
 			'hardfiles' => $hardfiles,
-		);
+		];
 	}
 
 	/**
@@ -1039,8 +1067,8 @@ class AkeebaRelink
 	 */
 	private function _mapModule($module)
 	{
-		$files = array();
-		$dirs = array();
+		$files = [];
+		$dirs  = [];
 
 		$basePath = $this->siteRoot . '/';
 
@@ -1073,10 +1101,10 @@ class AkeebaRelink
 			}
 		}
 
-		return array(
+		return [
 			'dirs'  => $dirs,
 			'files' => $files,
-		);
+		];
 	}
 
 	/**
@@ -1088,11 +1116,11 @@ class AkeebaRelink
 	 */
 	private function _mapPlugin($plugin)
 	{
-		$files = array();
-		$dirs = array();
+		$files = [];
+		$dirs  = [];
 
 		// Joomla! 1.6 or later -- just link one folder
-		$basePath = $this->siteRoot . '/plugins/' . $plugin['folder'] . '/' . $plugin['plugin'];
+		$basePath              = $this->siteRoot . '/plugins/' . $plugin['folder'] . '/' . $plugin['plugin'];
 		$dirs[$plugin['path']] = $basePath;
 
 		// Language files
@@ -1111,10 +1139,10 @@ class AkeebaRelink
 			}
 		}
 
-		return array(
+		return [
 			'dirs'  => $dirs,
 			'files' => $files,
-		);
+		];
 	}
 
 	/**
@@ -1126,8 +1154,8 @@ class AkeebaRelink
 	 */
 	private function _mapTemplate($template)
 	{
-		$files = array();
-		$dirs = array();
+		$files = [];
+		$dirs  = [];
 
 		$basePath = $this->siteRoot . '/';
 
@@ -1161,14 +1189,16 @@ class AkeebaRelink
 			}
 		}
 
-		return array(
+		return [
 			'dirs'  => $dirs,
 			'files' => $files,
-		);
+		];
 	}
 
 	/**
 	 * Unlinks the component
+	 *
+	 * @return  void
 	 */
 	public function unlinkComponent()
 	{
@@ -1179,12 +1209,12 @@ class AkeebaRelink
 
 		echo "Unlinking component " . $this->component['component'] . "\n";
 
-		$dirs = array();
-		$files = array();
-		$map = $this->_mapComponent();
+		$dirs  = [];
+		$files = [];
+		$map   = $this->_mapComponent();
 		extract($map);
 
-		$dirs = array_values($dirs);
+		$dirs  = array_values($dirs);
 		$files = array_values($files);
 
 		$this->unlinkDirectoriesFromList($dirs);
@@ -1202,6 +1232,8 @@ class AkeebaRelink
 
 	/**
 	 * Unlinks the modules
+	 *
+	 * @return  void
 	 */
 	public function unlinkModules()
 	{
@@ -1214,13 +1246,13 @@ class AkeebaRelink
 		{
 			echo "Unlinking module " . $module['module'] . ' (' . $module['client'] . ")\n";
 
-			$dirs = array();
-			$files = array();
+			$dirs  = [];
+			$files = [];
 
 			$map = $this->_mapModule($module);
 			extract($map);
 
-			$dirs = array_values($dirs);
+			$dirs  = array_values($dirs);
 			$files = array_values($files);
 
 			$this->unlinkDirectoriesFromList($dirs);
@@ -1234,6 +1266,8 @@ class AkeebaRelink
 
 	/**
 	 * Unlinks the plugins
+	 *
+	 * @return  void
 	 */
 	public function unlinkPlugins()
 	{
@@ -1246,13 +1280,13 @@ class AkeebaRelink
 		{
 			echo "Unlinking plugin " . $plugin['plugin'] . ' (' . $plugin['folder'] . ")\n";
 
-			$dirs = array();
-			$files = array();
+			$dirs  = [];
+			$files = [];
 
 			$map = $this->_mapPlugin($plugin);
 			extract($map);
 
-			$dirs = array_values($dirs);
+			$dirs  = array_values($dirs);
 			$files = array_values($files);
 
 			$this->unlinkDirectoriesFromList($dirs);
@@ -1266,6 +1300,8 @@ class AkeebaRelink
 
 	/**
 	 * Unlinks the templates
+	 *
+	 * @return  void
 	 */
 	public function unlinkTemplates()
 	{
@@ -1278,13 +1314,13 @@ class AkeebaRelink
 		{
 			echo "Unlinking template " . $template['template'] . ' (' . $template['client'] . ")\n";
 
-			$dirs = array();
-			$files = array();
+			$dirs  = [];
+			$files = [];
 
 			$map = $this->_mapTemplate($template);
 			extract($map);
 
-			$dirs = array_values($dirs);
+			$dirs  = array_values($dirs);
 			$files = array_values($files);
 
 			$this->unlinkDirectoriesFromList($dirs);
@@ -1298,6 +1334,8 @@ class AkeebaRelink
 
 	/**
 	 * Relinks the component
+	 *
+	 * @return  void
 	 */
 	public function linkComponent()
 	{
@@ -1308,8 +1346,8 @@ class AkeebaRelink
 
 		echo "Linking component " . $this->component['component'] . "\n";
 
-		$dirs = array();
-		$files = array();
+		$dirs  = [];
+		$files = [];
 
 		$map = $this->_mapComponent();
 		extract($map);
@@ -1340,6 +1378,8 @@ class AkeebaRelink
 
 	/**
 	 * Relinks the modules
+	 *
+	 * @return  void
 	 */
 	public function linkModules()
 	{
@@ -1352,8 +1392,8 @@ class AkeebaRelink
 		{
 			echo "Linking module " . $module['module'] . ' (' . $module['client'] . ")\n";
 
-			$dirs = array();
-			$files = array();
+			$dirs  = [];
+			$files = [];
 
 			$map = $this->_mapModule($module);
 			extract($map);
@@ -1372,6 +1412,8 @@ class AkeebaRelink
 
 	/**
 	 * Relinks the plugins
+	 *
+	 * @return  void
 	 */
 	public function linkPlugins()
 	{
@@ -1384,8 +1426,8 @@ class AkeebaRelink
 		{
 			echo "Linking plugin " . $plugin['plugin'] . ' (' . $plugin['folder'] . ")\n";
 
-			$dirs = array();
-			$files = array();
+			$dirs  = [];
+			$files = [];
 
 			$map = $this->_mapPlugin($plugin);
 			extract($map);
@@ -1404,6 +1446,8 @@ class AkeebaRelink
 
 	/**
 	 * Relinks the templates
+	 *
+	 * @return  void
 	 */
 	public function linkTemplates()
 	{
@@ -1416,8 +1460,8 @@ class AkeebaRelink
 		{
 			echo "Linking template " . $template['template'] . ' (' . $template['client'] . ")\n";
 
-			$dirs = array();
-			$files = array();
+			$dirs  = [];
+			$files = [];
 
 			$map = $this->_mapTemplate($template);
 			extract($map);
@@ -1437,9 +1481,9 @@ class AkeebaRelink
 	/**
 	 * Remove a list of directories
 	 *
-	 * @param array $dirs
+	 * @param   array  $dirs  The directories to remove
 	 *
-	 * @return boolean
+	 * @return  bool  True on success
 	 */
 	private function unlinkDirectoriesFromList($dirs)
 	{
@@ -1468,9 +1512,9 @@ class AkeebaRelink
 	/**
 	 * Remove a list of files
 	 *
-	 * @param array $files
+	 * @param   array  $files  The files to remove
 	 *
-	 * @return boolean
+	 * @return  bool
 	 */
 	private function unlinkFilesFromList($files)
 	{
@@ -1495,9 +1539,9 @@ class AkeebaRelink
 	/**
 	 * Recursively delete a directory
 	 *
-	 * @param string $dir
+	 * @param   string  $dir
 	 *
-	 * @return bool
+	 * @return  bool
 	 */
 	private function removeDirectoryRecursive($dir)
 	{
@@ -1550,6 +1594,11 @@ class AkeebaRelink
 	}
 }
 
+/**
+ * Displays the usage of this tool
+ *
+ * @return  void
+ */
 function showUsage()
 {
 	$file = basename(__FILE__);
@@ -1566,7 +1615,7 @@ echo <<<ENDBANNER
 Akeeba Build Tools - Relinker 3.1
 No-configuration extension linker
 -------------------------------------------------------------------------------
-Copyright ©2010-$year Nicholas K. Dionysopoulos / AkeebaBackup.com
+Copyright ©2010-$year Akeeba Ltd
 Distributed under the GNU General Public License v3 or later
 -------------------------------------------------------------------------------
 
