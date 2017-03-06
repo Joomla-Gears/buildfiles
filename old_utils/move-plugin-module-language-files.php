@@ -2,11 +2,13 @@
 /**
  * Akeeba Build Files
  *
+ * Move the plugin and module language files into the /translations folder of the repository
+ *
  * @package    buildfiles
  * @copyright  (c) 2010-2017 Akeeba Ltd
  */
 
-function doTheHippyHippyShake($root, $target)
+function moveTheFiles($root, $target)
 {
 	foreach (new DirectoryIterator($root) as $oArea)
 	{
@@ -109,8 +111,8 @@ function doTheHippyHippyShake($root, $target)
 
 $root = dirname(__FILE__) . '/modules';
 $target = dirname(__FILE__) . '/translations/modules';
-doTheHippyHippyShake($root, $target);
+moveTheFiles($root, $target);
 
 $root = dirname(__FILE__) . '/plugins';
 $target = dirname(__FILE__) . '/translations/plugins';
-doTheHippyHippyShake($root, $target);
+moveTheFiles($root, $target);

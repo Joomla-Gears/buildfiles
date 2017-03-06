@@ -4,6 +4,8 @@
  *
  * @package    buildfiles
  * @copyright  (c) 2010-2017 Akeeba Ltd
+ *
+ * Fixes the translation INI files to be compatible with Joomla! 1.5 and 1.6
  */
 
 function recursiveApply($path)
