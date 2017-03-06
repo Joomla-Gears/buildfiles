@@ -1,5 +1,8 @@
+# PhpStorm
 .idea/
-/phing-latest.phar
-/cache/fof.xml
-/cache/lib_*.zip
+
+# Cache
 /cache
+
+# Composer
+vendor
