@@ -49,8 +49,6 @@ Akeeba Build Files
     <taskdef name="gitdate" classname="phingext.GitDateTask" />
     <taskdef name="gitversion" classname="phingext.GitVersionTask" />
     <taskdef name="jpa" classname="phingext.JPATask" />
-    <taskdef name="lang" classname="phingext.LangTask" />
-    <taskdef name="linklang" classname="phingext.LinkLangTask" />
     <taskdef name="linksite" classname="phingext.LinkSiteTask" />
     <taskdef name="link" classname="phingext.LinkTask" />
     <taskdef name="svnversion" classname="phingext.SvnVersionTask" />
@@ -480,28 +478,11 @@ Akeeba Build Files
     </target>
 
     <!--
-    Generate and upload language files
-    -->
-    <target name="lang" description="Generate and upload language files">
-        <exec executable="php" dir="${dirs.root}/../buildfiles/buildlang" passthru="true" escape="true">
-            <arg value="${dirs.root}/../buildfiles/buildlang/buildlang.php" />
-            <arg value="${phing.dir}/build.properties;${dirs.root}/../build.properties;${phing.dir}/override.properties" />
-            <arg path="${dirs.root}" />
-            <arg value="${version}" />
-        </exec>
-    </target>
-
-    <!--
-    Internal linker. Symlinks or hardlinks external files / folders into the project, symlinks the language files
+    Internal linker. Symlinks or hardlinks external files / folders into the project
     -->
     <target name="link" description="Internal linker">
         <exec executable="php" dir="${dirs.root}" passthru="true">
             <arg file="${dirs.root}/../buildfiles/tools/link.php" />
-            <arg path="${dirs.root}" />
-        </exec>
-
-        <exec executable="php" dir="${dirs.root}" passthru="true">
-            <arg file="${dirs.root}/../buildfiles/tools/langlink.php" />
             <arg path="${dirs.root}" />
         </exec>
     </target>
@@ -513,7 +494,10 @@ Akeeba Build Files
     -->
     <target name="relink" description="Project relinker">
         <exec command="php ${dirs.root}/../buildfiles/tools/relink.php ${site} ${dirs.root}" dir="${dirs.root}" passthru="true" />
-        <exec command="php ${dirs.root}/../buildfiles/tools/relinklang.php ${site} ${dirs.root}" dir="${dirs.root}" passthru="true" />
+    </target>
+
+    <target name="lang" description="Obsolete">
+        <echo>The "lang" target is obsolete.</echo>
     </target>
 
 	<!--

@@ -9,11 +9,6 @@
  * @copyright      2010-2017 Akeeba Ltd
  */
 
-$hardlink_files = array();
-$symlink_files = array();
-$symlink_folders = array();
-
-
 /**
  * Display the usage of this tool
  *
@@ -52,38 +47,10 @@ ENDBANNER;
 	$repoRoot = $argv[1];
 }
 
-$repoRoot = realpath($repoRoot);
-
-if (!file_exists($repoRoot . '/build/templates/link.php'))
+if (!class_exists('Akeeba\\LinkLibrary\\ProjectLinker'))
 {
-	die("Error: build/templates/link.php not found\n");
+	require_once __DIR__ . '/../linklib/include.php';
 }
 
-require_once $repoRoot . '/build/templates/link.php';
-
-echo "Hard linking files...\n";
-if (!empty($hardlink_files))
-{
-	foreach ($hardlink_files as $from => $to)
-	{
-		doLink($from, $to, 'link', $repoRoot);
-	}
-}
-
-echo "Symlinking files...\n";
-if (!empty($symlink_files))
-{
-	foreach ($symlink_files as $from => $to)
-	{
-		doLink($from, $to, 'symlink', $repoRoot);
-	}
-}
-
-echo "Symlinking folders...\n";
-if (!empty($symlink_folders))
-{
-	foreach ($symlink_folders as $from => $to)
-	{
-		doLink($from, $to, 'symlink', $repoRoot);
-	}
-}
+$linker = new \Akeeba\LinkLibrary\ProjectLinker($repoRoot);
+$linker->link();

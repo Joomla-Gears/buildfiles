@@ -1,9 +1,10 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: nicholas
- * Date: 6/3/2017
- * Time: 4:33 μμ
+ * Akeeba Build Tools
+ *
+ * @package        buildfiles
+ * @license        GPL v3
+ * @copyright      2010-2017 Akeeba Ltd
  */
 
 namespace Akeeba\LinkLibrary;
@@ -42,6 +43,13 @@ class ProjectLinker
 	private $repositoryRoot = '';
 
 	/**
+	 * Output verbosity level. 0 = none; 1 (default) = minimal; 2 = each linked file / folder.
+	 *
+	 * @var  int
+	 */
+	private $verbosityLevel = 1;
+
+	/**
 	 * ProjectLinker constructor.
 	 *
 	 * If $path is a directory it is assumed to be the repository. If it's a file we assume the repository is two levels
@@ -71,6 +79,8 @@ class ProjectLinker
 	 * path.
 	 *
 	 * @param   string  $path  The path to the repository root
+	 *
+	 * @return  void
 	 */
 	public function setUpWithPath($path)
 	{
@@ -92,6 +102,8 @@ class ProjectLinker
 	 * An assumption is made that the repository root is two levels above the file.
 	 *
 	 * @param   string  $file  The full path to the link.php setup file.
+	 *
+	 * @return  void
 	 */
 	public function setUpWithFile($file)
 	{
@@ -108,13 +120,85 @@ class ProjectLinker
 	}
 
 	/**
+	 * Applies the internal linking
+	 *
+	 * @return  void
+	 */
+	public function link()
+	{
+		if (empty($this->repositoryRoot) || !is_dir($this->repositoryRoot))
+		{
+			throw new \RuntimeException("You need to specify a valid repository root");
+		}
+
+		if (empty($this->hardlink_files) && empty($this->symlink_files) && empty($this->symlink_folders))
+		{
+			throw new \RuntimeException("You need to specify some files to link");
+		}
+
+		if (!empty($this->hardlink_files))
+		{
+			if ($this->verbosityLevel)
+			{
+				echo "Hard linking files...\n";
+			}
+
+			foreach ($this->hardlink_files as $from => $to)
+			{
+				if ($this->verbosityLevel >= 2)
+				{
+					echo "-- $from => $to";
+				}
+
+				LinkHelper::makeLink($from, $to, 'link', $this->repositoryRoot);
+			}
+		}
+
+		if (!empty($this->symlink_files))
+		{
+			if ($this->verbosityLevel)
+			{
+				echo "Symlinking files...\n";
+			}
+
+			foreach ($this->symlink_files as $from => $to)
+			{
+				if ($this->verbosityLevel >= 2)
+				{
+					echo "-- $from => $to";
+				}
+
+				LinkHelper::makeLink($from, $to, 'symlink', $this->repositoryRoot);
+			}
+		}
+
+		if (!empty($this->symlink_folders))
+		{
+			if ($this->verbosityLevel)
+			{
+				echo "Symlinking folders...\n";
+			}
+
+			foreach ($this->symlink_folders as $from => $to)
+			{
+				if ($this->verbosityLevel >= 2)
+				{
+					echo "-- $from => $to";
+				}
+
+				LinkHelper::makeLink($from, $to, 'symlink', $this->repositoryRoot);
+			}
+		}
+	}
+
+	/**
 	 * Load a configuration file.
 	 *
 	 * @param   string  $file  The full path to the configuration link.php file
 	 *
 	 * @return  ProjectLinker
 	 */
-	public function loadConfig($file)
+	public function loadConfig(string $file): ProjectLinker
 	{
 		if (!file_exists($file) || !is_file($file))
 		{
@@ -143,7 +227,7 @@ class ProjectLinker
 	 *
 	 * @return  array
 	 */
-	public function getHardlinkFiles()
+	public function getHardlinkFiles(): array
 	{
 		return $this->hardlink_files;
 	}
@@ -155,7 +239,7 @@ class ProjectLinker
 	 *
 	 * @return  ProjectLinker
 	 */
-	public function setHardlinkFiles(array $hardlink_files)
+	public function setHardlinkFiles(array $hardlink_files): ProjectLinker
 	{
 		$this->hardlink_files = $hardlink_files;
 
@@ -167,17 +251,19 @@ class ProjectLinker
 	 *
 	 * @return  array
 	 */
-	public function getSymlinkFiles()
+	public function getSymlinkFiles(): array
 	{
 		return $this->symlink_files;
 	}
 
 	/**
-	 * @param array $symlink_files
+	 * Set the symbolic link files
 	 *
-	 * @return ProjectLinker
+	 * @param   array  $symlink_files
+	 *
+	 * @return  ProjectLinker
 	 */
-	public function setSymlinkFiles($symlink_files)
+	public function setSymlinkFiles($symlink_files): ProjectLinker
 	{
 		$this->symlink_files = $symlink_files;
 
@@ -185,19 +271,23 @@ class ProjectLinker
 	}
 
 	/**
-	 * @return array
+	 * Get the symbolic link folders
+	 *
+	 * @return  array
 	 */
-	public function getSymlinkFolders()
+	public function getSymlinkFolders(): array
 	{
 		return $this->symlink_folders;
 	}
 
 	/**
-	 * @param array $symlink_folders
+	 * Set the symbolic link folders
 	 *
-	 * @return ProjectLinker
+	 * @param   array  $symlink_folders
+	 *
+	 * @return  ProjectLinker
 	 */
-	public function setSymlinkFolders($symlink_folders)
+	public function setSymlinkFolders($symlink_folders): ProjectLinker
 	{
 		$this->symlink_folders = $symlink_folders;
 
@@ -209,7 +299,7 @@ class ProjectLinker
 	 *
 	 * @return  string
 	 */
-	public function getRepositoryRoot()
+	public function getRepositoryRoot(): string
 	{
 		return $this->repositoryRoot;
 	}
@@ -221,7 +311,7 @@ class ProjectLinker
 	 *
 	 * @return  ProjectLinker
 	 */
-	public function setRepositoryRoot($repositoryRoot)
+	public function setRepositoryRoot($repositoryRoot): string
 	{
 		if (!is_dir($repositoryRoot))
 		{
@@ -229,6 +319,20 @@ class ProjectLinker
 		}
 
 		$this->repositoryRoot = $repositoryRoot;
+
+		return $this;
+	}
+
+	/**
+	 * Set the output verbosity level. 0 = none; 1 (default) = minimal; 2 = each linked file / folder.
+	 *
+	 * @param   int  $verbosityLevel
+	 *
+	 * @return  ProjectLinker
+	 */
+	public function setVerbosityLevel(int $verbosityLevel): ProjectLinker
+	{
+		$this->verbosityLevel = $verbosityLevel;
 
 		return $this;
 	}

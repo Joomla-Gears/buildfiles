@@ -29,7 +29,7 @@ abstract class LinkHelper
 	 *
 	 * @return  bool
 	 */
-	private static function isWindows()
+	private static function isWindows(): bool
 	{
 		if (is_null(self::$isWindows))
 		{
@@ -46,7 +46,7 @@ abstract class LinkHelper
 	 *
 	 * @return  string
 	 */
-	public static function TranslateWinPath($path)
+	public static function TranslateWinPath(string $path): string
 	{
 		/** @var  bool  $is_unc  Is this a UNC (network share) path? */
 		$is_unc = false;
@@ -90,7 +90,7 @@ abstract class LinkHelper
 	 *
 	 * @throw   \RuntimeException  If the link ($to) cannot be created / replaced
 	 */
-	public static function makeLink($from, $to, $type = 'symlink', $path = null)
+	public static function makeLink(string $from, string $to, string $type = 'symlink', string $path = null)
 	{
 		$isWindows = self::isWindows();
 		$realTo    = $to;
@@ -116,27 +116,7 @@ abstract class LinkHelper
 		// If the target already exists we need to remove it first
 		if (is_file($realTo) || is_dir($realTo) || is_link($realTo) || file_exists($realTo))
 		{
-			if ($isWindows && is_dir($realTo))
-			{
-				// Windows can't unlink() directory symlinks; it needs rmdir() to be used instead
-				$res = @rmdir($realTo);
-			}
-			else
-			{
-				$res = @unlink($realTo);
-			}
-
-			// Invalid symlinks are not reported as directories but require @rmdir to delete them because FREAKING WINDOWS.
-			if (!$res && $isWindows)
-			{
-				$res = @rmdir($realTo);
-			}
-
-			if (!$res && is_dir($realTo))
-			{
-				// This is an actual directory, not an old symlink
-				$res = self::recursiveUnlink($realTo);
-			}
+			$res = self::unlink($realTo);
 
 			if (!$res)
 			{
@@ -191,7 +171,7 @@ abstract class LinkHelper
 	 *
 	 * @return  void
 	 */
-	public static function symlink($from, $to)
+	public static function symlink(string $from, string $to)
 	{
 		self::makeLink($from, $to, 'symlink');
 	}
@@ -207,7 +187,7 @@ abstract class LinkHelper
 	 *
 	 * @return  void
 	 */
-	public static function hardlink($from, $to)
+	public static function hardlink(string $from, string $to)
 	{
 		$linkType = 'link';
 
@@ -228,7 +208,7 @@ abstract class LinkHelper
 	 *
 	 * @return  bool  True on success
 	 */
-	public static function recursiveUnlink($dir)
+	public static function recursiveUnlink(string $dir): bool
 	{
 		$return = true;
 
@@ -251,7 +231,7 @@ abstract class LinkHelper
 					// If rmdir failed (non-empty, real folder) we have to recursively delete it
 					if (!$deleteFolderResult)
 					{
-						$deleteFolderResult = recursiveUnlink($file->getPathname());
+						$deleteFolderResult = self::recursiveUnlink($file->getPathname());
 						$return             = $return && $deleteFolderResult;
 					}
 
@@ -289,7 +269,7 @@ abstract class LinkHelper
 	 *
 	 * @return  string  The relative path
 	 */
-	public static function getRelativePath($pathToConvert, $basePath)
+	public static function getRelativePath(string $pathToConvert, string $basePath): string
 	{
 		// Some compatibility fixes for Windows paths
 		$pathToConvert = is_dir($pathToConvert) ? rtrim($pathToConvert, '\/') . '/' : $pathToConvert;
@@ -329,6 +309,49 @@ abstract class LinkHelper
 		}
 
 		return implode(DIRECTORY_SEPARATOR, $relPath);
+	}
+
+	/**
+	 * Link-safe file and directory deletion. It recognizes when the target is a symbolic or hard link and delete it in
+	 * the Operating System-appropriate way. If the target is found to be a real file it will be unlinked normally.
+	 * Finally, if the target is a real directory it will be deleted recursively.
+	 *
+	 * @param   string  $target  The target link / file / folder to delete.
+	 *
+	 * @return  bool  True on success
+	 */
+	public static function unlink(string $target): bool
+	{
+		$isWindows = self::isWindows();
+
+		if ($isWindows)
+		{
+			$target   = self::TranslateWinPath($target);
+		}
+
+		// Windows can't unlink() directory symlinks; it needs rmdir() to be used instead
+		if ($isWindows && is_dir($target))
+		{
+			$res = @rmdir($target);
+		}
+		else
+		{
+			$res = @unlink($target);
+		}
+
+		// Invalid symlinks on WIndows are not reported as directories but require @rmdir to delete them nonetheless.
+		if (!$res && $isWindows)
+		{
+			$res = @rmdir($target);
+		}
+
+		// Is this is an actual directory, not an old symlink, by any chance?
+		if (!$res && is_dir($target))
+		{
+			$res = self::recursiveUnlink($target);
+		}
+
+		return $res;
 	}
 
 }
