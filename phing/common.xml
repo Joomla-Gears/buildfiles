@@ -23,7 +23,7 @@ Akeeba Build Files
     <property name="dirs.plugins" value="${dirs.root}/plugins" />
     <property name="dirs.documentation" value="${dirs.root}/documentation" />
     <!-- ### DocBook XML Stylesheet Paths -->
-    <property name="dirs.bin" value="${dirs.root}/build/bin" />
+    <property name="dirs.bin" value="${phing.dir.common}/bin" />
     <property name="dirs.bin.libxml" value="${dirs.bin}/libxml" />
     <property name="dirs.bin.fop" value="${dirs.bin}/fop" />
     <property name="dirs.bin.dbxsl" value="${dirs.bin}/dbxsl" />
