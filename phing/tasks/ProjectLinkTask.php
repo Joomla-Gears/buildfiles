@@ -6,8 +6,8 @@
  * @copyright  (c) 2010-2017 Akeeba Ltd
  */
 
-require_once 'phing/Task.php';
-require_once __DIR__ . '/../linklib/include.php';
+//require_once 'phing/Task.php';
+require_once __DIR__ . '/../../linklib/include.php';
 
 /**
  * Class InternalLinkTask

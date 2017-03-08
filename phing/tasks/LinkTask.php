@@ -6,11 +6,9 @@
  * @copyright  (c) 2010-2017 Akeeba Ltd
  */
 
-define('IS_WINDOWS', substr(PHP_OS, 0, 3) == 'WIN');
-
-require_once 'phing/Task.php';
-require_once 'phing/tasks/ext/SymlinkTask.php';
-require_once __DIR__ . '/../linklib/include.php';
+//require_once 'phing/Task.php';
+//require_once 'phing/tasks/ext/SymlinkTask.php';
+require_once __DIR__ . '/../../linklib/include.php';
 
 /**
  * Class LinkTask
@@ -99,6 +97,4 @@ class LinkTask extends SymlinkTask
 
 		return true;
 	}
-
-
 }

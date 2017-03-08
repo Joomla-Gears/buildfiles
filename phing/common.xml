@@ -46,6 +46,8 @@ Akeeba Build Files
     <property file="${phing.dir}/override.properties" override="true" />
 
     <!-- Custom task definitions -->
+    <includepath classpath="${phing.dir.common}" />
+
     <taskdef name="gitdate" classname="tasks.GitDateTask" />
     <taskdef name="gitversion" classname="tasks.GitVersionTask" />
     <taskdef name="jpa" classname="tasks.JPATask" />

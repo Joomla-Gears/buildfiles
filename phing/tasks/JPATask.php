@@ -6,11 +6,11 @@
  * @copyright  (c) 2010-2017 Akeeba Ltd
  */
 
-require_once "phing/Task.php";
-require_once 'phing/tasks/system/MatchingTask.php';
-include_once 'phing/util/SourceFileScanner.php';
-include_once 'phing/mappers/MergeMapper.php';
-include_once 'phing/util/StringHelper.php';
+//require_once "phing/Task.php";
+//require_once 'phing/tasks/system/MatchingTask.php';
+//include_once 'phing/util/SourceFileScanner.php';
+//include_once 'phing/mappers/MergeMapper.php';
+//include_once 'phing/util/StringHelper.php';
 require_once __DIR__ . '/library/jpa.php';
 require_once __DIR__ . '/library/JPAFileSet.php';
 

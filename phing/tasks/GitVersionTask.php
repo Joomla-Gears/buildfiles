@@ -6,7 +6,7 @@
  * @copyright  (c) 2010-2017 Akeeba Ltd
  */
 
-require_once 'phing/Task.php';
+//require_once 'phing/Task.php';
 
 // Required for Zend Server 6 on Mac OS X
 putenv("DYLD_LIBRARY_PATH=''");

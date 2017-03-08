@@ -311,7 +311,7 @@ class ProjectLinker
 	 *
 	 * @return  ProjectLinker
 	 */
-	public function setRepositoryRoot($repositoryRoot): string
+	public function setRepositoryRoot($repositoryRoot)
 	{
 		if (!is_dir($repositoryRoot))
 		{
