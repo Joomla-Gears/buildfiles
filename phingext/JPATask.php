@@ -11,54 +11,58 @@ require_once 'phing/tasks/system/MatchingTask.php';
 include_once 'phing/util/SourceFileScanner.php';
 include_once 'phing/mappers/MergeMapper.php';
 include_once 'phing/util/StringHelper.php';
-require_once 'jpalib.php';
+require_once __DIR__ . '/library/jpa.php';
+require_once __DIR__ . '/library/JPAFileSet.php';
 
 /**
- * Creates a JPA archive
- *
- * @author    Nicholas K. Dionysopoulos
- * @version   $Id: JPATask.php 409 2011-01-24 09:30:22Z nikosdion $
- * @package   akeebabuilder
- * @copyright Copyright (c)2009-2014 Nicholas K. Dionysopoulos
- * @license   GNU GPL version 3 or, at your option, any later version
+ * Creates a JPA v.1.0. archive
  */
 class JpaTask extends MatchingTask
 {
 
 	/**
-	 * @var PhingFile
+	 * The output file
+	 *
+	 * @var   PhingFile
 	 */
 	private $jpaFile;
 
 	/**
-	 * @var PhingFile
+	 * The directory that holds the data to include in the archive
+	 *
+	 * @var   PhingFile
 	 */
 	private $baseDir;
 
 	/**
-	 * File path prefix in zip archive
+	 * File path prefix in JPA archive
 	 *
-	 * @var string
+	 * @var   string
 	 */
 	private $prefix = null;
 
 	/**
-	 * Whether to include empty dirs in the archive.
+	 * Should I include empty dirs in the archive.
+	 *
+	 * @var   bool
 	 */
 	private $includeEmpty = true;
 
+	/**
+	 * The filesets to include to the archive
+	 *
+	 * @var   array
+	 */
 	private $filesets = array();
-
-	private $fileSetFiles = array();
 
 	/**
 	 * Add a new fileset.
 	 *
-	 * @return FileSet
+	 * @return   JpaFileSet
 	 */
 	public function createFileSet()
 	{
-		$this->fileset = new JpaFileSet();
+		$this->fileset    = new JpaFileSet();
 		$this->filesets[] = $this->fileset;
 
 		return $this->fileset;
@@ -67,20 +71,20 @@ class JpaTask extends MatchingTask
 	/**
 	 * Add a new fileset.
 	 *
-	 * @return FileSet
+	 * @return   JpaFileSet
 	 */
 	public function createJpaFileSet()
 	{
-		$this->fileset = new JpaFileSet();
+		$this->fileset    = new JpaFileSet();
 		$this->filesets[] = $this->fileset;
 
 		return $this->fileset;
 	}
 
 	/**
-	 * Set is the name/location of where to create the zip file.
+	 * Set the name/location of where to create the JPA file.
 	 *
-	 * @param PhingFile $destFile The output of the zip
+	 * @param   PhingFile  $destFile  The location of the output JPA file
 	 */
 	public function setDestFile(PhingFile $destFile)
 	{
@@ -88,12 +92,11 @@ class JpaTask extends MatchingTask
 	}
 
 	/**
-	 * Set the include empty dirs flag.
+	 * Set the include empty directories flag.
 	 *
-	 * @param  boolean  Flag if empty dirs should be tarred too
+	 * @param   boolean  $bool  Should empty directories be included in the archive?
 	 *
-	 * @return void
-	 * @access public
+	 * @return  void
 	 */
 	public function setIncludeEmptyDirs($bool)
 	{
@@ -101,9 +104,11 @@ class JpaTask extends MatchingTask
 	}
 
 	/**
-	 * This is the base directory to look in for things to zip.
+	 * This is the base directory to look in for files to archive.
 	 *
-	 * @param PhingFile $baseDir
+	 * @param   PhingFile  $baseDir  The base directory to scan
+	 *
+	 * @return  void
 	 */
 	public function setBasedir(PhingFile $baseDir)
 	{
@@ -111,13 +116,13 @@ class JpaTask extends MatchingTask
 	}
 
 	/**
-	 * Sets the file path prefix for file in the zip file.
+	 * Sets the file path prefix for files in the JPA archive
 	 *
-	 * @param string $prefix Prefix
+	 * @param   string  $prefix  Prefix
 	 *
-	 * @return void
+	 * @return  void
 	 */
-	public function setPrefix($prefix)
+	public function setPrefix(string $prefix)
 	{
 		$this->prefix = $prefix;
 	}
@@ -129,7 +134,6 @@ class JpaTask extends MatchingTask
 	 */
 	public function main()
 	{
-
 		if ($this->jpaFile === null)
 		{
 			throw new BuildException("jpafile attribute must be set!", $this->getLocation());
@@ -145,43 +149,31 @@ class JpaTask extends MatchingTask
 			throw new BuildException("Can not write to the specified jpafile!", $this->getLocation());
 		}
 
-		// shouldn't need to clone, since the entries in filesets
-		// themselves won't be modified -- only elements will be added
 		$savedFileSets = $this->filesets;
 
 		try
 		{
 			if (empty($this->filesets))
 			{
-				throw new BuildException("You must supply some nested filesets.",
-					$this->getLocation());
+				throw new BuildException("You must supply some nested filesets.", $this->getLocation());
 			}
 
 			$this->log("Building JPA: " . $this->jpaFile->__toString(), Project::MSG_INFO);
 
 			$jpa = new JPAMaker();
-			$res = $jpa->create($this->jpaFile->getAbsolutePath());
-
-			if ($res !== true)
-			{
-				throw new Exception("JPAMaker::open() failed: " . $jpa->error);
-			}
+			$jpa->create($this->jpaFile->getAbsolutePath());
 
 			foreach ($this->filesets as $fs)
 			{
-
 				$files = $fs->getFiles($this->project, $this->includeEmpty);
 
-				$fsBasedir = (null != $this->baseDir) ? $this->baseDir :
-					$fs->getDir($this->project);
+				$fsBasedir = (null != $this->baseDir) ? $this->baseDir : $fs->getDir($this->project);
 
-				$filesToZip = array();
-				for ($i = 0, $fcount = count($files); $i < $fcount; $i++)
+				foreach ($files as $file)
 				{
-					$f = new PhingFile($fsBasedir, $files[$i]);
+					$f = new PhingFile($fsBasedir, $file);
 
-					$pathInJPA = $this->prefix
-						. $f->getPathWithoutBase($fsBasedir);
+					$pathInJPA = $this->prefix . $f->getPathWithoutBase($fsBasedir);
 					$jpa->addFile($f->getPath(), $pathInJPA);
 					$this->log("Adding " . $f->getPath() . " as " . $pathInJPA . " to archive.", Project::MSG_VERBOSE);
 				}
@@ -191,85 +183,12 @@ class JpaTask extends MatchingTask
 		}
 		catch (IOException $ioe)
 		{
-			$msg = "Problem creating JPA: " . $ioe->getMessage();
+			$msg            = "Problem creating JPA: " . $ioe->getMessage();
 			$this->filesets = $savedFileSets;
+
 			throw new BuildException($msg, $ioe, $this->getLocation());
 		}
 
 		$this->filesets = $savedFileSets;
-	}
-}
-
-/**
- * This is a FileSet with the to specify permissions.
- *
- * Permissions are currently not implemented by PEAR Archive_Tar,
- * but hopefully they will be in the future.
- *
- */
-class JpaFileSet extends FileSet
-{
-
-	private $files = null;
-
-	/**
-	 *  Get a list of files and directories specified in the fileset.
-	 *
-	 * @return array a list of file and directory names, relative to
-	 *    the baseDir for the project.
-	 */
-	public function getFiles(Project $p, $includeEmpty = true)
-	{
-
-		if ($this->files === null)
-		{
-
-			$ds = $this->getDirectoryScanner($p);
-			$this->files = $ds->getIncludedFiles();
-
-			if ($includeEmpty)
-			{
-
-				// first any empty directories that will not be implicitly added by any of the files
-				$implicitDirs = array();
-				foreach ($this->files as $file)
-				{
-					$implicitDirs[] = dirname($file);
-				}
-
-				$incDirs = $ds->getIncludedDirectories();
-
-				// we'll need to add to that list of implicit dirs any directories
-				// that contain other *directories* (and not files), since otherwise
-				// we get duplicate directories in the resulting tar
-				foreach ($incDirs as $dir)
-				{
-					foreach ($incDirs as $dircheck)
-					{
-						if (!empty($dir) && $dir == dirname($dircheck))
-						{
-							$implicitDirs[] = $dir;
-						}
-					}
-				}
-
-				$implicitDirs = array_unique($implicitDirs);
-
-				// Now add any empty dirs (dirs not covered by the implicit dirs)
-				// to the files array.
-
-				foreach ($incDirs as $dir)
-				{ // we cannot simply use array_diff() since we want to disregard empty/. dirs
-					if ($dir != "" && $dir != "." && !in_array($dir, $implicitDirs))
-					{
-						// it's an empty dir, so we'll add it.
-						$this->files[] = $dir;
-					}
-				}
-			} // if $includeEmpty
-
-		} // if ($this->files===null)
-
-		return $this->files;
 	}
 }
