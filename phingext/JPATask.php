@@ -19,7 +19,6 @@ require_once __DIR__ . '/library/JPAFileSet.php';
  */
 class JpaTask extends MatchingTask
 {
-
 	/**
 	 * The output file
 	 *
@@ -165,8 +164,7 @@ class JpaTask extends MatchingTask
 
 			foreach ($this->filesets as $fs)
 			{
-				$files = $fs->getFiles($this->project, $this->includeEmpty);
-
+				$files     = $fs->getFiles($this->project, $this->includeEmpty);
 				$fsBasedir = (null != $this->baseDir) ? $this->baseDir : $fs->getDir($this->project);
 
 				foreach ($files as $file)

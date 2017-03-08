@@ -16,6 +16,8 @@
 class JpaFileSet extends FileSet
 {
 	/**
+	 * The files to include in the archive
+	 *
 	 * @var   array
 	 */
 	private $files = null;
