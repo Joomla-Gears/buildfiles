@@ -154,7 +154,27 @@ class Component extends AbstractScanner
 			}
 		}
 
-		// TODO Scan language files in a separate root, if one is specified
+		// Scan language files in a separate root, if one is specified
+		if (!empty($this->languageRoot))
+		{
+			$langPath  = $this->languageRoot . '/component/frontend';
+			$langFiles = $this->scanLanguageFolder($langPath);
+
+			if (!empty($langFiles))
+			{
+				$result->siteLangPath  = $langPath;
+				$result->siteLangFiles = $langFiles;
+			}
+
+			$langPath  = $this->languageRoot . '/component/backend';
+			$langFiles = $this->scanLanguageFolder($langPath);
+
+			if (!empty($langFiles))
+			{
+				$result->adminLangPath  = $langPath;
+				$result->adminLangFiles = $langFiles;
+			}
+		}
 
 		return $result;
 	}

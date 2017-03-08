@@ -112,7 +112,19 @@ class Plugin extends AbstractScanner
 			$result->adminLangPath  = $languageRoot;
 		}
 
-		// TODO Scan language files in a separate root, if one is specified
+		// Scan language files in a separate root, if one is specified
+		if (!empty($this->languageRoot))
+		{
+			$langPath  = $this->languageRoot . '/plugins/' . $result->pluginFolder . '/' . $result->extension;
+			$langFiles = $this->scanLanguageFolder($langPath);
+
+			if (!empty($langFiles))
+			{
+				$result->adminLangPath  = $langPath;
+				$result->adminLangFiles = $langFiles;
+			}
+		}
+
 
 		return $result;
 	}

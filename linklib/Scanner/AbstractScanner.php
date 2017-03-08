@@ -362,6 +362,69 @@ abstract class AbstractScanner implements ScannerInterface
 	}
 
 	/**
+	 * Scan a folder for Joomla! INI language files. The folder must have the structure languageTag => files e.g.
+	 * en-GB/en-GB.com_foobar.ini
+	 * en-GB/en-GB.com_foobar.sys.ini
+	 * fr-FR/fr-FR.com_foobar.ini
+	 * fr-FR/fr-FR.com_foobar.sys.ini
+	 * ...
+	 *
+	 * The returned array is keyed on language, e.g.
+	 * [
+	 *   'en-GB' => ['/path/to/en-GB/en-GB.com_foobar.ini', '/path/to/en-GB/en-GB.com_foobar.sys.ini'],
+	 *   'fr-FR' => ['/path/to/fr-FR/fr-FR.com_foobar.ini', '/path/to/fr-FR/fr-FR.com_foobar.sys.ini'],
+	 *    ...
+	 * ]
+	 *
+	 * @param   string  $langPath  The path to scan
+	 *
+	 * @return  array  The discovered language files
+	 */
+	protected final function scanLanguageFolder(string $langPath): array
+	{
+		$ret = [];
+
+		// Make sure the folder exists
+		if (!is_dir($langPath))
+		{
+			return $ret;
+		}
+
+		// Iterate the outermost folders (language tags)
+		$langFolders = new DirectoryIterator($langPath);
+
+		foreach ($langFolders as $folder)
+		{
+			if (!$folder->isDir() || $folder->isDot())
+			{
+				continue;
+			}
+
+			$tag = $folder->getFilename();
+			$ret[$tag] = [];
+
+			// Iterate the innermost files of each language folder (language files)
+			$langFiles = new DirectoryIterator($folder->getPathname());
+
+			foreach ($langFiles as $file)
+			{
+				if ($file->isFile())
+				{
+					continue;
+				}
+
+				if ($file->getExtension() != 'ini')
+				{
+					continue;
+				}
+
+				$ret[$tag][] = $file->getRealPath();
+			}
+		}
+		return $ret;
+	}
+
+	/**
 	 * Parses the last scan and generates a link map
 	 *
 	 * @return  MapResult
@@ -520,5 +583,4 @@ abstract class AbstractScanner implements ScannerInterface
 
 		return self::$translationsRoot;
 	}
-
 }

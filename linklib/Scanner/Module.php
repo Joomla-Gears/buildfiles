@@ -126,7 +126,28 @@ class Module extends AbstractScanner
 			$result->adminLangPath  = $languageRoot;
 		}
 
-		// TODO Scan language files in a separate root, if one is specified
+		// Scan language files in a separate root, if one is specified
+		if (!empty($this->languageRoot))
+		{
+			$langPath  = $this->languageRoot . '/modules/';
+			$langPath .= $isSite ? 'site/' : 'admin/';
+			$langPath .= $module;
+			$langFiles = $this->scanLanguageFolder($langPath);
+
+			if (!empty($langFiles))
+			{
+				if ($isSite)
+				{
+					$result->siteLangPath  = $langPath;
+					$result->siteLangFiles = $langFiles;
+				}
+				else
+				{
+					$result->adminLangPath  = $langPath;
+					$result->adminLangFiles = $langFiles;
+				}
+			}
+		}
 
 		return $result;
 	}
