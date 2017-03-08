@@ -46,12 +46,13 @@ Akeeba Build Files
     <property file="${phing.dir}/override.properties" override="true" />
 
     <!-- Custom task definitions -->
-    <taskdef name="gitdate" classname="phingext.GitDateTask" />
-    <taskdef name="gitversion" classname="phingext.GitVersionTask" />
-    <taskdef name="jpa" classname="phingext.JPATask" />
-    <taskdef name="linksite" classname="phingext.LinkSiteTask" />
-    <taskdef name="link" classname="phingext.LinkTask" />
-    <taskdef name="zipme" classname="phingext.ZipmeTask" />
+    <taskdef name="gitdate" classname="tasks.GitDateTask" />
+    <taskdef name="gitversion" classname="tasks.GitVersionTask" />
+    <taskdef name="jpa" classname="tasks.JPATask" />
+    <taskdef name="link" classname="tasks.LinkTask" />
+    <taskdef name="projectlink" classname="tasks.ProjectLinkTask" />
+    <taskdef name="relinksite" classname="tasks.RelinkSiteTask" />
+    <taskdef name="zipme" classname="tasks.ZipmeTask" />
 
 	<!--
 	Generate the installation packages and the documentation
@@ -479,10 +480,7 @@ Akeeba Build Files
     Internal linker. Symlinks or hardlinks external files / folders into the project
     -->
     <target name="link" description="Internal linker">
-        <exec executable="php" dir="${dirs.root}" passthru="true">
-            <arg file="${dirs.root}/../buildfiles/tools/link.php" />
-            <arg path="${dirs.root}" />
-        </exec>
+        <projectlink repository="${dirs.root}" />
     </target>
 
     <!--
@@ -491,11 +489,7 @@ Akeeba Build Files
     site        Absolute filesystem path to the Joomla! installation
     -->
     <target name="relink" description="Project relinker">
-        <exec command="php ${dirs.root}/../buildfiles/tools/relink.php ${site} ${dirs.root}" dir="${dirs.root}" passthru="true" />
-    </target>
-
-    <target name="lang" description="Obsolete">
-        <echo>The "lang" target is obsolete.</echo>
+        <relinksite site="${site}" repository="${dirs.root}" />
     </target>
 
 	<!--
