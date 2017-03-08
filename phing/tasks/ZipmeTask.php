@@ -159,8 +159,15 @@ class ZipmeTask extends MatchingTask
 
 			$this->log("Building ZIP: " . $this->zipFile->__toString(), Project::MSG_INFO);
 
+			$absolutePath = $this->zipFile->getAbsolutePath();
+
+			if (!is_dir(dirname($absolutePath)))
+			{
+				throw new BuildException("ZIP file path $absolutePath is not a path.", $this->getLocation());
+			}
+
 			$zip = new ZipArchive();
-			$res = $zip->open($this->zipFile->getAbsolutePath(), ZipArchive::CREATE);
+			$res = $zip->open($absolutePath, ZipArchive::CREATE);
 
 			if ($res !== true)
 			{
