@@ -65,9 +65,15 @@ END;
 
 // Get a reference to Composer's autloader
 /** @var ClassLoader $composerAutoloader */
-//$composerAutoloader = require($autoloaderFile);
-$composerAutoloader = new \Composer\Autoload\ClassLoader();
-$composerAutoloader->register();
+if (class_exists('Composer\\Autoload\\ClassLoader'))
+{
+	$composerAutoloader = new \Composer\Autoload\ClassLoader();
+	$composerAutoloader->register();
+}
+else
+{
+	$composerAutoloader = require($autoloaderFile);
+}
 
 // Register this directory as the PSR-4 source for our namespace prefix
 $composerAutoloader->addPsr4('Akeeba\\LinkLibrary\\', __DIR__);
