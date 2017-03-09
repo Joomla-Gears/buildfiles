@@ -183,9 +183,19 @@ class ZipmeTask extends MatchingTask
 				{
 					$f = new PhingFile($fsBasedir, $file);
 
+					$filePath = $f->getPath();
 					$pathInZIP = $this->prefix . $f->getPathWithoutBase($fsBasedir);
-					$zip->addFile($f->getPath(), $pathInZIP);
-					$this->log("Adding " . $f->getPath() . " as " . $pathInZIP . " to archive.", Project::MSG_VERBOSE);
+
+					if (is_dir($filePath))
+					{
+						$zip->addEmptyDir($filePath);
+					}
+					else
+					{
+						$zip->addFile($filePath, $pathInZIP);
+					}
+
+					$this->log("Adding " . $filePath . " as " . $pathInZIP . " to archive.", Project::MSG_VERBOSE);
 				}
 			}
 		}
