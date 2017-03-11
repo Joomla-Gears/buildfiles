@@ -49,6 +49,8 @@ Akeeba Build Files
     <includepath classpath="${phing.dir.common}" />
 
     <taskdef name="gitdate" classname="tasks.GitDateTask" />
+    <taskdef name="GitHubAsset" classname="tasks.GitHubAssetTask" />
+    <taskdef name="GitHubRelease" classname="tasks.GitHubReleaseTask" />
     <taskdef name="gitversion" classname="tasks.GitVersionTask" />
     <taskdef name="jpa" classname="tasks.JPATask" />
     <taskdef name="link" classname="tasks.LinkTask" />
@@ -1096,4 +1098,8 @@ Akeeba Build Files
 			<fileset refid="${build.refid}" />
 		</zipme>
 	</target>
+
+    <target name="lang">
+        <echo message="The lang task is obsolete." />
+    </target>
 </project>
