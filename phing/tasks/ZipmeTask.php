@@ -12,6 +12,11 @@
 //include_once 'phing/mappers/MergeMapper.php';
 //include_once 'phing/util/StringHelper.php';
 
+if (!class_exists('PclZip'))
+{
+	require_once __DIR__ . '/library/pclzip.lib.php';
+}
+
 require_once __DIR__ . '/library/ZipmeFileSet.php';
 
 /**
@@ -166,12 +171,11 @@ class ZipmeTask extends MatchingTask
 				throw new BuildException("ZIP file path $absolutePath is not a path.", $this->getLocation());
 			}
 
-			$zip = new ZipArchive();
-			$res = $zip->open($absolutePath, ZipArchive::CREATE);
+			$zip = new PclZip($this->zipFile->getAbsolutePath());
 
-			if ($res !== true)
+			if ($zip->errorCode() != 1)
 			{
-				throw new Exception("ZipArchive::open() failed, code $res");
+				throw new BuildException("PclZip::open() failed: " . $zip->errorInfo());
 			}
 
 			foreach ($this->filesets as $fs)
@@ -179,24 +183,42 @@ class ZipmeTask extends MatchingTask
 				$files     = $fs->getFiles($this->project, $this->includeEmpty);
 				$fsBasedir = (null != $this->baseDir) ? $this->baseDir : $fs->getDir($this->project);
 
+				$filesToZip = array();
+
 				foreach ($files as $file)
 				{
 					$f = new PhingFile($fsBasedir, $file);
 
-					$filePath = $f->getPath();
-					$pathInZIP = $this->prefix . $f->getPathWithoutBase($fsBasedir);
+					$fileAbsolutePath = $f->getPath();
+					$fileDir = rtrim(dirname($fileAbsolutePath), '/\\');
+					$fileBase = basename($fileAbsolutePath);
 
-					if (is_dir($filePath))
+					// Only use lowercase for $disallowedBases because we'll convert $fileBase to lowercase
+					$disallowedBases = array('.ds_store', '.svn', '.gitignore', 'thumbs.db');
+					$fileBaseLower = strtolower($fileBase);
+
+					if (in_array($fileBaseLower, $disallowedBases))
 					{
-						$zip->addEmptyDir($filePath);
-					}
-					else
-					{
-						$zip->addFile($filePath, $pathInZIP);
+						continue;
 					}
 
-					$this->log("Adding " . $filePath . " as " . $pathInZIP . " to archive.", Project::MSG_VERBOSE);
+					if (substr($fileDir, -4) == '.svn')
+					{
+						continue;
+					}
+
+					if (substr(rtrim($fileAbsolutePath, '/\\'), -4) == '.svn')
+					{
+						continue;
+					}
+
+					$filesToZip[] = $fileAbsolutePath;
 				}
+
+				$zip->add($filesToZip,
+					PCLZIP_OPT_ADD_PATH, is_null($this->prefix) ? '' : $this->prefix,
+					PCLZIP_OPT_REMOVE_PATH, $fsBasedir->getPath());
+
 			}
 		}
 		catch (IOException $ioe)
@@ -206,9 +228,6 @@ class ZipmeTask extends MatchingTask
 
 			throw new BuildException($msg, $ioe, $this->getLocation());
 		}
-
-		$zip->setArchiveComment("Created with Akeeba Build Files - https://github.com/akeeba/buildfiles");
-		$zip->close();
 
 		$this->filesets = $savedFileSets;
 	}
