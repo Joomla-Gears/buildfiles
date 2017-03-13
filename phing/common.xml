@@ -836,7 +836,7 @@ Akeeba Build Files
                         <httpget url="https://akeeba-cdn.s3.amazonaws.com/updates/fof3.xml" dir="${dirs.release}" filename="fof.tmp" followRedirects="true" />
 
                         <!-- Extract the latest FOF version and download location -->
-                        <xslt todir="${dirs.release}" style="${phing.dir}/tools/foflatest.xslt">
+                        <xslt todir="${dirs.release}" style="${dirs.root}/../buildfiles/tools/foflatest.xslt">
                             <mapper type="glob" from="*.tmp" to="*.xml" />
                             <fileset dir="${dirs.release}">
                                 <include name="fof.tmp" />
@@ -937,7 +937,7 @@ Akeeba Build Files
 						<httpget url="https://akeeba-cdn.s3.amazonaws.com/updates/strapper.xml" dir="${dirs.release}" filename="strapper.tmp" followRedirects="true" />
 
 						<!-- Extract the latest Strapper version and download location -->
-						<xslt todir="${dirs.release}" style="${phing.dir}/tools/strapperlatest.xslt">
+						<xslt todir="${dirs.release}" style="${dirs.root}/../buildfiles/tools/strapperlatest.xslt">
 							<mapper type="glob" from="*.tmp" to="*.xml" />
 							<fileset dir="${dirs.release}">
 								<include name="strapper.tmp" />
