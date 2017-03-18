@@ -223,31 +223,44 @@ abstract class LinkHelper
 					continue;
 				}
 
+				$pathname = $file->getPathname();
+
 				if ($file->isDir())
 				{
 					// We have to try the rmdir in case this is a Windows directory symlink OR an empty folder.
-					$deleteFolderResult = @rmdir($file->getPathname());
+					$deleteFolderResult = @rmdir($pathname);
 
 					// If rmdir failed (non-empty, real folder) we have to recursively delete it
 					if (!$deleteFolderResult)
 					{
-						$deleteFolderResult = self::recursiveUnlink($file->getPathname());
+						$deleteFolderResult = self::recursiveUnlink($pathname);
 						$return             = $return && $deleteFolderResult;
 					}
 
 					if (!$deleteFolderResult)
 					{
-						throw new \RuntimeException("Failed deleting folder {$file->getPathname()}");
+						throw new \RuntimeException("Failed deleting folder {$pathname}");
 					}
 				}
 
+				if (!file_exists($pathname) && !is_dir($pathname))
+				{
+					continue;
+				}
+
 				// We have to try the rmdir in case this is a Windows directory symlink.
-				$deleteFileResult = @rmdir($file->getPathname()) || @unlink($file->getPathname());
+				$deleteFileResult = @rmdir($pathname);
+
+				if (!$deleteFileResult)
+				{
+					$deleteFileResult = @unlink($pathname);
+				}
+
 				$return           = $return && $deleteFileResult;
 
 				if (!$deleteFileResult)
 				{
-					throw new \RuntimeException("Failed deleting file {$file->getPathname()}");
+					throw new \RuntimeException("Failed deleting file {$pathname}");
 				}
 			}
 
