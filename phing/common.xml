@@ -1087,6 +1087,12 @@ Akeeba Build Files
 
 		<!-- Copy the script.something.php installation script file, if present -->
 		<if>
+			<available property="completely.ignored" file="${phing.dir}/templates/script.${build.component}.php" />
+			<then>
+				<copy file="${phing.dir}/templates/script.${build.component}.php" tofile="${dirs.release}/script.${build.component}.php" overwrite="true" />
+			</then>
+		</if>
+		<if>
 			<available property="completely.ignored" file="${dirs.component}/script.${build.component}.php" />
 			<then>
 				<copy file="${dirs.component}/script.${build.component}.php" tofile="${dirs.release}/script.${build.component}.php" overwrite="true" />
