@@ -328,12 +328,16 @@ class GitHubReleaseTask extends GitHubTask
 	 */
 	private function getReleaseByTag(string $tag)
 	{
+		/**
+		 * Using ->tag() does not return releases which are currently draft. As a result releasing software never works
+		 * since we end up trying to create yet another release with the same tag as the one we had in draft status. So
+		 * I have to do it the entirely stupid way, iterating through all releases manually. WTF...
+		 */
 		try
 		{
-			$release = $this->client->api('repo')->releases()->tag(
+			$releases = $this->client->api('repo')->releases()->all(
 				$this->organization,
-				$this->repository,
-				$tag
+				$this->repository
 			);
 		}
 		catch (Http\Client\Exception\HttpException $e)
@@ -346,12 +350,15 @@ class GitHubReleaseTask extends GitHubTask
 			throw $e;
 		}
 
-		if (empty($release))
+		foreach ($releases as $aRelease)
 		{
-			return null;
+			if ($aRelease['tag_name'] == $tag)
+			{
+				return $aRelease;
+			}
 		}
 
-		return $release;
+		return null;
 	}
 
 	/**
