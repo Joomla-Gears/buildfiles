@@ -328,18 +328,30 @@ class GitHubReleaseTask extends GitHubTask
 	 */
 	private function getReleaseByTag(string $tag)
 	{
-		$releases = $this->client->api('repo')->releases()->all(
-			$this->organization,
-			$this->repository,
-			[$tag]
-		);
+		try
+		{
+			$release = $this->client->api('repo')->releases()->tag(
+				$this->organization,
+				$this->repository,
+				$tag
+			);
+		}
+		catch (Http\Client\Exception\HttpException $e)
+		{
+			if ($e->getCode() == 404)
+			{
+				return null;
+			}
 
-		if (empty($releases))
+			throw $e;
+		}
+
+		if (empty($release))
 		{
 			return null;
 		}
 
-		return array_shift($releases);
+		return $release;
 	}
 
 	/**
