@@ -110,6 +110,9 @@ abstract class LinkHelper
 			$realFrom = self::TranslateWinPath($realFrom);
 		}
 
+		// Make sure the path exists
+		mkdir(dirname($realTo), 0755, true);
+
 		// Get the real absolute path to the source
 		$realFrom = realpath($realFrom);
 
