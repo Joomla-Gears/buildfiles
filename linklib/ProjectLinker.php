@@ -133,7 +133,8 @@ class ProjectLinker
 
 		if (empty($this->hardlink_files) && empty($this->symlink_files) && empty($this->symlink_folders))
 		{
-			throw new \RuntimeException("You need to specify some files to link");
+			// OK, nothing to do here!
+			return;
 		}
 
 		if (!empty($this->hardlink_files))
