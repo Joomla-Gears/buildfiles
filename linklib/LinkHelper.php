@@ -111,7 +111,10 @@ abstract class LinkHelper
 		}
 
 		// Make sure the path exists
-		mkdir(dirname($realTo), 0755, true);
+		if (!is_dir(dirname($realTo)))
+		{
+			mkdir(dirname($realTo), 0755, true);
+		}
 
 		// Get the real absolute path to the source
 		$realFrom = realpath($realFrom);
