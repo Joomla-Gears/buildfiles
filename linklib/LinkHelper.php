@@ -142,7 +142,7 @@ abstract class LinkHelper
 				}
 
 				$relativeFrom = self::getRelativePath($realTo, $realFrom);
-				$cmd          = 'mklink ' . $extraArguments . ' "' . $realTo . '" "' . $relativeFrom . '"';
+				$cmd          = 'cmd /c mklink ' . $extraArguments . ' "' . $realTo . '" "' . $relativeFrom . '"';
 				$res          = exec($cmd);
 			}
 			else
