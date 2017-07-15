@@ -10,6 +10,7 @@
 namespace Akeeba\LinkLibrary;
 
 use Akeeba\LinkLibrary\Scanner\Component;
+use Akeeba\LinkLibrary\Scanner\Library;
 use Akeeba\LinkLibrary\Scanner\Module;
 use Akeeba\LinkLibrary\Scanner\Plugin;
 use Akeeba\LinkLibrary\Scanner\Template;
@@ -59,6 +60,7 @@ class Relink
 
 		// Detect extensions
 		$this->extensions = array_merge($this->extensions, Component::detect($this->repositoryRoot));
+		$this->extensions = array_merge($this->extensions, Library::detect($this->repositoryRoot));
 		$this->extensions = array_merge($this->extensions, Module::detect($this->repositoryRoot));
 		$this->extensions = array_merge($this->extensions, Plugin::detect($this->repositoryRoot));
 		$this->extensions = array_merge($this->extensions, Template::detect($this->repositoryRoot));
