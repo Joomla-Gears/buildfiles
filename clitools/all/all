@@ -13,6 +13,7 @@ usage () {
 	echo "pull	  Pull from Git"
 	echo "push	  Push to Git"
 	echo "status  Report repositories with uncommitted changes"
+	echo "branch  Which branch am I in?"
 	echo -e $COLOR_BLUE"Using Akeeba Build Files"$COLOR_NC
 	echo "link    Internal relink"
 	echo -e $COLOR_BLUE"Using Transifex"$COLOR_NC
@@ -82,7 +83,24 @@ do
 			git push --tags
 			;;
 
-		status )
+        branch )
+            ZZZ_CUR_BRANCH=`git rev-parse --abbrev-ref HEAD`
+            ZZZ_COLOR=$COLOR_LIGHT_RED
+
+			if [[ "$ZZZ_CUR_BRANCH" == "development" ]]
+			then
+                ZZZ_COLOR=$COLOR_LIGHT_GREEN
+            elif [[ "$ZZZ_CUR_BRANCH" == "master" ]]
+            then
+                ZZZ_COLOR=$COLOR_YELLOW
+            fi
+            
+            echo -ne $COLOR_LIGHT_PURPLE"Branch "$COLOR_CYAN
+            printf '%-25s' $d
+			echo -e $ZZZ_COLOR$ZZZ_CUR_BRANCH$COLOR_NC
+			;;
+
+        status )
 			#i=`expr $(git status --porcelain 2>/dev/null| egrep "^(M| M)" | wc -l)`
 			i=`expr $(git status --porcelain 2>/dev/null| wc -l)`
 			if [ $i -ne 0 ]
