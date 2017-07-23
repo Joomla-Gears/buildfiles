@@ -9,15 +9,16 @@ Param(
 
 function showUsage()
 {
-	$mySelf = Split-Path $MyInvocation.MyCommand.Name -Leaf
-	Write-Host "Usage: $mySelf <command>" -Foreground DarkYellow
+	Write-Host "Usage: all <command>" -Foreground DarkYellow
 	Write-Host ""
 	Write-Host All repositories -Foreground Blue
-	Write-Host pull	  Pull from Git
-	Write-Host push	  Push to Git
-	Write-Host status  Report repositories with uncommitted changes
+	Write-Host "pull     Pull from Git"
+	Write-Host "push     Push to Git"
+	Write-Host "status   Report repositories with uncommitted changes"
+	Write-Host "branch   Which Git branch am I in?"
+	Write-Host "fixcrlf  Fix CRLF under Windows"
 	Write-Host Using Akeeba Build Files -Foreground Blue
-	Write-Host link    Internal relink
+	Write-Host "link     Internal relink"
 }
 
 if (!$operation)
@@ -82,6 +83,31 @@ Get-ChildItem -Directory | ForEach-Object {
 				cd build
 				phing link
 			}
+		}
+		
+		"branch" {
+			$currentBranch = git rev-parse --abbrev-ref HEAD
+			$color = "Red"
+			
+			if ($currentBranch -eq "development") {
+				$color = "Green"
+			} elseif ($currentBranch -eq "master") {
+				$color = "Yellow"
+			}
+			
+			Write-Host "Branch " -Foreground Magenta -NoNewline
+			"{0, -25}" -f $d | Write-Host -Foreground Cyan -NoNewline
+			Write-Host `t$currentBranch -Foreground $color
+		}
+		
+		"fixcrlf" {
+			Write-Host "Fixing CRLF " -Foreground DarkGreen -NoNewline
+			Write-Host $d -Foreground Cyan
+
+			git config --unset core.fileMode
+			git config --unset core.filemode
+			git config --unset core.autocrlf
+
 		}
 		
 		"default" {
