@@ -394,7 +394,7 @@ Akeeba Build Files
             </filterchain>
         </copy>
 
-        <exec executable="php" dir="${dirs.root}" passthru="true" checkreturn="true">
+        <exec executable="${system.php_cli}" dir="${dirs.root}" passthru="true" checkreturn="true">
             <arg file="${dirs.root}/../releasemaker/releasemaker/index.php" />
             <arg file="${dirs.root}/release.json" />
         </exec>
@@ -611,7 +611,7 @@ Akeeba Build Files
 			<equals arg1="${build.selfcheck}" arg2="1" />
 			<then>
 				<!-- Add self-check file -->
-				<exec executable="php" dir="${dirs.root}" passthru="true" checkreturn="true">
+				<exec executable="${system.php_cli}" dir="${dirs.root}" passthru="true" checkreturn="true">
 					<arg file="${phing.dir}/build/tools/makeselfcheck.php " />
 					<arg file="${dirs.release}/${build.package_name}.zip" />
 					<arg value="com_${build.component}" />
