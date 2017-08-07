@@ -4,6 +4,11 @@
   "license": "GPLv3",
   "minimum-stability": "beta",
   "require": {
+    "php": "^7.0",
+    "ext-curl": "*",
+    "ext-ssh2": "*",
+    "ext-xsl": "*",
+    "ext-zlib": "*",
     "knplabs/github-api": "^2.0",
     "php-http/guzzle6-adapter": "^1.1"
   }

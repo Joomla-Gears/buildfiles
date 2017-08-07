@@ -57,6 +57,8 @@ Akeeba Build Files
     <taskdef name="projectlink" classname="tasks.ProjectLinkTask" />
     <taskdef name="relinksite" classname="tasks.RelinkSiteTask" />
     <taskdef name="zipme" classname="tasks.ZipmeTask" />
+    <taskdef name="docbook2fo" classname="tasks.DocBookToFoTask" />
+    <taskdef name="docbook2epub" classname="tasks.DocBookToEpubTask" />
 
 	<!--
 	Generate the installation packages and the documentation
@@ -108,46 +110,59 @@ Akeeba Build Files
     <target name="docbook-pdf" description="Render documentation in PDF format">
         <basename property="docs.output" file="${docs.input}" suffix=".xml" />
 
-        <exec executable="xsltproc" dir="${dirs.documentation}" checkreturn="true">
-            <arg value="--nonet" />
-            <arg value="--xinclude" />
-            <arg value="--novalid" />
+		<if>
+			<equals arg1="${docs.php_xsltproc}" arg2="1" />
+			<then>
+				<!-- Use the xsltproc included in your current PHP installation -->
+				<docbook2fo xsltRoot="${dirs.bin.dbxsl}"
+							docBookFile="${dirs.documentation}/${docs.input}"
+							foFile="${dirs.release}/${docs.output}.fo"
+				/>
+			</then>
+			<else>
+				<!-- Use the xsltproc executable -->
+				<exec executable="${docs.xsltproc}" dir="${dirs.documentation}" checkreturn="true">
+					<arg value="--nonet" />
+					<arg value="--xinclude" />
+					<arg value="--novalid" />
 
-            <arg value="--stringparam" />
-            <arg value="body.start.indent" />
-            <arg value="0" />
+					<arg value="--stringparam" />
+					<arg value="body.start.indent" />
+					<arg value="0" />
 
-            <arg value="--stringparam" />
-            <arg value="variablelist.term.break.after 1" />
-            <arg value="1" />
+					<arg value="--stringparam" />
+					<arg value="variablelist.term.break.after 1" />
+					<arg value="1" />
 
-            <arg value="--stringparam" />
-            <arg value="variablelist.term.separator" />
-            <arg value="&quot;&quot;" />
+					<arg value="--stringparam" />
+					<arg value="variablelist.term.separator" />
+					<arg value="&quot;&quot;" />
 
-            <arg value="--stringparam" />
-            <arg value="variablelist.max.termlength" />
-            <arg value="12" />
+					<arg value="--stringparam" />
+					<arg value="variablelist.max.termlength" />
+					<arg value="12" />
 
-            <arg value="--stringparam" />
-            <arg value="section.autolabel" />
-            <arg value="1" />
+					<arg value="--stringparam" />
+					<arg value="section.autolabel" />
+					<arg value="1" />
 
-            <arg value="--stringparam" />
-            <arg value="toc.section.depth" />
-            <arg value="5" />
+					<arg value="--stringparam" />
+					<arg value="toc.section.depth" />
+					<arg value="5" />
 
-            <arg value="--stringparam" />
-            <arg value="fop1.extensions" />
-            <arg value="1" />
+					<arg value="--stringparam" />
+					<arg value="fop1.extensions" />
+					<arg value="1" />
 
-            <arg value="--output" />
-            <arg file="${dirs.release}/${docs.output}.fo" />
+					<arg value="--output" />
+					<arg file="${dirs.release}/${docs.output}.fo" />
 
-            <arg file="${dirs.bin.dbxsl}/fo/docbook.xsl" />
+					<arg file="${dirs.bin.dbxsl}/fo/docbook.xsl" />
 
-            <arg file="${dirs.documentation}/${docs.input}" />
-        </exec>
+					<arg file="${dirs.documentation}/${docs.input}" />
+				</exec>
+			</else>
+		</if>
 
         <exec executable="${dirs.bin.fop}/fop" dir="${dirs.documentation}" checkreturn="true">
             <arg value="-fo" />
@@ -167,15 +182,16 @@ Akeeba Build Files
     -->
     <target name="docbook-epub" description="Render documentation in ePub format">
         <basename property="docs.output" file="${docs.input}" suffix=".xml" />
-        <dirname property="docs.images" file="${docs.input}" />
+        <dirname property="docs.images" file="${dirs.documentation}/${docs.input}" />
 
         <property name="docs.epubdir" value="${dirs.release}/tmp_${docs.output}" />
 
         <mkdir dir="${docs.epubdir}" />
         <mkdir dir="${docs.epubdir}/OEBPS" />
+        <mkdir dir="${docs.epubdir}/META-INF" />
         <mkdir dir="${docs.epubdir}/OEBPS/images" />
         <copy todir="${docs.epubdir}/OEBPS/images">
-            <fileset dir="${dirs.documentation}/${docs.images}">
+            <fileset dir="${docs.images}/images">
                 <include name="*.png" />
                 <include name="*.jpg" />
                 <include name="*.jpeg" />
@@ -183,48 +199,58 @@ Akeeba Build Files
             </fileset>
         </copy>
 
-        <exec executable="xsltproc" dir="${dirs.documentation}" checkreturn="true">
-            <arg value="--nonet" />
-            <arg value="--xinclude" />
-            <arg value="--novalid" />
+		<if>
+			<equals arg1="${docs.php_xsltproc}" arg2="1"/>
+			<then>
+				<!-- Use the xsltproc included in your current PHP installation -->
+				<docbook2epub xsltRoot="${dirs.bin.dbxsl}"
+							  docBookFile="${dirs.documentation}/${docs.input}"
+							  epubPath="${docs.epubdir}"
+				/>
+			</then>
+			<else>
+				<exec executable="${docs.xsltproc}" dir="${dirs.documentation}" checkreturn="true">
+					<arg value="--nonet" />
+					<arg value="--xinclude" />
+					<arg value="--novalid" />
 
-            <arg value="--stringparam" />
-            <arg value="epub.stylesheet" />
-            <arg value="style.css" />
+					<arg value="--stringparam" />
+					<arg value="epub.stylesheet" />
+					<arg value="style.css" />
 
+					<arg value="--stringparam" />
+					<arg value="body.start.indent" />
+					<arg value="0" />
 
+					<arg value="--stringparam" />
+					<arg value="variablelist.term.break.after 1" />
+					<arg value="1" />
 
-            <arg value="--stringparam" />
-            <arg value="body.start.indent" />
-            <arg value="0" />
+					<arg value="--stringparam" />
+					<arg value="variablelist.term.separator" />
+					<arg value="&quot;&quot;" />
 
-            <arg value="--stringparam" />
-            <arg value="variablelist.term.break.after 1" />
-            <arg value="1" />
+					<arg value="--stringparam" />
+					<arg value="variablelist.max.termlength" />
+					<arg value="12" />
 
-            <arg value="--stringparam" />
-            <arg value="variablelist.term.separator" />
-            <arg value="&quot;&quot;" />
+					<arg value="--stringparam" />
+					<arg value="section.autolabel" />
+					<arg value="1" />
 
-            <arg value="--stringparam" />
-            <arg value="variablelist.max.termlength" />
-            <arg value="12" />
+					<arg value="--stringparam" />
+					<arg value="toc.section.depth" />
+					<arg value="5" />
 
-            <arg value="--stringparam" />
-            <arg value="section.autolabel" />
-            <arg value="1" />
+					<arg value="--output" />
+					<arg file="${docs.epubdir}/${docs.output}.epub" />
 
-            <arg value="--stringparam" />
-            <arg value="toc.section.depth" />
-            <arg value="5" />
+					<arg file="${dirs.bin.dbxsl}/epub3/chunk.xsl" />
 
-            <arg value="--output" />
-            <arg file="${docs.epubdir}/${docs.output}.epub" />
-
-            <arg file="${dirs.bin.dbxsl}/epub3/chunk.xsl" />
-
-            <arg file="${dirs.documentation}/${docs.input}" />
-        </exec>
+					<arg file="${dirs.documentation}/${docs.input}" />
+				</exec>
+			</else>
+		</if>
 
         <copy file="${phing.dir.common}/epub/mimetype" tofile="${docs.epubdir}/mimetype" overwrite="true" />
         <copy file="${phing.dir.common}/epub/com.apple.ibooks.display-options.xml" tofile="${docs.epubdir}/META-INF/com.apple.ibooks.display-options.xml" overwrite="true" />
