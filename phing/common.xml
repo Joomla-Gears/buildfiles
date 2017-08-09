@@ -288,6 +288,7 @@ Akeeba Build Files
             <fileset dir="${dirs.documentation}/${docsdeploy.path.source}">
                 <include name="*.xml"/>
                 <include name="images/**"/>
+                <include name="chapters/**"/>
             </fileset>
         </scp>
     </target>
