@@ -216,7 +216,7 @@ class Library extends AbstractScanner
 			}
 
 			// Get the extension ScannerInterface object
-			$extension    = new Library($folder->getRealPath(), $languageRoot);
+			$extension    = new Library($folder->getRealPath(), $translationsRoot);
 			$extensions[] = $extension;
 		}
 

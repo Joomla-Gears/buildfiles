@@ -65,7 +65,6 @@ class LanguageLinker
 			switch ($scanResults->extensionType)
 			{
 				case 'component':
-				case 'library':
 					if (is_array($scanResults->siteLangFiles) && isset($scanResults->siteLangFiles['en-GB']))
 					{
 						$targetDir = $langFolderRoot . "{$scanResults->extensionType}/frontend/en-GB/";
@@ -81,18 +80,22 @@ class LanguageLinker
 
 				case 'module':
 				case 'template':
+				case 'library':
 					// Drop the mod_/tpl_ prefix
 					$bareExtensionName = substr($scanResults->extension, 4);
+					$prefix = ($scanResults->extensionType == 'library') ? 'librarie' : $scanResults->extensionType;
 
 					if (is_array($scanResults->siteLangFiles) && isset($scanResults->siteLangFiles['en-GB']))
 					{
-						$targetDir = $langFolderRoot . "{$scanResults->extensionType}s/site/$bareExtensionName/en-GB/";
+						$siteAdmin = ($scanResults->extensionType == 'library') ? 'frontend' : 'site';
+						$targetDir = $langFolderRoot . "{$prefix}s/$siteAdmin/$bareExtensionName/en-GB/";
 						$this->copyFiles($scanResults->siteLangFiles['en-GB'], $targetDir);
 					}
 
 					if (is_array($scanResults->adminLangFiles) && isset($scanResults->adminLangFiles['en-GB']))
 					{
-						$targetDir = $langFolderRoot . "{$scanResults->extensionType}s/admin/$bareExtensionName/en-GB/";
+						$siteAdmin = ($scanResults->extensionType == 'library') ? 'frontend' : 'site';
+						$targetDir = $langFolderRoot . "{$prefix}s/$siteAdmin/$bareExtensionName/en-GB/";
 						$this->copyFiles($scanResults->adminLangFiles['en-GB'], $targetDir);
 					}
 					break;

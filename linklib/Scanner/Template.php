@@ -226,7 +226,7 @@ class Template extends AbstractScanner
 				}
 
 				// Get the extension ScannerInterface object
-				$extension    = new Template($folder->getRealPath(), $languageRoot);
+				$extension    = new Template($folder->getRealPath(), $translationsRoot);
 				$extensions[] = $extension;
 			}
 		}

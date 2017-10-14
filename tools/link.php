@@ -53,4 +53,5 @@ if (!class_exists('Akeeba\\LinkLibrary\\ProjectLinker'))
 }
 
 $linker = new \Akeeba\LinkLibrary\ProjectLinker($repoRoot);
+$linker->addInternalLanguageMapping();
 $linker->link();

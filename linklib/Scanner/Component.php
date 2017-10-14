@@ -232,7 +232,7 @@ class Component extends AbstractScanner
 		}
 
 		// Get the extension ScannerInterface object
-		$extension          = new Component($path, $languageRoot);
+		$extension          = new Component($path, $translationsRoot);
 
 		return [$extension];
 	}

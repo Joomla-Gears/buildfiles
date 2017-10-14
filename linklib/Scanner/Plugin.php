@@ -208,7 +208,7 @@ class Plugin extends AbstractScanner
 				}
 
 				// Get the extension ScannerInterface object
-				$extension    = new Plugin($pluginFolder->getRealPath(), $languageRoot);
+				$extension    = new Plugin($pluginFolder->getRealPath(), $translationsRoot);
 				$extensions[] = $extension;
 			}
 		}

@@ -417,7 +417,7 @@ abstract class AbstractScanner implements ScannerInterface
 
 			foreach ($langFiles as $file)
 			{
-				if ($file->isFile())
+				if (!$file->isFile())
 				{
 					continue;
 				}

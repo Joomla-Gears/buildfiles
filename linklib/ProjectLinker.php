@@ -8,6 +8,12 @@
  */
 
 namespace Akeeba\LinkLibrary;
+use Akeeba\LinkLibrary\Scanner\AbstractScanner;
+use Akeeba\LinkLibrary\Scanner\Component;
+use Akeeba\LinkLibrary\Scanner\Library;
+use Akeeba\LinkLibrary\Scanner\Module;
+use Akeeba\LinkLibrary\Scanner\Plugin;
+use Akeeba\LinkLibrary\Scanner\Template;
 
 /**
  * Internal linker for Akeeba projects
@@ -68,6 +74,84 @@ class ProjectLinker
 			elseif (is_file($path))
 			{
 				$this->setUpWithFile($path);
+			}
+		}
+	}
+
+	public function addInternalLanguageMapping()
+	{
+		// Sanity check
+		if (empty($this->repositoryRoot))
+		{
+			throw new \LogicException(sprintf("You cannot call %s before specifying the repository root", __METHOD__));
+		}
+
+		// Make sure there is a separate language root to begin with
+		if (empty(AbstractScanner::getTranslationsRoot($this->repositoryRoot)))
+		{
+			return;
+		}
+
+		/** @var ScannerInterface[] $extensions */
+		$extensions = [];
+		$extensions = array_merge($extensions, Component::detect($this->repositoryRoot));
+		$extensions = array_merge($extensions, Library::detect($this->repositoryRoot));
+		$extensions = array_merge($extensions, Module::detect($this->repositoryRoot));
+		$extensions = array_merge($extensions, Plugin::detect($this->repositoryRoot));
+		$extensions = array_merge($extensions, Template::detect($this->repositoryRoot));
+
+		foreach ($extensions as $extension)
+		{
+			$scanResults = $extension->getScanResults();
+
+			switch ($scanResults->extensionType)
+			{
+				case 'component':
+					if (is_array($scanResults->siteLangFiles) && isset($scanResults->siteLangFiles['en-GB']))
+					{
+						$source                         = $this->getRelativePath(dirname($scanResults->siteLangFiles['en-GB'][0]));
+						$this->symlink_folders[$source] = 'component/language/frontend/en-GB';
+					}
+
+					if (is_array($scanResults->adminLangFiles) && isset($scanResults->adminLangFiles['en-GB']))
+					{
+						$source                         = $this->getRelativePath(dirname($scanResults->adminLangFiles['en-GB'][0]));
+						$this->symlink_folders[$source] = 'component/language/backend/en-GB';
+					}
+					break;
+
+				case 'module':
+				case 'template':
+				case 'library':
+					// Drop the mod_/tpl_ prefix
+					$bareExtensionName = substr($scanResults->extension, 4);
+					$prefix            = ($scanResults->extensionType == 'library') ? 'librarie' : $scanResults->extensionType;
+					$siteAdmin         = ($scanResults->extensionType == 'library') ? 'frontend' : 'site';
+
+					if (is_array($scanResults->siteLangFiles) && isset($scanResults->siteLangFiles['en-GB']))
+					{
+						$source                         = $this->getRelativePath(dirname($scanResults->siteLangFiles['en-GB'][0]));
+						$this->symlink_folders[$source] = "{$prefix}s/$siteAdmin/$bareExtensionName/language/en-GB";
+					}
+
+					if (is_array($scanResults->adminLangFiles) && isset($scanResults->adminLangFiles['en-GB']))
+					{
+
+						$source                         = $this->getRelativePath(dirname($scanResults->adminLangFiles['en-GB'][0]));
+						$this->symlink_folders[$source] = "{$prefix}s/$siteAdmin/$bareExtensionName/language/en-GB";
+					}
+					break;
+
+				case 'plugin':
+					// Drop the plg_ prefix
+					list($plgPrefix, $folder, $pluginName) = explode('_', $scanResults->getJoomlaExtensionName(), 3);
+
+					if (is_array($scanResults->adminLangFiles) && isset($scanResults->adminLangFiles['en-GB']))
+					{
+						$source                         = $this->getRelativePath(dirname($scanResults->adminLangFiles['en-GB'][0]));
+						$this->symlink_folders[$source] = "plugins/$folder/$pluginName/language/en-GB";
+					}
+					break;
 			}
 		}
 	}
@@ -208,7 +292,7 @@ class ProjectLinker
 
 		/** @var   array  $hardlink_files   Hard link files, set up by the file */
 		/** @var   array  $symlink_files    Symbolic link files, set up by the file */
-		/** @var   array  $symlink_folders  Symbolic link fodlers, set up by the file */
+		/** @var   array  $symlink_folders  Symbolic link folders, set up by the file */
 		require_once $file;
 
 		if (!isset($hardlink_files) || !isset($symlink_files) || !isset($symlink_folders))
@@ -336,5 +420,15 @@ class ProjectLinker
 		$this->verbosityLevel = $verbosityLevel;
 
 		return $this;
+	}
+
+	private function getRelativePath($path)
+	{
+		if (strpos($path, $this->repositoryRoot) === 0)
+		{
+			return ltrim(substr($path, strlen($this->repositoryRoot)), '/\\');
+		}
+
+		return $path;
 	}
 }
