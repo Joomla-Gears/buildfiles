@@ -342,9 +342,9 @@ class Scanner
 }
 
 $specs = new OptionCollection;
-$specs->add('u|username:', '* GitHub username for committing language files.')
+$specs->add('u|username:', 'GitHub username, required for committing language files.')
 	->isa('String');
-$specs->add('t|token:', '* GitHub personal access token for committing language files.')
+$specs->add('t|token:', 'GitHub personal access token, required for committing language files.')
 	->isa('String');
 $specs->add('o|output?', 'Output file (default "weblate.json").')
 	->isa('String')
@@ -366,7 +366,7 @@ catch (Exception $e)
 	exit (255);
 }
 
-if (!$result->has('username') || !$result->has('token'))
+if (!$result->count())
 {
 	$self = basename($argv[0]);
 	echo <<< ERRORPREFIX
