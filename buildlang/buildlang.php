@@ -175,7 +175,7 @@ function _scanLangDir($path)
 
 echo <<<ENDBANNER
 BuildLang 1.0
-Copyright (c)2014 Nicholas K. Dionysopoulos - AkeebaBackup.com
+Copyright (c) 2010-2017 Akeeba Ltd
 
 
 ENDBANNER;
@@ -214,8 +214,8 @@ else
 // Get some basic parameters
 $packageName = $props['langbuilder.packagename'];
 $softwareName = $props['langbuilder.software'];
-$authorName = isset($props['langbuilder.authorname']) ? $props['langbuilder.authorname'] : 'AkeebaBackup.com';
-$authorUrl = isset($props['langbuilder.authorurl']) ? $props['langbuilder.authorurl'] : 'http://www.akeebabackup.com';
+$authorName = isset($props['langbuilder.authorname']) ? $props['langbuilder.authorname'] : 'Akeeba Ltd';
+$authorUrl = isset($props['langbuilder.authorurl']) ? $props['langbuilder.authorurl'] : 'https://www.akeeba.com';
 $license = isset($props['langbuilder.license']) ? $props['langbuilder.license'] : 'http://www.gnu.org/licenses/gpl-3.0.html GNU/GPL';
 $langVersions = isset($props['langbuilder.jversions']) ? $props['langbuilder.jversions'] : '3.x';
 
@@ -228,7 +228,7 @@ require_once('S3.php');
 $s3 = new S3($props['s3.access'], $props['s3.private']);
 $s3Bucket = $props['s3.bucket'];
 $s3Path = $props['s3.path'];
-$s3LangPath = isset($props['s3.langpath']) ? $props['s3.langpath'] : 'http://cdn.akeebabackup.com/language';
+$s3LangPath = isset($props['s3.langpath']) ? $props['s3.langpath'] : 'https://cdn.akeebabackup.com/language';
 
 // Scan languages
 $root = $rootDirectory . '/translations';
@@ -372,7 +372,6 @@ ENDHEAD;
 
 ENDHTML;
 
-	// @todo Upload translation files
 	echo "\tUploading " . basename($j20ZIPPath) . "\n";
 	$s3->putObjectFile($j20ZIPPath, $s3Bucket, $s3Path . '/' . $packageNameURL . '/' . basename($j20ZIPPath), S3::ACL_PUBLIC_READ);
 }

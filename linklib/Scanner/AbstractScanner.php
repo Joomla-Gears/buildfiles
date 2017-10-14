@@ -570,12 +570,12 @@ abstract class AbstractScanner implements ScannerInterface
 	 *
 	 * @return  string
 	 */
-	protected static function getTranslationsRoot(string $siteRoot): string
+	public static function getTranslationsRoot(string $siteRoot): string
 	{
 		if (is_null(self::$translationsRoot))
 		{
 			self::$translationsRoot = '';
-			$possibleFolders        = ['translations', 'translation', 'languages'];
+			$possibleFolders        = ['translations', 'translation', 'languages', 'language', 'weblate', 'translate', 'strings'];
 
 			foreach ($possibleFolders as $folder)
 			{
