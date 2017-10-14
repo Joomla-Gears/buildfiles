@@ -252,25 +252,46 @@ class Scanner
 
 	private function generateObjectFor($slugArray, $rootDir)
 	{
-		$root        = $this->repo->getPath();
-		$masterTitle = $this->slugToTitle($slugArray);
-		$files       = glob($rootDir . '/en-GB/*.ini');
-		$slug        = implode($slugArray, '_');
-		$return      = [];
+		$root         = $this->repo->getPath();
+		$masterTitle  = $this->slugToTitle($slugArray);
+		$files        = glob($rootDir . '/en-GB/*.ini');
+		$slug         = implode($slugArray, '_');
+		$return       = [];
+		$basePriority = 100;
+
+		// Adjust the base priority depending on the kind of file: 120 for component, 100 for plugin, 80 for module
+		if ($slugArray[0] == 'mod')
+		{
+			$basePriority -= 20;
+		}
+		elseif ($slugArray[0] == 'component')
+		{
+			$basePriority += 20;
+
+			// Backend component files get an extra +20 priority points boost, making them top translation priority!
+			if ($slugArray[1] == 'backend')
+			{
+				$basePriority += 20;
+			}
+		}
 
 		foreach ($files as $f)
 		{
-			$title = $masterTitle;
+			$priority = $basePriority;
+			$title    = $masterTitle;
 
+			// Adjust the priority depending on extension: -20 for .sys / .menu files.
 			if (substr($f, -8) == '.sys.ini')
 			{
 				$title .= ' (system language strings)';
 				$slug  .= '_sys';
+				$priority -= 20;
 			}
 			elseif (substr($f, -9) == '.menu.ini')
 			{
 				$title .= ' (menu option strings)';
 				$slug  .= '_menu';
+				$priority -= 20;
 			}
 
 			$file_proto    = basename($f);
@@ -286,19 +307,39 @@ class Scanner
 				$auth = urlencode($this->cliOptions->get('username')) . ':' . urlencode($this->cliOptions->get('token')) . '@';
 			}
 
-			$gitHubRepo = 'https://' . $auth . 'github.com/' . $this->repo->getOrganization() . '/' . $this->repo->getRepository() . '.git';
+			$gitHubRepoPath = $this->repo->getOrganization() . '/' . $this->repo->getRepository();
+			$gitHubCloneURL = 'https://' . $auth . 'github.com/' . $gitHubRepoPath . '.git';
+			$appName        = $this->cliOptions->get('weblate');
 
 			$return[] = [
-				'name'        => $title,
-				'slug'        => $slug,
-				'vcs'         => 'git',
-				'repo'        => $gitHubRepo,
-				'branch'      => $this->repo->getBranch(),
-				'filemask'    => $file_proto,
-				'template'    => $file_template,
-				'file_format' => 'joomla',
-				'license'     => 'GNU GPL v3',
-				'license_url' => 'https://www.gnu.org/licenses/gpl-3.0.en.html',
+				'name'                          => $title,
+				'slug'                          => $slug,
+				'vcs'                           => 'git',
+				'repo'                          => $gitHubCloneURL,
+				'push'                          => $gitHubCloneURL,
+				'repoweb'                       => 'https://github.com/' . $gitHubRepoPath . '/blob/%(branch)s/%(file)s#L%(line)s',
+				'branch'                        => $this->repo->getBranch(),
+				'filemask'                      => $file_proto,
+				'template'                      => $file_template,
+				'allow_translation_propagation' => 1,
+				'save_history'                  => 1,
+				'enable_suggestions'            => 1,
+				'suggestion_voting'             => 1,
+				'suggestion_autoaccept'         => 2,
+				'commit_message'                => 'Translated using ' . $appName . ' (%(language_name)s)\r\n\r\nCurrently translated at %(translated_percent)s%% (%(translated)s of %(total)s strings)\r\n\r\nTranslation: %(project)s/%(component)s\r\nTranslate-URL: %(url)s',
+				'comitter_email'                => $this->cliOptions->get('email'),
+				'comitter_name'                 => $appName,
+				'file_format'                   => 'joomla',
+				'license'                       => 'GNU GPL v3',
+				'license_url'                   => 'https://www.gnu.org/licenses/gpl-3.0.en.html',
+				'merge_style'                   => 'rebase',
+				'new_lang'                      => 'contact',
+				'edit_template'                 => 1,
+				'add_message'                   => 'Added translation using ' . $appName . ' (%(language_name)s)',
+				'delete_message'                => 'Deleted translation using ' . $appName . ' (%(language_name)s)',
+				'priority'                      => $priority,
+				'commit_pending_age'            => 24,
+				'push_on_commit'                => 0,
 			];
 		}
 
@@ -346,6 +387,12 @@ $specs->add('u|username:', 'GitHub username, required for committing language fi
 	->isa('String');
 $specs->add('t|token:', 'GitHub personal access token, required for committing language files.')
 	->isa('String');
+$specs->add('e|email?', 'Translation committer email (default "noreply@example.com").')
+	->isa('String')
+	->defaultValue("noreply@example.com");
+$specs->add('w|weblate?', 'Title of the Weblate installation and committer name (default "Weblate").')
+	->isa('String')
+	->defaultValue("Weblate");
 $specs->add('o|output?', 'Output file (default "weblate.json").')
 	->isa('String')
 	->defaultValue("weblate.json");
