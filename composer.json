@@ -10,6 +10,8 @@
     "ext-xsl": "*",
     "ext-zlib": "*",
     "knplabs/github-api": "^2.0",
-    "php-http/guzzle6-adapter": "^1.1"
+    "php-http/guzzle6-adapter": "^1.1",
+    "corneltek/getoptionkit": "2.6.0",
+    "czproject/git-php": "3.10.0"
   }
 }
