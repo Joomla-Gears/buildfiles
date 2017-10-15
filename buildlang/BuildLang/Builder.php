@@ -15,6 +15,7 @@ use Akeeba\LinkLibrary\Scanner\Module;
 use Akeeba\LinkLibrary\Scanner\Plugin;
 use Akeeba\LinkLibrary\Scanner\Template;
 use Akeeba\LinkLibrary\ScannerInterface;
+use RuntimeException;
 use ZipArchive;
 
 class Builder
@@ -75,7 +76,44 @@ class Builder
 		return array_unique($codes);
 	}
 
-	public function buildPackageFor(string $code, string $targetDirectory): string
+	public function buildAll()
+	{
+		$langCodes     = $this->getLanguageCodes();
+		$packages      = [];
+		$tempDirectory = sys_get_temp_dir();
+
+		// Build all packages
+		foreach ($langCodes as $code)
+		{
+			try
+			{
+				$packages[$code] = $this->buildPackageFor($code, $tempDirectory);
+			}
+			catch (RuntimeException $e)
+			{
+				// Ignore packages that failed to build
+				continue;
+			}
+
+			// TODO Add the successfully built packages to a list
+
+			// TODO Upload the package to S3
+		}
+
+		// TODO Build the HTML file
+
+		// TODO Upload the HTML file
+	}
+
+	/**
+	 * Builds the language ZIP package for a specific language
+	 *
+	 * @param   string  $code             Language code, e.g. en-GB
+	 * @param   string  $targetDirectory  The target directory where the ZIP file will be built
+	 *
+	 * @return  string  The full path to the ZIP file created by this script
+	 */
+	protected function buildPackageFor(string $code, string $targetDirectory): string
 	{
 		$langCodes = $this->getLanguageCodes();
 		$langInfo  = new LanguageInfo($code);

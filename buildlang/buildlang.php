@@ -52,11 +52,9 @@ if ($argc > 3)
 $parameters = new Parameters($propsFile, ['extra.version' => $version]);
 $builder    = new Builder($rootDirectory, $parameters);
 
-// TODO
 try
 {
-	$xoxo = $builder->buildPackageFor('el-GR', sys_get_temp_dir());
-	echo $xoxo;
+	$builder->buildAll();
 }
 catch (Exception $e)
 {
