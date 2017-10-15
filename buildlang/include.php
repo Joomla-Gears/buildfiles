@@ -7,8 +7,6 @@
  * @copyright      2010-2017 Akeeba Ltd
  */
 
-namespace Akeeba\LinkLibrary;
-
 use Composer\Autoload\ClassLoader;
 
 if (version_compare(PHP_VERSION, '7.0', 'lt'))
@@ -19,7 +17,7 @@ if (version_compare(PHP_VERSION, '7.0', 'lt'))
 **                                   WARNING                                  **
 ********************************************************************************
 
-The link library REQUIRES PHP 7.0 or later.
+The language builder library REQUIRES PHP 7.0 or later.
 
 --------------------------------------------------------------------------------
 HOW TO FIX
@@ -76,4 +74,4 @@ else
 }
 
 // Register this directory as the PSR-4 source for our namespace prefix
-$composerAutoloader->addPsr4('Akeeba\\LinkLibrary\\', __DIR__);
+$composerAutoloader->addPsr4('Akeeba\\BuildLang\\', __DIR__ . '/BuildLang');

@@ -3,6 +3,20 @@
   "description": "Build utilities for Akeeba software",
   "license": "GPLv3",
   "minimum-stability": "beta",
+  "repositories": [
+    {
+      "type": "package",
+      "package": {
+        "name": "akeeba/s3",
+        "version": "master",
+        "source": {
+          "url": "https://github.com/akeeba/s3",
+          "type": "git",
+          "reference": "master"
+        }
+      }
+    }
+  ],
   "require": {
     "php": "^7.0",
     "ext-curl": "*",
@@ -12,6 +26,7 @@
     "knplabs/github-api": "^2.0",
     "php-http/guzzle6-adapter": "^1.1",
     "corneltek/getoptionkit": "2.6.0",
-    "czproject/git-php": "3.10.0"
+    "czproject/git-php": "3.10.0",
+    "akeeba/s3": "dev-master"
   }
 }
