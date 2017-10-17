@@ -99,8 +99,8 @@ abstract class LinkHelper
 		// If from / to are relative to a path let's combine them
 		if (!empty($path))
 		{
-			$realTo   = $path . '/' . $to;
-			$realFrom = $path . '/' . $from;
+			$realTo   = self::rebaseFolder($to, $path);
+			$realFrom = self::rebaseFolder($from, $path);
 		}
 
 		// Windows doesn't play nice with paths containing mixed UNIX and Windows path separators
@@ -373,4 +373,53 @@ abstract class LinkHelper
 		return $res;
 	}
 
+	/**
+	 * Rebase a relative folder name $folder against an absolute path $path. If, however, $folder is already absolute or
+	 * a subdirectory of $path we return the raw $folder instead.
+	 *
+	 * @param   string  $folder  The relative path to rebase
+	 * @param   string  $path    The absolute path to rebase against
+	 *
+	 * @return  string
+	 */
+	protected static function rebaseFolder($folder, $path)
+	{
+		// If the path is the first component of $folder then the path is not really relative
+		$path = rtrim($path, '\\/');
+
+		if (strpos($folder, $path) === 0)
+		{
+			return $folder;
+		}
+
+		$isWindows = self::isWindows();
+
+		if (is_dir($folder))
+		{
+			// Absolute *NIX path?
+			if (!$isWindows && (strpos($folder, '/') === 0))
+			{
+				return $folder;
+			}
+
+			if ($isWindows)
+			{
+				$translatedFolder = self::TranslateWinPath($folder);
+
+				// Absolute drive path
+				if (strpos($translatedFolder, ':/') > 0)
+				{
+					return $folder;
+				}
+
+				// Absolute UNC path
+				if (strpos($translatedFolder, '//') === 0)
+				{
+					return $folder;
+				}
+			}
+		}
+
+		return $path . '/' . $folder;
+	}
 }

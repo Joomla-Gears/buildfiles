@@ -131,7 +131,7 @@ class Module extends AbstractScanner
 		{
 			$langPath  = $this->languageRoot . '/modules/';
 			$langPath .= $isSite ? 'site/' : 'admin/';
-			$langPath .= $module;
+			$langPath .= substr($module, 4);
 			$langFiles = $this->scanLanguageFolder($langPath);
 
 			if (!empty($langFiles))

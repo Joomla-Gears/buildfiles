@@ -59,6 +59,7 @@ class ProjectLinkTask extends Task
 		}
 
 		$linker = new \Akeeba\LinkLibrary\ProjectLinker($this->repository);
+		$linker->addInternalLanguageMapping();
 		$linker->link();
 
 		return true;

@@ -232,7 +232,7 @@ class ProjectLinker
 			{
 				if ($this->verbosityLevel >= 2)
 				{
-					echo "-- $from => $to";
+					echo "-- $from => $to\n";
 				}
 
 				LinkHelper::makeLink($from, $to, 'link', $this->repositoryRoot);
@@ -250,7 +250,7 @@ class ProjectLinker
 			{
 				if ($this->verbosityLevel >= 2)
 				{
-					echo "-- $from => $to";
+					echo "-- $from => $to\n";
 				}
 
 				LinkHelper::makeLink($from, $to, 'symlink', $this->repositoryRoot);
@@ -268,7 +268,7 @@ class ProjectLinker
 			{
 				if ($this->verbosityLevel >= 2)
 				{
-					echo "-- $from => $to";
+					echo "-- $from => $to\n";
 				}
 
 				LinkHelper::makeLink($from, $to, 'symlink', $this->repositoryRoot);
