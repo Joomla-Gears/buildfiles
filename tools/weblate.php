@@ -283,14 +283,14 @@ class Scanner
 			// Adjust the priority depending on extension: -20 for .sys / .menu files.
 			if (substr($f, -8) == '.sys.ini')
 			{
-				$title .= ' (system language strings)';
-				$slug  .= '_sys';
+				$title    .= ' (system language strings)';
+				$slug     .= '_sys';
 				$priority -= 20;
 			}
 			elseif (substr($f, -9) == '.menu.ini')
 			{
-				$title .= ' (menu option strings)';
-				$slug  .= '_menu';
+				$title    .= ' (menu option strings)';
+				$slug     .= '_menu';
 				$priority -= 20;
 			}
 
@@ -317,12 +317,28 @@ class Scanner
 				$gitHubCloneURL = 'git@github.com:' . $gitHubRepoPath . '.git';
 			}
 
+			$gitHubPushUrl            = $gitHubCloneURL;
+			$reusedTranslationComponentRepo = $this->cliOptions->get('reuse');
+			$project                  = $this->cliOptions->get('project');
+
+			if ($reusedTranslationComponentRepo && $project)
+			{
+				// If the reused component is ourselves we have to ignore this option.
+				$selfURI = 'weblate://' . $project . '/' . $slug;
+
+				if ($selfURI != $reusedTranslationComponentRepo)
+				{
+					$gitHubCloneURL = $reusedTranslationComponentRepo;
+					$gitHubPushUrl  = '';
+				}
+			}
+
 			$return[] = [
 				'name'                          => $title,
 				'slug'                          => $slug,
 				'vcs'                           => 'git',
 				'repo'                          => $gitHubCloneURL,
-				'push'                          => $gitHubCloneURL,
+				'push'                          => $gitHubPushUrl,
 				'repoweb'                       => 'https://github.com/' . $gitHubRepoPath . '/blob/%(branch)s/%(file)s#L%(line)s',
 				'branch'                        => $this->repo->getBranch(),
 				'filemask'                      => $file_proto,
@@ -399,6 +415,12 @@ $specs->add('e|email?', 'Translation committer email (default "noreply@example.c
 $specs->add('s|gitssh?', 'Use SSH to access Git.')
 	->isa('Boolean')
 	->defaultValue(false);
+$specs->add('x|reuse?', 'Reuse a repository e.g. weblate://project/component')
+	->isa('String')
+	->defaultValue("");
+$specs->add('p|project?', 'Weblate project, required when the --reuse option is set')
+	->isa('String')
+	->defaultValue("");
 $specs->add('w|weblate?', 'Title of the Weblate installation and committer name (default "Weblate").')
 	->isa('String')
 	->defaultValue("Weblate");
