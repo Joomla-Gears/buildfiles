@@ -19,14 +19,14 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
  * @property-read  string    $authorName
  * @property-read  string    $authorUrl
  * @property-read  string    $license
- * @property-read  string    $langVersions
+ * @property-read  string    $prototypeHTML
  * @property-read  string    $s3Access
  * @property-read  string    $s3Private
  * @property-read  string    $s3Signature
  * @property-read  string    $s3Bucket
  * @property-read  string    $s3Region
  * @property-read  string    $s3Path
- * @property-read  string    $s3LangPath
+ * @property-read  string    $s3CDNHostname
  * @property-read  string    $version
  * @property-read  Connector $s3
  */
@@ -42,8 +42,6 @@ class Parameters
 
 	private $license = 'GNU GPL v3 or later';
 
-	private $langVersions = '3.x';
-
 	private $packageNameURL;
 
 	private $s3Access;
@@ -58,9 +56,11 @@ class Parameters
 
 	private $s3Path;
 
-	private $s3LangPath = 'https://cdn.akeebabackup.com/language';
+	private $s3CDNHostname = 'cdn.akeebabackup.com';
 
 	private $version = '0.0.dev';
+
+	private $prototypeHTML = 'translations/_pages/index.html';
 
 	/**
 	 * A connector to Amazon S3
@@ -98,14 +98,14 @@ class Parameters
 			'langbuilder.authorname'  => 'authorName',
 			'langbuilder.authorurl'   => 'authorUrl',
 			'langbuilder.license'     => 'license',
-			'langbuilder.jversions'   => 'langVersions',
+			'langbuilder.protohtml'   => 'prototypeHTML',
 			's3.access'               => 's3Access',
 			's3.private'              => 's3Private',
 			's3.signature'            => 's3Signature',
 			's3.bucket'               => 's3Bucket',
 			's3.region'               => 's3Region',
 			's3.path'                 => 's3Path',
-			's3.langpath'             => 's3LangPath',
+			's3.cdnhostname'          => 's3CDNHostname',
 			'extra.version'           => 'version',
 		];
 

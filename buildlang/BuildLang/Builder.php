@@ -2,13 +2,15 @@
 /**
  * Akeeba Build Files
  *
- * @package    buildfiles
+ * @package        buildfiles
  * @copyright  (c) 2010-2017 Akeeba Ltd
  */
 
 namespace Akeeba\BuildLang;
 
 
+use Akeeba\Engine\Postproc\Connector\S3v4\Acl;
+use Akeeba\Engine\Postproc\Connector\S3v4\Input;
 use Akeeba\LinkLibrary\Scanner\Component;
 use Akeeba\LinkLibrary\Scanner\Library;
 use Akeeba\LinkLibrary\Scanner\Module;
@@ -51,13 +53,13 @@ class Builder
 	/**
 	 * Builder constructor.
 	 *
-	 * @param   string      $repositoryRoot  Absolute path to the repository root
-	 * @param   Parameters  $parameters      Configuration parameters
+	 * @param   string     $repositoryRoot Absolute path to the repository root
+	 * @param   Parameters $parameters     Configuration parameters
 	 */
 	public function __construct(string $repositoryRoot, Parameters $parameters)
 	{
 		$this->repositoryRoot = $repositoryRoot;
-		$this->parameters = $parameters;
+		$this->parameters     = $parameters;
 
 		$this->scanLanguages();
 	}
@@ -81,13 +83,19 @@ class Builder
 		$langCodes     = $this->getLanguageCodes();
 		$packages      = [];
 		$tempDirectory = sys_get_temp_dir();
+		$s3            = $this->parameters->s3;
+		$bucket        = $this->parameters->s3Bucket;
+		$path          = $this->parameters->s3Path;
+		$softwareSlug  = $this->parameters->packageNameURL;
 
 		// Build all packages
 		foreach ($langCodes as $code)
 		{
 			try
 			{
-				$packages[$code] = $this->buildPackageFor($code, $tempDirectory);
+				// Add the successfully built packages to a list
+				$tempPath        = $this->buildPackageFor($code, $tempDirectory);
+				$packages[$code] = basename($tempPath);
 			}
 			catch (RuntimeException $e)
 			{
@@ -95,28 +103,108 @@ class Builder
 				continue;
 			}
 
-			// TODO Add the successfully built packages to a list
+			// Upload the temporary package file to S3 and delete it afterwards
+			$uploadPath = trim($path, '/') . '/' . trim($softwareSlug, '/') . '/' . $packages[$code];
+			echo "Uploading $code to s3://$bucket/$uploadPath\n";
+			/**/
+			$inputDefinition = Input::createFromFile($tempPath);
+			$s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ);
+			unset($inputDefinition);
+			/**/
 
-			// TODO Upload the package to S3
+			@unlink($tempPath);
 		}
 
-		// TODO Build the HTML file
+		// Build and upload the HTML index file
+		$tempHtml   = $this->buildHTML($packages);
+		$uploadPath = trim($path, '/') . '/' . trim($softwareSlug, '/') . '/index.html';
+		echo "Uploading index.html to s3://$bucket/$uploadPath\n";
 
-		// TODO Upload the HTML file
+		$inputDefinition = Input::createFromData($tempHtml);
+		$s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ);
+		unset($inputDefinition);
+	}
+
+	protected function buildHTML(array $packages): string
+	{
+		$langTable = '';
+
+		foreach ($packages as $code => $baseName)
+		{
+			// TODO Query the % complete through the Weblate API
+			$percent   = 0;
+			$info      = new LanguageInfo($code);
+			$url       = 'https://' . $this->parameters->s3CDNHostname . '/' .
+				$this->parameters->s3Path . '/' .
+				$this->parameters->packageNameURL . '/' .
+				$baseName;
+			$langTable .= <<< HTML
+        <tr>
+            <td>
+                <span class="flag-icon flag-icon-{$info->getCountry()}" title="{$info->getName()}"></span>
+            </td>
+            <td class="hidden-xs">
+                $code
+            </td>
+            <td>
+                {$info->getName()}
+                <span class="visible-xs text-muted small">
+                    [{$percent}%]
+                </span>
+            </td>
+            <td class="hidden-xs">
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" aria-valuenow="{$percent}" aria-valuemin="0"
+                         aria-valuemax="100" style="width: {$percent}%;">
+                        <span>{$percent}%</span>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <a class="btn btn-link" href="$url">
+                    <span class="glyphicon glyphicon-download-alt"></span>
+                    Download
+                </a>
+            </td>
+        </tr>
+
+HTML;
+		}
+
+		$replacements = [
+			'[SOFTWARE]'       => $this->parameters->softwareName,
+			'[PACKAGENAME]'    => $this->parameters->packageName,
+			'[PACKAGENAMEURL]' => $this->parameters->packageNameURL,
+			'[AUTHORNAME]'     => $this->parameters->authorName,
+			'[AUTHORURL]'      => $this->parameters->authorUrl,
+			'[LICENSE]'        => $this->parameters->license,
+			'[DATE]'           => gmdate('Y-m-d H:i:s T'),
+			'[YEAR]'           => gmdate('Y'),
+			'[LANGTABLE]'      => $langTable,
+		];
+
+		$inFile = rtrim($this->repositoryRoot, '/\\') . '/' . $this->parameters->prototypeHTML;
+		$html   = file_get_contents($inFile);
+
+		if ($html !== false)
+		{
+			$html = str_replace(array_keys($replacements), array_values($replacements), $html);
+		}
+
+		return $html;
 	}
 
 	/**
 	 * Builds the language ZIP package for a specific language
 	 *
-	 * @param   string  $code             Language code, e.g. en-GB
-	 * @param   string  $targetDirectory  The target directory where the ZIP file will be built
+	 * @param   string $code            Language code, e.g. en-GB
+	 * @param   string $targetDirectory The target directory where the ZIP file will be built
 	 *
 	 * @return  string  The full path to the ZIP file created by this script
 	 */
 	protected function buildPackageFor(string $code, string $targetDirectory): string
 	{
 		$langCodes = $this->getLanguageCodes();
-		$langInfo  = new LanguageInfo($code);
 
 		if (!in_array($code, $langCodes))
 		{
@@ -145,7 +233,7 @@ class Builder
 		$zip->addFromString($manifestName, $manifest);
 
 		// Add backend files
-		if (count($this->adminLangFiles[$code]))
+		if (isset($this->adminLangFiles[$code]) && count($this->adminLangFiles[$code]))
 		{
 			foreach ($this->adminLangFiles[$code] as $filePath)
 			{
@@ -154,7 +242,7 @@ class Builder
 		}
 
 		// Add frontend files
-		if (count($this->siteLangFiles[$code]))
+		if (isset($this->siteLangFiles[$code]) && count($this->siteLangFiles[$code]))
 		{
 			foreach ($this->siteLangFiles[$code] as $filePath)
 			{
@@ -170,7 +258,7 @@ class Builder
 	/**
 	 * Returns the XML manifest file for a language
 	 *
-	 * @param   string  $code
+	 * @param   string $code
 	 *
 	 * @return  string
 	 */
@@ -212,7 +300,7 @@ XML;
 		$fileset = $xml->fileset;
 
 		// Add administrator languages to the manifest
-		if (count($this->adminLangFiles[$code]))
+		if (isset($this->adminLangFiles[$code]) && count($this->adminLangFiles[$code]))
 		{
 			$adminContainer = $fileset->addChild('files');
 			$adminContainer->addAttribute('folder', 'backend');
@@ -225,7 +313,7 @@ XML;
 		}
 
 		// Add site languages to the manifest
-		if (count($this->siteLangFiles[$code]))
+		if (isset($this->siteLangFiles[$code]) && count($this->siteLangFiles[$code]))
 		{
 			$adminContainer = $fileset->addChild('files');
 			$adminContainer->addAttribute('folder', 'frontend');
@@ -256,7 +344,7 @@ XML;
 		$extensions = array_merge($extensions, Plugin::detect($this->repositoryRoot));
 		$extensions = array_merge($extensions, Template::detect($this->repositoryRoot));
 
-		$this->siteLangFiles = [];
+		$this->siteLangFiles  = [];
 		$this->adminLangFiles = [];
 
 		// Scan the language files for each extension and add them to the global list

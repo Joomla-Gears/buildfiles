@@ -75,3 +75,7 @@ else
 
 // Register this directory as the PSR-4 source for our namespace prefix
 $composerAutoloader->addPsr4('Akeeba\\BuildLang\\', __DIR__ . '/BuildLang');
+
+// Make sure the S3 library can be loaded
+define('AKEEBAENGINE', 1);
+$composerAutoloader->addPsr4("Akeeba\\Engine\\Postproc\\Connector\\S3v4\\", __DIR__ . '/../vendor/akeeba/s3/src');
