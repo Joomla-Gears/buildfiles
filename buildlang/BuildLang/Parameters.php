@@ -58,7 +58,7 @@ class Parameters
 
 	private $s3CDNHostname = 'cdn.akeebabackup.com';
 
-	private $version = '0.0.dev';
+	private $version;
 
 	private $prototypeHTML = 'translations/_pages/index.html';
 
@@ -126,6 +126,12 @@ class Parameters
 
 		// Create an URL-friendly version of the package name
 		$this->packageNameURL = str_replace(' ', '-', strtolower(trim($this->packageName)));
+
+		// Create a default version number if none is specified
+		if (empty($this->version))
+		{
+			$this->version = gmdate('Ymd.His');
+		}
 	}
 
 	/**

@@ -10,6 +10,7 @@
  */
 
 use Akeeba\BuildLang\Builder;
+use Akeeba\BuildLang\BuilderBare;
 use Akeeba\BuildLang\Parameters;
 
 require_once __DIR__ . '/include.php';
@@ -53,7 +54,7 @@ if ($argc > 3)
 try
 {
 	$parameters = new Parameters($propsFile, ['extra.version' => $version]);
-	$builder    = new Builder($rootDirectory, $parameters);
+	$builder    = new BuilderBare($rootDirectory, $parameters);
 	$builder->buildAll();
 }
 catch (Exception $e)

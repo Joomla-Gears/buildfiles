@@ -27,28 +27,28 @@ class Builder
 	 *
 	 * @var  string
 	 */
-	private $repositoryRoot = '';
+	protected $repositoryRoot = '';
 
 	/**
 	 * Configuration parameters
 	 *
 	 * @var  Parameters
 	 */
-	private $parameters;
+	protected $parameters;
 
 	/**
 	 * Administrator language files
 	 *
 	 * @var  array
 	 */
-	private $adminLangFiles = [];
+	protected $adminLangFiles = [];
 
 	/**
 	 * Site language files
 	 *
 	 * @var  array
 	 */
-	private $siteLangFiles = [];
+	protected $siteLangFiles = [];
 
 	/**
 	 * Builder constructor.
@@ -106,13 +106,15 @@ class Builder
 			// Upload the temporary package file to S3 and delete it afterwards
 			$uploadPath = trim($path, '/') . '/' . trim($softwareSlug, '/') . '/' . $packages[$code];
 			echo "Uploading $code to s3://$bucket/$uploadPath\n";
-			/**/
-			$inputDefinition = Input::createFromFile($tempPath);
-			$s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ);
-			unset($inputDefinition);
-			/**/
 
-			@unlink($tempPath);
+			if (!defined('LANGBUILD_NOUPLOAD'))
+			{
+				$inputDefinition = Input::createFromFile($tempPath);
+				$s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ);
+				unset($inputDefinition);
+				@unlink($tempPath);
+			}
+
 		}
 
 		// Build and upload the HTML index file
@@ -120,9 +122,12 @@ class Builder
 		$uploadPath = trim($path, '/') . '/' . trim($softwareSlug, '/') . '/index.html';
 		echo "Uploading index.html to s3://$bucket/$uploadPath\n";
 
-		$inputDefinition = Input::createFromData($tempHtml);
-		$s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ);
-		unset($inputDefinition);
+		if (!defined('LANGBUILD_NOUPLOAD'))
+		{
+			$inputDefinition = Input::createFromData($tempHtml);
+			$s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ);
+			unset($inputDefinition);
+		}
 	}
 
 	protected function buildHTML(array $packages): string
@@ -249,7 +254,7 @@ HTML;
 	 *
 	 * @return  string
 	 */
-	private function getManifestXMLFor(string $code): string
+	protected function getManifestXMLFor(string $code): string
 	{
 		$langCodes = $this->getLanguageCodes();
 		$langInfo  = new LanguageInfo($code);
@@ -320,7 +325,7 @@ XML;
 	 *
 	 * @return  void
 	 */
-	private function scanLanguages()
+	protected function scanLanguages()
 	{
 		// Discover all the extensions in the repository
 		/** @var ScannerInterface[] $extensions */
