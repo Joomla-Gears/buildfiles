@@ -131,8 +131,6 @@ class Builder
 
 		foreach ($packages as $code => $baseName)
 		{
-			// TODO Query the % complete through the Weblate API
-			$percent   = 0;
 			$info      = new LanguageInfo($code);
 			$url       = 'https://' . $this->parameters->s3CDNHostname . '/' .
 				$this->parameters->s3Path . '/' .
@@ -148,17 +146,6 @@ class Builder
             </td>
             <td>
                 {$info->getName()}
-                <span class="visible-xs text-muted small">
-                    [{$percent}%]
-                </span>
-            </td>
-            <td class="hidden-xs">
-                <div class="progress">
-                    <div class="progress-bar" role="progressbar" aria-valuenow="{$percent}" aria-valuemin="0"
-                         aria-valuemax="100" style="width: {$percent}%;">
-                        <span>{$percent}%</span>
-                    </div>
-                </div>
             </td>
             <td>
                 <a class="btn btn-link" href="$url">
