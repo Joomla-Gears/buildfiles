@@ -311,6 +311,12 @@ class Scanner
 			$gitHubCloneURL = 'https://' . $auth . 'github.com/' . $gitHubRepoPath . '.git';
 			$appName        = $this->cliOptions->get('weblate');
 
+			// If we are told to use SSH for accessing git we ignore the authentication and use an SSH Git setup
+			if ($this->cliOptions->get('gitssh'))
+			{
+				$gitHubCloneURL = 'git@github.com:' . $gitHubRepoPath . '.git';
+			}
+
 			$return[] = [
 				'name'                          => $title,
 				'slug'                          => $slug,
@@ -390,6 +396,9 @@ $specs->add('t|token:', 'GitHub personal access token, required for committing l
 $specs->add('e|email?', 'Translation committer email (default "noreply@example.com").')
 	->isa('String')
 	->defaultValue("noreply@example.com");
+$specs->add('s|gitssh?', 'Use SSH to access Git.')
+	->isa('Boolean')
+	->defaultValue(false);
 $specs->add('w|weblate?', 'Title of the Weblate installation and committer name (default "Weblate").')
 	->isa('String')
 	->defaultValue("Weblate");
@@ -401,6 +410,9 @@ $specs->add('r|repo?', 'Repository working copy to scan (default: current workin
 $specs->add('d|directory?', 'Language directory in the repository (default: "translations").')
 	->isa('String')
 	->defaultValue("translations");
+$specs->add('m|merge?', "Merge the output with an existing JSON file")
+	->isa('Boolean')
+	->defaultValue(false);
 
 try
 {
@@ -437,9 +449,22 @@ try
 	$repoInfo     = new RepoInfo($result->get('repo'));
 	$scanner      = new Scanner($repoInfo, $result);
 	$returnObject = $scanner->run();
-	$json         = json_encode($returnObject, JSON_PRETTY_PRINT);
+	$outFile      = $result->get('output');
 
-	file_put_contents($result->get('output'), $json);
+	if ($result->get('merge') && file_exists($outFile))
+	{
+		$temp = file_get_contents($outFile);
+		$existing = json_decode($temp, true);
+
+		if (is_array($existing))
+		{
+			$returnObject = array_merge_recursive($existing, $returnObject);
+		}
+	}
+
+	$json = json_encode($returnObject, JSON_PRETTY_PRINT);
+
+	file_put_contents($outFile, $json);
 }
 catch (Exception $e)
 {
