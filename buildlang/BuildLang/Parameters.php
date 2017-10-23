@@ -145,7 +145,7 @@ class Parameters
 	{
 		if (strpos($iniFile, ';') === false)
 		{
-			$properties = parse_ini_file($iniFile);
+			$properties = parse_ini_file($iniFile, true,  INI_SCANNER_RAW);
 
 			return (!is_array($properties) || empty($properties)) ? [] : $properties;
 		}
