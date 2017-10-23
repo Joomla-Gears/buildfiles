@@ -41,6 +41,16 @@ USAGE;
 	exit(255);
 }
 
+/**
+ * If you want to test without actually uploading anything to S3 use the environment variable LANGBUILD_NOUPLOAD.
+ * Linux / macOS : LANGBUILD_NOUPLOAD=1 php /path/to/buildlang-bare.php /foo/bar/build.properties `pwd` 1.2.3
+ * Windows       : set LANGBUILD_NOUPLOAD=1 & php C:\path\to\buildlang-bare.php Z:\foo\bar\build.properties %CD% 1.2.3
+ */
+if (getenv('LANGBUILD_NOUPLOAD'))
+{
+	define('LANGBUILD_NOUPLOAD', 1);
+}
+
 $propsFile     = $argv[1];
 $rootDirectory = realpath($argv[2]);
 $version       = '0.0.' . gmdate('YdmHis');
