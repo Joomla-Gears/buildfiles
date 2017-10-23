@@ -47,6 +47,9 @@ USAGE;
  */
 if (getenv('LANGBUILD_NOUPLOAD'))
 {
+	$temp = sys_get_temp_dir();
+	echo "DEBUG MODE: Files will not be uploaded. Look in  $temp\n";
+
 	define('LANGBUILD_NOUPLOAD', 1);
 }
 
