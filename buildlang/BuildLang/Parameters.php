@@ -22,6 +22,8 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
  * @property-read  string    $license          Translation license, default "GNU GPL v3 or later"
  * @property-read  string    $weblateURL       The base URL of the Weblate installation
  * @property-read  string    $weblateProject   The name of the weblate project. Default: the packageName
+ * @property-read  string    $weblateApiKey    The API key to access your Weblate installation, used to pull translation stats
+ * @property-read  string    $minPercent       The minimum translation percentage required to build / publish a package
  * @property-read  string    $prototypeHTML    Relative path to the template HTML page
  * @property-read  string    $prototypeTable   Relative path to the table's template HTML
  * @property-read  string    $s3Access         Amazon S3 Access Key
@@ -78,6 +80,10 @@ class Parameters
 
 	private $weblateProject = '';
 
+	private $weblateApiKey = '';
+
+	private $minPercent = '50';
+
 	private $outputDirectory = null;
 
 	private $keepOutput = false;
@@ -127,6 +133,8 @@ class Parameters
 			'langbuilder.prototable'   => 'prototypeTable',
 			'langbuilder.baseURL'      => 'weblateURL',
 			'langbuilder.project'      => 'weblateProject',
+			'langbuilder.apiKey'       => 'weblateApiKey',
+			'langbuilder.minPercent'   => 'minPercent',
 			's3.access'                => 's3Access',
 			's3.private'               => 's3Private',
 			's3.signature'             => 's3Signature',

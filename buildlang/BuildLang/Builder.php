@@ -51,6 +51,13 @@ class Builder
 	protected $siteLangFiles = [];
 
 	/**
+	 * Translation progress per language code. Used as a cache for getTranslationProgress.
+	 *
+	 * @var  array
+	 */
+	private $translationProgress = [];
+
+	/**
 	 * Builder constructor.
 	 *
 	 * @param   string     $repositoryRoot Absolute path to the repository root
@@ -86,10 +93,31 @@ class Builder
 		$bucket        = $this->parameters->s3Bucket;
 		$path          = $this->parameters->s3Path;
 		$softwareSlug  = $this->parameters->packageNameURL;
+		$completion    = [];
+
+		if ($this->parameters->minPercent >= 0.01)
+		{
+			$completion = $this->getTranslationProgress();
+		}
 
 		// Build all packages
+		asort($langCodes);
+
 		foreach ($langCodes as $code)
 		{
+			if ($this->parameters->minPercent >= 0.01)
+			{
+				if (!isset($completion[$code]))
+				{
+					continue;
+				}
+
+				if ($completion[$code] < $this->parameters->minPercent)
+				{
+					continue;
+				}
+			}
+
 			if (!$this->parameters->quiet)
 			{
 				echo "Packaging $code";
@@ -178,7 +206,13 @@ class Builder
 
 	protected function buildHTML(array $packages): string
 	{
-		$langTable = '';
+		$langTable  = '';
+		$completion = [];
+
+		if ($this->parameters->minPercent >= 0.01)
+		{
+			$completion = $this->getTranslationProgress();
+		}
 
 		$replacements = [
 			// e.g. "Example Software"
@@ -209,20 +243,24 @@ class Builder
 
 		foreach ($packages as $code => $baseName)
 		{
-			$info      = new LanguageInfo($code);
+			$info = new LanguageInfo($code);
 
-			$url       = 'https://' . $this->parameters->s3CDNHostname . '/' .
+			$url = 'https://' . $this->parameters->s3CDNHostname . '/' .
 				$this->parameters->s3Path . '/' .
 				$this->parameters->packageNameURL . '/' .
 				$baseName;
 
+			$percent           = $completion[$code] ?? 0;
+			$bsType            = ($percent < 75) ? 'danger' : (($percent < 90) ? 'warning' : 'success');
 			$extraReplacements = [
 				// Package download URL
-				'[PACKAGEURL]'  => $url,
+				'[PACKAGEURL]'          => $url,
 				// Country of the language
-				'[LANGCOUNTRY]' => $info->getCountry(),
-				'[LANGNAME]'    => $info->getName(),
-				'[LANGCODE]'    => $info->getCode(),
+				'[LANGCOUNTRY]'         => $info->getCountry(),
+				'[LANGNAME]'            => $info->getName(),
+				'[LANGCODE]'            => $info->getCode(),
+				'[PERCENT]'             => $percent,
+				'[BS_PROGRESSBAR_TYPE]' => $bsType,
 			];
 
 			$allReplacements = array_merge($replacements, $extraReplacements);
@@ -411,5 +449,70 @@ XML;
 				$this->adminLangFiles = array_merge_recursive($this->adminLangFiles, $scanResults->adminLangFiles);
 			}
 		}
+	}
+
+	/**
+	 * Return the translation progress by language, pulling this information from Weblate
+	 *
+	 * @return  array
+	 */
+	protected function getTranslationProgress(): array
+	{
+		if (!empty($this->translationProgress))
+		{
+			return $this->translationProgress;
+		}
+
+		$baseUrl     = $this->parameters->weblateURL;
+		$project     = $this->parameters->weblateProject;
+		$url         = "$baseUrl/api/projects/$project/statistics/?format=json";
+		$ch          = curl_init($url);
+		$curlOptions = [
+			CURLOPT_SSL_VERIFYPEER => true,
+			CURLOPT_SSL_VERIFYHOST => 2,
+			CURLOPT_VERBOSE        => true,
+			CURLOPT_HEADER         => false,
+			CURLINFO_HEADER_OUT    => false,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_CAINFO         => __DIR__ . '/../../phing/tasks/library/cacert.pem',
+			CURLOPT_HTTPHEADER     => [
+				'Authorization: Token ' . $this->parameters->weblateApiKey,
+			],
+		];
+
+		@curl_setopt_array($ch, $curlOptions);
+
+		$response     = curl_exec($ch);
+		$errNo        = curl_errno($ch);
+		$error        = curl_error($ch);
+		$lastHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+		if ($errNo)
+		{
+			throw new \RuntimeException("cURL Error $errNo: $error", 500);
+		}
+
+		if ($lastHttpCode != 200)
+		{
+			throw new \RuntimeException("Unexpected HTTP status $lastHttpCode", $lastHttpCode);
+		}
+
+		$rawResult = json_decode($response, true);
+
+		if (is_null($rawResult))
+		{
+			throw new \RuntimeException("Invalid return from Weblate (cannot parse as JSON)", 500);
+		}
+
+		$this->translationProgress = [];
+
+		foreach ($rawResult as $entry)
+		{
+			$code                             = $entry['code'];
+			$translationPercent               = $entry['translated_percent'];
+			$this->translationProgress[$code] = $translationPercent;
+		}
+
+		return $this->translationProgress;
 	}
 }

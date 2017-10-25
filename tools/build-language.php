@@ -106,7 +106,7 @@ if (!empty($paramsFiles))
 if ($cliOptions->has('default-params'))
 {
 	// Default parameters. Order matters: each file overrides the previous ones
-	$paramsFiles[] = $translationsFolder->getPathname() . '/../../build.parameters';
+	$paramsFiles[] = $translationsFolder->getPathname() . '/../../build.properties';
 	$paramsFiles[] = $translationsFolder->getPathname() . '/../../build.ini';
 	$paramsFiles[] = $translationsFolder->getPathname() . '/../build.ini';
 	$paramsFiles[] = $translationsFolder->getPathname() . '/build.ini';
