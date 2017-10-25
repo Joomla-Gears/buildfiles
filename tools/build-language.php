@@ -67,7 +67,7 @@ if ($cliOptions->has('version'))
 
 if ($cliOptions->has('output'))
 {
-	$extraProperties['extra.outputDirectory'] = $cliOptions->get('output');
+	$extraProperties['extra.outputDirectory'] = $cliOptions->get('output')->getPathname();
 }
 
 if ($cliOptions->has('quiet'))
@@ -85,21 +85,35 @@ if ($cliOptions->has('no-upload'))
 	$extraProperties['extra.uploadToS3'] = false;
 }
 
-// Get the list of parameter files
-$paramsFiles        = $cliOptions->get('params');
+$paramsFiles        = $cliOptions->get('params') ?? [];
+/** @var SplFileInfo $translationsFolder */
 $translationsFolder = $cliOptions->get('translations');
+
+// Convert list of
+if (!empty($paramsFiles))
+{
+	$temp = [];
+
+	/** @var SplFileInfo $fileInfo */
+	foreach ($paramsFiles as $fileInfo)
+	{
+		$temp[] = $fileInfo->getPathname();
+	}
+
+	$paramsFiles = $temp;
+}
 
 if ($cliOptions->has('default-params'))
 {
 	// Default parameters. Order matters: each file overrides the previous ones
-	$paramsFiles[] = $translationsFolder . '/../../build.parameters';
-	$paramsFiles[] = $translationsFolder . '/../../build.ini';
-	$paramsFiles[] = $translationsFolder . '/../build.ini';
-	$paramsFiles[] = $translationsFolder . '/build.ini';
+	$paramsFiles[] = $translationsFolder->getPathname() . '/../../build.parameters';
+	$paramsFiles[] = $translationsFolder->getPathname() . '/../../build.ini';
+	$paramsFiles[] = $translationsFolder->getPathname() . '/../build.ini';
+	$paramsFiles[] = $translationsFolder->getPathname() . '/build.ini';
 }
 
 // Run the language builder
 $parameters = new Parameters(implode(';', $paramsFiles), $extraProperties);
-$builder    = new BuilderBare($translationsFolder, $parameters);
+$builder    = new BuilderBare($translationsFolder->getPathname(), $parameters);
 $builder->buildAll();
 

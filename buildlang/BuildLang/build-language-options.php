@@ -29,7 +29,7 @@ $specs->add('p|params+', 'Absolute path to parameters file. You can use multiple
 	->isa('file');
 
 $specs->add('o|output?', 'Absolute path where packages are output.')
-	->isa('file');
+	->isa('dir');
 
 $specs->add('v|version?', 'The version to use when building language packages.')
 	->isa('version');

@@ -90,6 +90,11 @@ class Builder
 		// Build all packages
 		foreach ($langCodes as $code)
 		{
+			if (!$this->parameters->quiet)
+			{
+				echo "Packaging $code";
+			}
+
 			try
 			{
 				// Add the successfully built packages to a list
@@ -98,6 +103,13 @@ class Builder
 			}
 			catch (RuntimeException $e)
 			{
+				if (!$this->parameters->quiet)
+				{
+					$msg = $e->getMessage();
+
+					echo " has FAILED ($msg)\n";
+				}
+
 				// Ignore packages that failed to build
 				continue;
 			}
@@ -109,7 +121,7 @@ class Builder
 
 				if (!$this->parameters->quiet)
 				{
-					echo "Uploading $code to s3://$bucket/$uploadPath\n";
+					echo " and uploading to s3://$bucket/$uploadPath\n";
 				}
 
 				$inputDefinition = Input::createFromFile($tempPath);
@@ -121,11 +133,24 @@ class Builder
 					@unlink($tempPath);
 				}
 			}
-
+			elseif (!$this->parameters->quiet)
+			{
+				echo "\n";
+			}
 		}
 
 		// Build and upload the HTML index file
+		if (!$this->parameters->quiet)
+		{
+			echo "Generating index.html";
+		}
+
 		$tempHtml = $this->buildHTML($packages);
+
+		if ($this->parameters->keepOutput)
+		{
+			file_put_contents($this->parameters->outputDirectory . '/index.html', $tempHtml);
+		}
 
 		if ($this->parameters->uploadToS3)
 		{
@@ -133,7 +158,7 @@ class Builder
 
 			if (!$this->parameters->quiet)
 			{
-				echo "Uploading index.html to s3://$bucket/$uploadPath\n";
+				echo " and uploading to s3://$bucket/$uploadPath\n";
 			}
 
 			$inputDefinition = Input::createFromData($tempHtml);
@@ -144,6 +169,10 @@ class Builder
 			{
 				file_put_contents($tempDirectory . '/index.html', $tempHtml);
 			}
+		}
+		elseif (!$this->parameters->quiet)
+		{
+			echo "\n";
 		}
 	}
 
@@ -176,7 +205,7 @@ class Builder
 			'[YEAR]'           => gmdate('Y'),
 		];
 
-		$templateTableRow = file_get_contents($this->parameters->prototypeTable);
+		$templateTableRow = file_get_contents(rtrim($this->repositoryRoot, '/\\') . '/' . $this->parameters->prototypeTable);
 
 		foreach ($packages as $code => $baseName)
 		{
@@ -199,27 +228,6 @@ class Builder
 			$allReplacements = array_merge($replacements, $extraReplacements);
 
 			$langTable .= str_replace(array_keys($allReplacements), array_values($allReplacements), $templateTableRow);
-
-			$langTable .= <<< HTML
-        <tr>
-            <td>
-                <span class="flag-icon flag-icon-{$info->getCountry()}" title="{$info->getName()}"></span>
-            </td>
-            <td class="hidden-xs">
-                $code
-            </td>
-            <td>
-                {$info->getName()}
-            </td>
-            <td>
-                <a class="btn btn-link" href="$url">
-                    <span class="glyphicon glyphicon-download-alt"></span>
-                    Download
-                </a>
-            </td>
-        </tr>
-
-HTML;
 		}
 
 		$replacements['[LANGTABLE]'] = $langTable;
