@@ -25,6 +25,9 @@ Copyright ©2010-$year Akeeba Ltd
 Distributed under the GNU General Public License v3 or later
 -------------------------------------------------------------------------------
 
+WARNING: This is a legacy script, designed to provide CLI options compatibility
+         with version 1.0. We recommend using tools/build-language.php instead.
+
 ENDBANNER;
 
 if ($argc < 3)
@@ -41,6 +44,17 @@ USAGE;
 	exit(255);
 }
 
+$propsFile       = $argv[1];
+$rootDirectory   = realpath($argv[2]);
+$version         = '0.0.' . gmdate('YdmHis');
+
+if ($argc > 3)
+{
+	$version = $argv[3];
+}
+
+$extraProperties = ['extra.version' => $version];
+
 /**
  * If you want to test without actually uploading anything to S3 use the environment variable LANGBUILD_NOUPLOAD.
  * Linux / macOS : LANGBUILD_NOUPLOAD=1 php /path/to/buildlang-bare.php /foo/bar/build.properties `pwd` 1.2.3
@@ -51,22 +65,12 @@ if (getenv('LANGBUILD_NOUPLOAD'))
 	$temp = sys_get_temp_dir();
 	echo "DEBUG MODE: Files will not be uploaded. Look in  $temp\n";
 
-	define('LANGBUILD_NOUPLOAD', 1);
+	$extraProperties['extra.uploadToS3'] = false;
 }
-
-$propsFile     = $argv[1];
-$rootDirectory = realpath($argv[2]);
-$version       = '0.0.' . gmdate('YdmHis');
-
-if ($argc > 3)
-{
-	$version = $argv[3];
-}
-
 
 try
 {
-	$parameters = new Parameters($propsFile, ['extra.version' => $version]);
+	$parameters = new Parameters($propsFile, $extraProperties);
 	$builder    = new BuilderBare($rootDirectory, $parameters);
 	$builder->buildAll();
 }

@@ -13,22 +13,30 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
 /**
  * Read only configuration parameters repository
  *
- * @property-read  string    $packageName
- * @property-read  string    $packageNameURL
- * @property-read  string    $softwareName
- * @property-read  string    $authorName
- * @property-read  string    $authorUrl
- * @property-read  string    $license
- * @property-read  string    $prototypeHTML
- * @property-read  string    $s3Access
- * @property-read  string    $s3Private
- * @property-read  string    $s3Signature
- * @property-read  string    $s3Bucket
- * @property-read  string    $s3Region
- * @property-read  string    $s3Path
- * @property-read  string    $s3CDNHostname
- * @property-read  string    $version
- * @property-read  Connector $s3
+ * @property-read  string    $packageName      The base name of the package; must correspond to the Weblate project slug
+ * @property-read  string    $packageNameURL   The URL to the software information page
+ * @property-read  string    $softwareName     The name of the software
+ * @property-read  string    $softwareType     The type of software: 'package' (default), 'library', 'standalone', 'none'
+ * @property-read  string    $authorName       Copyright holder
+ * @property-read  string    $authorUrl        URL to the copyright holder's page
+ * @property-read  string    $license          Translation license, default "GNU GPL v3 or later"
+ * @property-read  string    $weblateURL       The base URL of the Weblate installation
+ * @property-read  string    $weblateProject   The name of the weblate project. Default: the packageName
+ * @property-read  string    $prototypeHTML    Relative path to the template HTML page
+ * @property-read  string    $prototypeTable   Relative path to the table's template HTML
+ * @property-read  string    $s3Access         Amazon S3 Access Key
+ * @property-read  string    $s3Private        Amazon S3 Secret Key
+ * @property-read  string    $s3Signature      Amazon S3 signature method, 'v2' (default) or 'v4'
+ * @property-read  string    $s3Bucket         Amazon S3 bucket where the files are uploaded
+ * @property-read  string    $s3Region         Amazon S3 region, used when s3Signature == 'v4'
+ * @property-read  string    $s3Path           Path into Amazon S3 / hostname where the packages are stored
+ * @property-read  string    $s3CDNHostname    Hostname that holds the packages
+ * @property-read  string    $version          Version of the generated packages
+ * @property-read  string    $outputDirectory  Where the generated packages are stored. Default: system temp directory
+ * @property-read  bool      $keepOutput       Should I keep the packages after generating them? Default: false (delete)
+ * @property-read  bool      $uploadToS3       Should I upload the packages to S3? Default: true
+ * @property-read  bool      $quiet            Suppress output?
+ * @property-read  Connector $s3               Amazon S3 connector
  */
 class Parameters
 {
@@ -62,6 +70,22 @@ class Parameters
 
 	private $prototypeHTML = 'translations/_pages/index.html';
 
+	private $prototypeTable = 'translations/_pages/table.html';
+
+	private $softwareType = 'package';
+
+	private $weblateURL = '';
+
+	private $weblateProject = '';
+
+	private $outputDirectory = null;
+
+	private $keepOutput = false;
+
+	private $uploadToS3 = true;
+
+	private $quiet = false;
+
 	/**
 	 * A connector to Amazon S3
 	 *
@@ -93,20 +117,28 @@ class Parameters
 	private function initializeFromArray(array $values)
 	{
 		$map = [
-			'langbuilder.packagename' => 'packageName',
-			'langbuilder.software'    => 'softwareName',
-			'langbuilder.authorname'  => 'authorName',
-			'langbuilder.authorurl'   => 'authorUrl',
-			'langbuilder.license'     => 'license',
-			'langbuilder.protohtml'   => 'prototypeHTML',
-			's3.access'               => 's3Access',
-			's3.private'              => 's3Private',
-			's3.signature'            => 's3Signature',
-			's3.bucket'               => 's3Bucket',
-			's3.region'               => 's3Region',
-			's3.path'                 => 's3Path',
-			's3.cdnhostname'          => 's3CDNHostname',
-			'extra.version'           => 'version',
+			'langbuilder.packagename'  => 'packageName',
+			'langbuilder.software'     => 'softwareName',
+			'langbuilder.softwaretype' => 'softwareType',
+			'langbuilder.authorname'   => 'authorName',
+			'langbuilder.authorurl'    => 'authorUrl',
+			'langbuilder.license'      => 'license',
+			'langbuilder.protohtml'    => 'prototypeHTML',
+			'langbuilder.prototable'   => 'prototypeTable',
+			'langbuilder.baseURL'      => 'weblateURL',
+			'langbuilder.project'      => 'weblateProject',
+			's3.access'                => 's3Access',
+			's3.private'               => 's3Private',
+			's3.signature'             => 's3Signature',
+			's3.bucket'                => 's3Bucket',
+			's3.region'                => 's3Region',
+			's3.path'                  => 's3Path',
+			's3.cdnhostname'           => 's3CDNHostname',
+			'extra.version'            => 'version',
+			'extra.outputDirectory'    => 'outputDirectory',
+			'extra.keepOutput'         => 'keepOutput',
+			'extra.uploadToS3'         => 'uploadToS3',
+			'extra.quiet'              => 'quiet',
 		];
 
 		foreach ($map as $arrayKey => $propertyName)
@@ -131,6 +163,29 @@ class Parameters
 		if (empty($this->version))
 		{
 			$this->version = gmdate('Ymd.His');
+		}
+
+		// Default output directory: a subdirectory of the system temp directory
+		if (empty($this->outputDirectory))
+		{
+			$this->outputDirectory = sys_get_temp_dir() . '/akeeba-language-builder/' . $this->packageName;
+
+			if (!is_dir($this->outputDirectory))
+			{
+				mkdir($this->outputDirectory, 0755, true);
+			}
+		}
+
+		// If we're not uploading to S3 we have to keep the output files
+		if (!$this->uploadToS3)
+		{
+			$this->keepOutput = true;
+		}
+
+		// Set a default Weblate project name if necessary
+		if (empty($this->weblateProject))
+		{
+			$this->weblateProject = $this->packageName;
 		}
 	}
 

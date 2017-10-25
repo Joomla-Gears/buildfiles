@@ -82,8 +82,7 @@ class Builder
 	{
 		$langCodes     = $this->getLanguageCodes();
 		$packages      = [];
-		$tempDirectory = sys_get_temp_dir();
-		$s3            = $this->parameters->s3;
+		$tempDirectory = $this->parameters->outputDirectory;
 		$bucket        = $this->parameters->s3Bucket;
 		$path          = $this->parameters->s3Path;
 		$softwareSlug  = $this->parameters->packageNameURL;
@@ -104,29 +103,47 @@ class Builder
 			}
 
 			// Upload the temporary package file to S3 and delete it afterwards
-			$uploadPath = trim($path, '/') . '/' . trim($softwareSlug, '/') . '/' . $packages[$code];
-			echo "Uploading $code to s3://$bucket/$uploadPath\n";
-
-			if (!defined('LANGBUILD_NOUPLOAD'))
+			if ($this->parameters->uploadToS3)
 			{
+				$uploadPath = trim($path, '/') . '/' . trim($softwareSlug, '/') . '/' . $packages[$code];
+
+				if (!$this->parameters->quiet)
+				{
+					echo "Uploading $code to s3://$bucket/$uploadPath\n";
+				}
+
 				$inputDefinition = Input::createFromFile($tempPath);
-				$s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ);
+				$this->parameters->s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ);
 				unset($inputDefinition);
-				@unlink($tempPath);
+
+				if (!$this->parameters->keepOutput)
+				{
+					@unlink($tempPath);
+				}
 			}
 
 		}
 
 		// Build and upload the HTML index file
-		$tempHtml   = $this->buildHTML($packages);
-		$uploadPath = trim($path, '/') . '/' . trim($softwareSlug, '/') . '/index.html';
-		echo "Uploading index.html to s3://$bucket/$uploadPath\n";
+		$tempHtml = $this->buildHTML($packages);
 
-		if (!defined('LANGBUILD_NOUPLOAD'))
+		if ($this->parameters->uploadToS3)
 		{
+			$uploadPath = trim($path, '/') . '/' . trim($softwareSlug, '/') . '/index.html';
+
+			if (!$this->parameters->quiet)
+			{
+				echo "Uploading index.html to s3://$bucket/$uploadPath\n";
+			}
+
 			$inputDefinition = Input::createFromData($tempHtml);
-			$s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ);
+			$this->parameters->s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ);
 			unset($inputDefinition);
+
+			if ($this->parameters->keepOutput)
+			{
+				file_put_contents($tempDirectory . '/index.html', $tempHtml);
+			}
 		}
 	}
 
@@ -134,13 +151,55 @@ class Builder
 	{
 		$langTable = '';
 
+		$replacements = [
+			// e.g. "Example Software"
+			'[SOFTWARE]'       => $this->parameters->softwareName,
+			// e.g. "component", "plugin", "software"...
+			'[SOFTWARETYPE]'   => $this->parameters->softwareType,
+			// e.g. "example_soft"
+			'[PACKAGENAME]'    => $this->parameters->packageName,
+			// e.g. "http://www.example.com/downloads/example_soft"
+			'[PACKAGENAMEURL]' => $this->parameters->packageNameURL,
+			// e.g. "https://translate.example.com"
+			'[WEBLATEURL]'     => $this->parameters->weblateURL,
+			// e.g. "example_soft"
+			'[WEBLATEPROJECT]' => $this->parameters->weblateProject,
+			// e.g. "Acme Corp"
+			'[AUTHORNAME]'     => $this->parameters->authorName,
+			// e.g. "https://www.example.net/acme_corp"
+			'[AUTHORURL]'      => $this->parameters->authorUrl,
+			// e.g. "GPLv3"
+			'[LICENSE]'        => $this->parameters->license,
+			// Auto-generated, e.g. "2017-01-02 03:04:05 GMT"
+			'[DATE]'           => gmdate('Y-m-d H:i:s T'),
+			// Auto-generated, e.g. "2017"
+			'[YEAR]'           => gmdate('Y'),
+		];
+
+		$templateTableRow = file_get_contents($this->parameters->prototypeTable);
+
 		foreach ($packages as $code => $baseName)
 		{
 			$info      = new LanguageInfo($code);
+
 			$url       = 'https://' . $this->parameters->s3CDNHostname . '/' .
 				$this->parameters->s3Path . '/' .
 				$this->parameters->packageNameURL . '/' .
 				$baseName;
+
+			$extraReplacements = [
+				// Package download URL
+				'[PACKAGEURL]'  => $url,
+				// Country of the language
+				'[LANGCOUNTRY]' => $info->getCountry(),
+				'[LANGNAME]'    => $info->getName(),
+				'[LANGCODE]'    => $info->getCode(),
+			];
+
+			$allReplacements = array_merge($replacements, $extraReplacements);
+
+			$langTable .= str_replace(array_keys($allReplacements), array_values($allReplacements), $templateTableRow);
+
 			$langTable .= <<< HTML
         <tr>
             <td>
@@ -163,17 +222,7 @@ class Builder
 HTML;
 		}
 
-		$replacements = [
-			'[SOFTWARE]'       => $this->parameters->softwareName,
-			'[PACKAGENAME]'    => $this->parameters->packageName,
-			'[PACKAGENAMEURL]' => $this->parameters->packageNameURL,
-			'[AUTHORNAME]'     => $this->parameters->authorName,
-			'[AUTHORURL]'      => $this->parameters->authorUrl,
-			'[LICENSE]'        => $this->parameters->license,
-			'[DATE]'           => gmdate('Y-m-d H:i:s T'),
-			'[YEAR]'           => gmdate('Y'),
-			'[LANGTABLE]'      => $langTable,
-		];
+		$replacements['[LANGTABLE]'] = $langTable;
 
 		$inFile = rtrim($this->repositoryRoot, '/\\') . '/' . $this->parameters->prototypeHTML;
 		$html   = file_get_contents($inFile);
