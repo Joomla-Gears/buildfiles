@@ -11,6 +11,7 @@
  */
 
 use Akeeba\BuildLang\BuilderBare;
+use Akeeba\BuildLang\BuilderStandalone;
 use Akeeba\BuildLang\Parameters;
 use GetOptionKit\OptionPrinter\ConsoleOptionPrinter;
 use GetOptionKit\OptionResult;
@@ -85,7 +86,7 @@ if ($cliOptions->has('no-upload'))
 	$extraProperties['extra.uploadToS3'] = false;
 }
 
-$paramsFiles        = $cliOptions->get('params') ?? [];
+$paramsFiles = $cliOptions->get('params') ?? [];
 /** @var SplFileInfo $translationsFolder */
 $translationsFolder = $cliOptions->get('translations');
 
@@ -114,6 +115,32 @@ if ($cliOptions->has('default-params'))
 
 // Run the language builder
 $parameters = new Parameters(implode(';', $paramsFiles), $extraProperties);
-$builder    = new BuilderBare($translationsFolder->getPathname(), $parameters);
-$builder->buildAll();
 
+if (!$parameters->quiet)
+{
+	echo "Building language files for {$parameters->softwareName}\n";
+}
+
+switch ($parameters->softwareType)
+{
+	case 'none':
+		if (!$parameters->quiet)
+		{
+			echo "Nothing to do: software type is 'none'\n";
+		}
+		break;
+
+	case 'standalone':
+		$builder = new BuilderStandalone($translationsFolder->getPathname(), $parameters);
+		$builder->buildAll();
+		break;
+
+	case 'package':
+		$builder = new BuilderBare($translationsFolder->getPathname(), $parameters);
+		$builder->buildAll();
+		break;
+
+	default:
+		echo "Invalid software type '{$parameters->softwareType}'\n";
+		break;
+}

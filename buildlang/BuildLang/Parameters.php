@@ -2,11 +2,12 @@
 /**
  * Akeeba Build Files
  *
- * @package    buildfiles
+ * @package        buildfiles
  * @copyright  (c) 2010-2017 Akeeba Ltd
  */
 
 namespace Akeeba\BuildLang;
+
 use Akeeba\Engine\Postproc\Connector\S3v4\Configuration;
 use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
 
@@ -35,6 +36,7 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
  * @property-read  string    $s3CDNHostname    Hostname that holds the packages
  * @property-read  string    $version          Version of the generated packages
  * @property-read  string    $outputDirectory  Where the generated packages are stored. Default: system temp directory
+ * @property-read  string[]  $ignoreFolders    Which folders I should ignore when building a "standalone" translation package
  * @property-read  bool      $keepOutput       Should I keep the packages after generating them? Default: false (delete)
  * @property-read  bool      $uploadToS3       Should I upload the packages to S3? Default: true
  * @property-read  bool      $quiet            Suppress output?
@@ -92,6 +94,8 @@ class Parameters
 
 	private $quiet = false;
 
+	private $ignoreFolders = [];
+
 	/**
 	 * A connector to Amazon S3
 	 *
@@ -102,8 +106,8 @@ class Parameters
 	/**
 	 * Parameters constructor.
 	 *
-	 * @param   string  $iniFile          The INI file(s) to load properties from
-	 * @param   array   $extraProperties  Any additional properties to pass
+	 * @param   string $iniFile         The INI file(s) to load properties from
+	 * @param   array  $extraProperties Any additional properties to pass
 	 */
 	public function __construct(string $iniFile, array $extraProperties = [])
 	{
@@ -123,30 +127,31 @@ class Parameters
 	private function initializeFromArray(array $values)
 	{
 		$map = [
-			'langbuilder.packagename'  => 'packageName',
-			'langbuilder.software'     => 'softwareName',
-			'langbuilder.softwaretype' => 'softwareType',
-			'langbuilder.authorname'   => 'authorName',
-			'langbuilder.authorurl'    => 'authorUrl',
-			'langbuilder.license'      => 'license',
-			'langbuilder.protohtml'    => 'prototypeHTML',
-			'langbuilder.prototable'   => 'prototypeTable',
-			'langbuilder.baseURL'      => 'weblateURL',
-			'langbuilder.project'      => 'weblateProject',
-			'langbuilder.apiKey'       => 'weblateApiKey',
-			'langbuilder.minPercent'   => 'minPercent',
-			's3.access'                => 's3Access',
-			's3.private'               => 's3Private',
-			's3.signature'             => 's3Signature',
-			's3.bucket'                => 's3Bucket',
-			's3.region'                => 's3Region',
-			's3.path'                  => 's3Path',
-			's3.cdnhostname'           => 's3CDNHostname',
-			'extra.version'            => 'version',
-			'extra.outputDirectory'    => 'outputDirectory',
-			'extra.keepOutput'         => 'keepOutput',
-			'extra.uploadToS3'         => 'uploadToS3',
-			'extra.quiet'              => 'quiet',
+			'langbuilder.packagename'               => 'packageName',
+			'langbuilder.software'                  => 'softwareName',
+			'langbuilder.softwaretype'              => 'softwareType',
+			'langbuilder.authorname'                => 'authorName',
+			'langbuilder.authorurl'                 => 'authorUrl',
+			'langbuilder.license'                   => 'license',
+			'langbuilder.protohtml'                 => 'prototypeHTML',
+			'langbuilder.prototable'                => 'prototypeTable',
+			'langbuilder.baseURL'                   => 'weblateURL',
+			'langbuilder.project'                   => 'weblateProject',
+			'langbuilder.apiKey'                    => 'weblateApiKey',
+			'langbuilder.minPercent'                => 'minPercent',
+			'langbuilder.standalone.ignore_folders' => 'ignoreFolders',
+			's3.access'                             => 's3Access',
+			's3.private'                            => 's3Private',
+			's3.signature'                          => 's3Signature',
+			's3.bucket'                             => 's3Bucket',
+			's3.region'                             => 's3Region',
+			's3.path'                               => 's3Path',
+			's3.cdnhostname'                        => 's3CDNHostname',
+			'extra.version'                         => 'version',
+			'extra.outputDirectory'                 => 'outputDirectory',
+			'extra.keepOutput'                      => 'keepOutput',
+			'extra.uploadToS3'                      => 'uploadToS3',
+			'extra.quiet'                           => 'quiet',
 		];
 
 		foreach ($map as $arrayKey => $propertyName)
@@ -195,6 +200,12 @@ class Parameters
 		{
 			$this->weblateProject = $this->packageName;
 		}
+
+		// Normalize ignoreFolders
+		if (!empty($this->ignoreFolders))
+		{
+			$this->ignoreFolders = array_map('trim', explode(',', trim($this->ignoreFolders)));
+		}
 	}
 
 	/**
@@ -208,7 +219,7 @@ class Parameters
 	{
 		if (strpos($iniFile, ';') === false)
 		{
-			$properties = parse_ini_file($iniFile, true,  INI_SCANNER_RAW);
+			$properties = parse_ini_file($iniFile, true, INI_SCANNER_RAW);
 
 			return (!is_array($properties) || empty($properties)) ? [] : $properties;
 		}
