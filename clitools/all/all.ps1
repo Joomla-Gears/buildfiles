@@ -40,7 +40,7 @@ Get-ChildItem -Directory | ForEach-Object {
 	{
 		Pop-Location
 		
-		Continue
+		return
 	}
 	
 	$thisRepoMetrics = git remote -v | Select-String -Pattern "git@github.com" | Measure-Object -Line
@@ -49,7 +49,7 @@ Get-ChildItem -Directory | ForEach-Object {
 	{
 		Pop-Location
 		
-		Continue
+		return
 	}
 	
 	Switch ($operation)
