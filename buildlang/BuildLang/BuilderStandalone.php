@@ -61,8 +61,6 @@ class BuilderStandalone extends Builder
 				$this->siteLangFiles[$langCode][] = $oFile->getRealPath();
 			}
 		}
-
-		var_dump($this->siteLangFiles);
 	}
 
 	/**
