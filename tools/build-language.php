@@ -10,6 +10,7 @@
  * @copyright      2010-2017 Akeeba Ltd
  */
 
+use Akeeba\BuildLang\BuilderAngie;
 use Akeeba\BuildLang\BuilderBare;
 use Akeeba\BuildLang\BuilderStandalone;
 use Akeeba\BuildLang\Parameters;
@@ -137,6 +138,11 @@ switch ($parameters->softwareType)
 
 	case 'package':
 		$builder = new BuilderBare($translationsFolder->getPathname(), $parameters);
+		$builder->buildAll();
+		break;
+
+	case 'angie':
+		$builder = new BuilderAngie($translationsFolder->getPathname(), $parameters);
 		$builder->buildAll();
 		break;
 

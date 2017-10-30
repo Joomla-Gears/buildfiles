@@ -37,6 +37,7 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
  * @property-read  string    $version          Version of the generated packages
  * @property-read  string    $outputDirectory  Where the generated packages are stored. Default: system temp directory
  * @property-read  string[]  $ignoreFolders    Which folders I should ignore when building a "standalone" translation package
+ * @property-read  string[]  $angieMap         Map of ANGIE installers to human readable strings
  * @property-read  bool      $keepOutput       Should I keep the packages after generating them? Default: false (delete)
  * @property-read  bool      $uploadToS3       Should I upload the packages to S3? Default: true
  * @property-read  bool      $quiet            Suppress output?
@@ -96,6 +97,10 @@ class Parameters
 
 	private $ignoreFolders = [];
 
+	private $angieMap = [];
+
+	private $angieMapSource = "";
+
 	/**
 	 * A connector to Amazon S3
 	 *
@@ -140,6 +145,7 @@ class Parameters
 			'langbuilder.apiKey'                    => 'weblateApiKey',
 			'langbuilder.minPercent'                => 'minPercent',
 			'langbuilder.standalone.ignore_folders' => 'ignoreFolders',
+			'langbuilder.angie.map'                 => 'angieMapSources',
 			's3.access'                             => 's3Access',
 			's3.private'                            => 's3Private',
 			's3.signature'                          => 's3Signature',
@@ -205,6 +211,12 @@ class Parameters
 		if (!empty($this->ignoreFolders))
 		{
 			$this->ignoreFolders = array_map('trim', explode(',', trim($this->ignoreFolders)));
+		}
+
+		// Convert ANGIE map from JSON to array
+		if (!empty($this->angieMapSource))
+		{
+			$this->angieMap = json_decode($this->angieMapSource, true) ?? [];
 		}
 	}
 

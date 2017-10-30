@@ -243,29 +243,9 @@ class Builder
 
 		foreach ($packages as $code => $baseName)
 		{
-			$info = new LanguageInfo($code);
-
-			$url = 'https://' . $this->parameters->s3CDNHostname . '/' .
-				$this->parameters->s3Path . '/' .
-				$this->parameters->packageNameURL . '/' .
-				$baseName;
-
-			$percent           = $completion[$code] ?? 0;
-			$bsType            = ($percent < 75) ? 'danger' : (($percent < 90) ? 'warning' : 'success');
-			$extraReplacements = [
-				// Package download URL
-				'[PACKAGEURL]'          => $url,
-				// Country of the language
-				'[LANGCOUNTRY]'         => $info->getCountry(),
-				'[LANGNAME]'            => $info->getName(),
-				'[LANGCODE]'            => $info->getCode(),
-				'[PERCENT]'             => $percent,
-				'[BS_PROGRESSBAR_TYPE]' => $bsType,
-			];
-
-			$allReplacements = array_merge($replacements, $extraReplacements);
-
-			$langTable .= str_replace(array_keys($allReplacements), array_values($allReplacements), $templateTableRow);
+			$extraReplacements = $this->getExtraReplacementsForLangTable($code, $baseName, $completion);
+			$allReplacements   = array_merge($replacements, $extraReplacements);
+			$langTable         .= str_replace(array_keys($allReplacements), array_values($allReplacements), $templateTableRow);
 		}
 
 		$replacements['[LANGTABLE]'] = $langTable;
@@ -514,5 +494,37 @@ XML;
 		}
 
 		return $this->translationProgress;
+	}
+
+	/**
+	 * @param   string  $code        The language code build built
+	 * @param   string  $baseName    The basename of the built package
+	 * @param   array   $completion  Completion % per language
+	 *
+	 * @return  array
+	 */
+	protected function getExtraReplacementsForLangTable(string $code, string $baseName, array $completion): array
+	{
+		$info = new LanguageInfo($code);
+
+		$url = 'https://' . $this->parameters->s3CDNHostname . '/' .
+			$this->parameters->s3Path . '/' .
+			$this->parameters->packageNameURL . '/' .
+			$baseName;
+
+		$percent           = $completion[$code] ?? 0;
+		$bsType            = ($percent < 75) ? 'danger' : (($percent < 90) ? 'warning' : 'success');
+		$extraReplacements = [
+			// Package download URL
+			'[PACKAGEURL]'          => $url,
+			// Country of the language
+			'[LANGCOUNTRY]'         => $info->getCountry(),
+			'[LANGNAME]'            => $info->getName(),
+			'[LANGCODE]'            => $info->getCode(),
+			'[PERCENT]'             => $percent,
+			'[BS_PROGRESSBAR_TYPE]' => $bsType,
+		];
+
+		return $extraReplacements;
 	}
 }
