@@ -205,9 +205,14 @@ class BuilderAngie extends Builder
 					continue;
 				}
 
-				$this->siteLangFiles[$package][] = $oFolder->getPathname();
+				$this->siteLangFiles[$package][] = $oFile->getPathname();
 			}
 		}
+
+		ksort($this->siteLangFiles);
+		$baseLang = $this->siteLangFiles['angie'];
+		unset($this->siteLangFiles['angie']);
+		$this->siteLangFiles = array_merge(['angie' => $baseLang], $this->siteLangFiles);
 	}
 
 	/**

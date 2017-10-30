@@ -145,7 +145,7 @@ class Parameters
 			'langbuilder.apiKey'                    => 'weblateApiKey',
 			'langbuilder.minPercent'                => 'minPercent',
 			'langbuilder.standalone.ignore_folders' => 'ignoreFolders',
-			'langbuilder.angie.map'                 => 'angieMapSources',
+			'langbuilder.angie.map'                 => 'angieMapSource',
 			's3.access'                             => 's3Access',
 			's3.private'                            => 's3Private',
 			's3.signature'                          => 's3Signature',
