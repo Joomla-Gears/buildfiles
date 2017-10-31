@@ -190,7 +190,9 @@ class Builder
 			}
 
 			$inputDefinition = Input::createFromData($tempHtml);
-			$this->parameters->s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ, );
+			$this->parameters->s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ, [
+				'Content-Type' => 'text/html'
+			]);
 			unset($inputDefinition);
 
 			if ($this->parameters->keepOutput)
