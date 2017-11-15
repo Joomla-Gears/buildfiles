@@ -17,15 +17,21 @@ use ZipArchive;
  */
 class BuilderStandalone extends Builder
 {
-	/**
-	 * Scan the languages in this repository
-	 *
-	 * @return  void
-	 */
-	protected function scanLanguages()
+	public function __construct($repositoryRoot, Parameters $parameters)
 	{
 		$this->siteLangFiles  = [];
 		$this->adminLangFiles = [];
+
+		parent::__construct($repositoryRoot, $parameters);
+
+		if (count($this->parameters->addFolders))
+		{
+			foreach ($this->parameters->addFolders as $virtual => $real)
+			{
+				$real = rtrim($this->repositoryRoot, '/') . '/' . $real;
+				$this->scanLanguages($real);
+			}
+		}
 
 		foreach (new DirectoryIterator($this->repositoryRoot) as $subfolder)
 		{
@@ -41,7 +47,37 @@ class BuilderStandalone extends Builder
 				continue;
 			}
 
-			$areaDir = $this->repositoryRoot . '/' . $folderName;
+			$this->scanLanguages($subfolder->getPathname());
+		}
+	}
+
+	/**
+	 * Scan the languages in this repository
+	 *
+	 * @return  void
+	 */
+	protected function scanLanguages($folder = null)
+	{
+		if (empty($folder))
+		{
+			$folder = $this->repositoryRoot;
+		}
+
+		foreach (new DirectoryIterator($folder) as $subfolder)
+		{
+			if (!$subfolder->isDir() || $subfolder->isDot())
+			{
+				continue;
+			}
+
+			$folderName = $subfolder->getFilename();
+
+			if (in_array($folderName, $this->parameters->ignoreFolders))
+			{
+				continue;
+			}
+
+			$areaDir = $folder . '/' . $folderName;
 
 			foreach (new DirectoryIterator($areaDir) as $oFile)
 			{
@@ -99,7 +135,7 @@ class BuilderStandalone extends Builder
 		// Add the files (nominally, frontend)
 		foreach ($this->siteLangFiles[$code] as $filePath)
 		{
-			$zip->addFile($filePath, basename($filePath));
+			$zip->addFile($filePath, $this->getPackageName($filePath, $code));
 		}
 
 		$zip->close();
@@ -107,4 +143,40 @@ class BuilderStandalone extends Builder
 		return $zipPath;
 	}
 
+	protected function getPackageName(string $filePath, string $langCode)
+	{
+		// Get the basename of the file we're adding to the archive
+		$basename = basename($filePath);
+
+		// If there are no add folders we do a Kickstart-style package: flat INI files, without directories.
+		if (!count($this->parameters->addFolders))
+		{
+			return $basename;
+		}
+
+		// Otherwise we have a Solo-style package: dirName/languageCode/baseName e.g. akeeba/en-GB/en-GB.com_akeeba.ini
+
+		// Let's see if the file belongs to one of the add folders (it's stored under a virtual folder)
+		foreach ($this->parameters->addFolders as $as => $folder)
+		{
+			$realFolder = realpath(rtrim($this->repositoryRoot, '/') . '/' . $folder);
+			$realCheck  = realpath(dirname($filePath));
+
+			if ($realFolder == $realCheck)
+			{
+				return trim($as, '/') . '/' . $langCode . '/'.  $basename;
+			}
+		}
+
+		/**
+		 * Hm, it's a real folder. Instead of a virtual folder we need to use the real directory the file's in.
+		 * The file is something like
+		 * /foo/bar/baz/solo/akeebabackup/en-GB/en-GB.com_akeebabackup.ini
+		 * and we need to store it as
+		 * akeebabackup/en-GB/en-GB.com_akeebabackup.ini
+		 */
+		$outerDir = basename(dirname(dirname($filePath)));
+
+		return $outerDir . '/' . $langCode . '/' . $basename;
+	}
 }

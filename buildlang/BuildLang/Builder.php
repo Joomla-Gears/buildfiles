@@ -245,9 +245,16 @@ class Builder
 
 		foreach ($packages as $code => $baseName)
 		{
-			$extraReplacements = $this->getExtraReplacementsForLangTable($code, $baseName, $completion);
-			$allReplacements   = array_merge($replacements, $extraReplacements);
-			$langTable         .= str_replace(array_keys($allReplacements), array_values($allReplacements), $templateTableRow);
+			try
+			{
+				$extraReplacements = $this->getExtraReplacementsForLangTable($code, $baseName, $completion);
+				$allReplacements   = array_merge($replacements, $extraReplacements);
+				$langTable         .= str_replace(array_keys($allReplacements), array_values($allReplacements), $templateTableRow);
+			}
+			catch (\OutOfBoundsException $e)
+			{
+				continue;
+			}
 		}
 
 		$replacements['[LANGTABLE]'] = $langTable;

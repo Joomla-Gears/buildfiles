@@ -37,6 +37,9 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
  * @property-read  string    $version          Version of the generated packages
  * @property-read  string    $outputDirectory  Where the generated packages are stored. Default: system temp directory
  * @property-read  string[]  $ignoreFolders    Which folders I should ignore when building a "standalone" translation package
+ * @property-read  string[]  $addFolders       Which folders I should scan, on top of the repo root, when building a
+ *                                             "standalone" translation package. Format
+ *                                             [ 'folderInPackage' => '/path/to/source/folder', ... ]
  * @property-read  string[]  $angieMap         Map of ANGIE installers to human readable strings
  * @property-read  bool      $keepOutput       Should I keep the packages after generating them? Default: false (delete)
  * @property-read  bool      $uploadToS3       Should I upload the packages to S3? Default: true
@@ -97,6 +100,8 @@ class Parameters
 
 	private $ignoreFolders = [];
 
+	private $addFolders = [];
+
 	private $angieMap = [];
 
 	private $angieMapSource = "";
@@ -145,6 +150,7 @@ class Parameters
 			'langbuilder.apiKey'                    => 'weblateApiKey',
 			'langbuilder.minPercent'                => 'minPercent',
 			'langbuilder.standalone.ignore_folders' => 'ignoreFolders',
+			'langbuilder.standalone.add_folders'    => 'addFolders',
 			'langbuilder.angie.map'                 => 'angieMapSource',
 			's3.access'                             => 's3Access',
 			's3.private'                            => 's3Private',
@@ -211,6 +217,21 @@ class Parameters
 		if (!empty($this->ignoreFolders))
 		{
 			$this->ignoreFolders = array_map('trim', explode(',', trim($this->ignoreFolders)));
+		}
+
+		// Normalize addFolders
+		if (!empty($this->addFolders))
+		{
+			$temp = array_map('trim', explode(',', trim($this->addFolders)));
+			$this->addFolders = [];
+
+			foreach ($temp as $value)
+			{
+				list($source, $as) = explode(';', $value);
+				$source                = trim($source);
+				$as                    = trim($as);
+				$this->addFolders[$as] = $source;
+			}
 		}
 
 		// Convert ANGIE map from JSON to array
