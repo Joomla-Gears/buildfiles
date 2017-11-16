@@ -87,68 +87,11 @@ class BuilderAngie extends Builder
 				continue;
 			}
 
-			// Upload the temporary package file to S3 and delete it afterwards
-			if ($this->parameters->uploadToS3)
-			{
-				$uploadPath = trim($path, '/') . '/' . trim($softwareSlug, '/') . '/' . $packages[$code];
-
-				if (!$this->parameters->quiet)
-				{
-					echo " and uploading to s3://$bucket/$uploadPath\n";
-				}
-
-				$inputDefinition = Input::createFromFile($tempPath);
-				$this->parameters->s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ);
-				unset($inputDefinition);
-
-				if (!$this->parameters->keepOutput)
-				{
-					@unlink($tempPath);
-				}
-			}
-			elseif (!$this->parameters->quiet)
-			{
-				echo "\n";
-			}
-		}
-
-		// Build and upload the HTML index file
-		if (!$this->parameters->quiet)
-		{
-			echo "Generating index.html";
-		}
-
-		$tempHtml = $this->buildHTML($packages);
-
-		if ($this->parameters->keepOutput)
-		{
-			file_put_contents($this->parameters->outputDirectory . '/index.html', $tempHtml);
-		}
-
-		if ($this->parameters->uploadToS3)
-		{
-			$uploadPath = trim($path, '/') . '/' . trim($softwareSlug, '/') . '/index.html';
-
-			if (!$this->parameters->quiet)
-			{
-				echo " and uploading to s3://$bucket/$uploadPath\n";
-			}
-
-			$inputDefinition = Input::createFromData($tempHtml);
-			$this->parameters->s3->putObject($inputDefinition, $bucket, $uploadPath, Acl::ACL_PUBLIC_READ,[
-				'Content-Type' => 'text/html'
-			]);
-			unset($inputDefinition);
-
-			if ($this->parameters->keepOutput)
-			{
-				file_put_contents($tempDirectory . '/index.html', $tempHtml);
-			}
-		}
-		elseif (!$this->parameters->quiet)
-		{
 			echo "\n";
+
 		}
+
+		// Important: The JPA files are NOT uploaded to S3. We'll include them in the Akeeba Backup / Solo language packs.
 	}
 
 	/**
