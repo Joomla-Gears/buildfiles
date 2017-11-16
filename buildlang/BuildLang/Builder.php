@@ -51,6 +51,13 @@ class Builder
 	protected $siteLangFiles = [];
 
 	/**
+	 * Pre-build ANGIE installer files
+	 *
+	 * @var  array
+	 */
+	protected $angieFiles = [];
+
+	/**
 	 * Translation progress per language code. Used as a cache for getTranslationProgress.
 	 *
 	 * @var  array
@@ -69,6 +76,7 @@ class Builder
 		$this->parameters     = $parameters;
 
 		$this->scanLanguages();
+		$this->scanANGIELanguages();
 	}
 
 	/**
@@ -326,6 +334,15 @@ class Builder
 			}
 		}
 
+		// Add ANGIE files
+		if (count($this->angieFiles))
+		{
+			foreach ($this->angieFiles as $filePath)
+			{
+				$zip->addFile($filePath, $this->parameters->angieVirtualDir . '/' . basename($filePath));
+			}
+		}
+
 		$zip->close();
 
 		return $zipPath;
@@ -396,6 +413,20 @@ XML;
 			$adminContainer->addAttribute('target', sprintf('language/%s', $langInfo->getCode()));
 
 			foreach ($this->siteLangFiles[$code] as $filePath)
+			{
+				$adminContainer->addChild('filename', basename($filePath));
+			}
+		}
+
+		if (count($this->angieFiles))
+		{
+			/** @var \SimpleXMLElement $fileset */
+			$fileset        = $xml->fileset;
+			$adminContainer = $fileset->addChild('files');
+			$adminContainer->addAttribute('folder', 'angie');
+			$adminContainer->addAttribute('target', 'administrator/components/com_akeeba/Master/Installers');
+
+			foreach ($this->angieFiles as $filePath)
 			{
 				$adminContainer->addChild('filename', basename($filePath));
 			}
@@ -536,4 +567,26 @@ XML;
 
 		return $extraReplacements;
 	}
+
+	/**
+	 * Find pre-build ANGIE language packs (JPA format)
+	 *
+	 * @return  void
+	 */
+	private function scanANGIELanguages()
+	{
+		$this->angieFiles = [];
+		$angieGlob        = $this->parameters->angieGlob;
+
+		if (empty($angieGlob))
+		{
+			return;
+		}
+
+		$glob  = rtrim($this->parameters->outputDirectory, '\\/') . '/' . $angieGlob;
+		$files = glob($glob);
+
+		$this->angieFiles = array_map('realpath', $files);
+	}
+
 }

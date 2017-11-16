@@ -21,17 +21,17 @@ class BuilderBare extends Builder
 	 *
 	 * @return  void
 	 */
-	protected function scanLanguages($folder = null)
+	protected function scanLanguages($folderToScan = null)
 	{
-		if (empty($folder))
+		if (empty($folderToScan))
 		{
-			$folder = $this->repositoryRoot;
+			$folderToScan = $this->repositoryRoot;
 		}
 
 		$this->siteLangFiles  = [];
 		$this->adminLangFiles = [];
 
-		foreach (new DirectoryIterator($folder) as $oArea)
+		foreach (new DirectoryIterator($folderToScan) as $oArea)
 		{
 			if (!$oArea->isDir() || $oArea->isDot())
 			{
@@ -40,7 +40,7 @@ class BuilderBare extends Builder
 
 			$area = $oArea->getFilename();
 
-			$areaDir = $folder . '/' . $area;
+			$areaDir = $folderToScan . '/' . $area;
 			$slug    = array();
 
 			switch ($area)
