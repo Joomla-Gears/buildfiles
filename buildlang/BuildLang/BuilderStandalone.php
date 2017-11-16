@@ -138,6 +138,17 @@ class BuilderStandalone extends Builder
 			$zip->addFile($filePath, $this->getPackageName($filePath, $code));
 		}
 
+		// Add the ANGIE files, if present
+		if (!empty($this->angieFiles))
+		{
+			foreach ($this->angieFiles as $angieFile)
+			{
+				$angieFileName = rtrim($this->parameters->angieVirtualDir, '/') . '/' . basename($angieFile);
+
+				$zip->addFile($angieFile, $angieFileName);
+			}
+		}
+
 		$zip->close();
 
 		return $zipPath;
@@ -147,11 +158,12 @@ class BuilderStandalone extends Builder
 	{
 		// Get the basename of the file we're adding to the archive
 		$basename = basename($filePath);
+		$prefix = ($this->parameters->filePathPrefix == '') ? '' : $this->parameters->filePathPrefix . '/';
 
 		// If there are no add folders we do a Kickstart-style package: flat INI files, without directories.
 		if (!count($this->parameters->addFolders))
 		{
-			return $basename;
+			return $prefix . $basename;
 		}
 
 		// Otherwise we have a Solo-style package: dirName/languageCode/baseName e.g. akeeba/en-GB/en-GB.com_akeeba.ini
@@ -160,11 +172,11 @@ class BuilderStandalone extends Builder
 		foreach ($this->parameters->addFolders as $as => $folder)
 		{
 			$realFolder = realpath(rtrim($this->repositoryRoot, '/') . '/' . $folder);
-			$realCheck  = realpath(dirname($filePath));
+			$realCheck  = realpath(dirname(dirname($filePath)));
 
 			if ($realFolder == $realCheck)
 			{
-				return trim($as, '/') . '/' . $langCode . '/'.  $basename;
+				return $prefix . trim($as, '/') . '/' . $langCode . '/'.  $basename;
 			}
 		}
 
@@ -177,6 +189,6 @@ class BuilderStandalone extends Builder
 		 */
 		$outerDir = basename(dirname(dirname($filePath)));
 
-		return $outerDir . '/' . $langCode . '/' . $basename;
+		return $prefix . $outerDir . '/' . $langCode . '/' . $basename;
 	}
 }

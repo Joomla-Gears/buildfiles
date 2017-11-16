@@ -91,7 +91,7 @@ $paramsFiles = $cliOptions->get('params') ?? [];
 /** @var SplFileInfo $translationsFolder */
 $translationsFolder = $cliOptions->get('translations');
 
-// Convert list of
+// Convert list of parameters into a file
 if (!empty($paramsFiles))
 {
 	$temp = [];

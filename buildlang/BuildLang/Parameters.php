@@ -42,6 +42,7 @@ use Akeeba\Engine\Postproc\Connector\S3v4\Connector;
  *                                             [ 'folderInPackage' => '/path/to/source/folder', ... ]
  * @property-read  string    $angieGlob        Glob (relative to temp folder) used to look for ANGIE files
  * @property-read  string    $angieVirtualDir  Virtual folder in ZIP archive where ANGIE files live
+ * @property-read  string    $filePathPrefix   Prefix in the ZIP file for the standalone package files
  * @property-read  string[]  $angieMap         Map of ANGIE installers to human readable strings
  * @property-read  bool      $keepOutput       Should I keep the packages after generating them? Default: false (delete)
  * @property-read  bool      $uploadToS3       Should I upload the packages to S3? Default: true
@@ -108,6 +109,8 @@ class Parameters
 
 	private $angieMapSource = "";
 
+	private $filePathPrefix = '';
+
 	/**
 	 * A connector to Amazon S3
 	 *
@@ -160,6 +163,7 @@ class Parameters
 			'langbuilder.angie.map'                 => 'angieMapSource',
 			'langbuilder.backup.angieglob'          => 'angieGlob',
 			'langbuilder.backup.angiedir'           => 'angieVirtualDir',
+			'langbuilder.standalone.prefix'         => 'filePathPrefix',
 			's3.access'                             => 's3Access',
 			's3.private'                            => 's3Private',
 			's3.signature'                          => 's3Signature',

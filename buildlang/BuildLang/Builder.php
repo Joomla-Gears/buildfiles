@@ -584,7 +584,7 @@ XML;
 		}
 
 		$glob  = rtrim($this->parameters->outputDirectory, '\\/') . '/' . $angieGlob;
-		$files = glob($glob);
+		$files = glob($glob, GLOB_BRACE);
 
 		$this->angieFiles = array_map('realpath', $files);
 	}
