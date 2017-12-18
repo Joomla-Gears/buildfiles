@@ -59,6 +59,9 @@ Akeeba Build Files
     <taskdef name="zipme" classname="tasks.ZipmeTask" />
     <taskdef name="docbook2fo" classname="tasks.DocBookToFoTask" />
     <taskdef name="docbook2epub" classname="tasks.DocBookToEpubTask" />
+	<!-- See https://github.com/rchouinard/phing-tasks/blob/master/classes/rych/tasks/YuiCompressorTask.php -->
+    <taskdef name="yuicompressor" classname="tasks.YuiCompressorTask" />
+    <taskdef name="closure" classname="tasks.ClosureTask" />
 
 	<!--
 	Generate the installation packages and the documentation
