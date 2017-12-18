@@ -31,6 +31,8 @@ Akeeba Build Files
 	<property name="build.strapper" value="1" />
     <!-- ### Should I include FOF in the build? -->
 	<property name="build.fof" value="1" />
+	<!-- ### Should I include Akeeba Frontend Framework in the build? -->
+	<property name="build.fef" value="0" />
 
     <!-- ### Version numbers -->
     <property name="version" value="git" />
@@ -1024,9 +1026,110 @@ Akeeba Build Files
 	</target>
 
 	<!--
+	Internal task to put the correct Akeeba Frontend Framework package in your release directory as file_fef.zip
+
+	If you are building a dev release (the name contains the string dev, rev, git or svn) we'll include a dev build of
+	FEF. THIS IS NOT RECOMMENDED. It must only be used for TESTING, never on live sites!
+
+	If you are building a regular, numeric versioned released the latest FEF package available from akeebabackup.com
+	will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASES.
+	-->
+	<target name="package-fef" description="Copy the Akeeba Frontend Framework installation package to the release directory">
+		<if>
+			<!-- Only build when the build.fef property is true -->
+			<istrue value="${build.fef}" />
+			<then>
+				<if>
+					<or>
+						<contains string="${version}" substring="rev" />
+						<contains string="${version}" substring="dev" />
+						<contains string="${version}" substring="git" />
+						<contains string="${version}" substring="svn" />
+					</or>
+					<then>
+						<!-- Start by building a dev build of FEF... -->
+						<gitversion workingcopy="${dirs.root}/../fef" propertyname="git.fef.lastrevision" />
+						<gitdate workingcopy="${dirs.root}/../fef" propertyname="git.fef.timestamp" />
+						<property name="fef.version" value="rev${git.fef.lastrevision}-${git.fef.timestamp}" override="true" />
+
+						<phing phingfile="build.xml" dir="${dirs.root}/../fef/build" inheritAll="false" target="git">
+							<property name="dirs.root" value="${dirs.root}/../fef" />
+							<property name="version" value="${fef.version}" />
+						</phing>
+
+						<!-- ...and copy it to the release directory -->
+						<copy todir="${dirs.release}" overwrite="true">
+							<mapper type="regexp" from="^(file_fef)(-.*)\.zip$" to="\1.zip" />
+							<fileset dir="${dirs.root}/../fef/release">
+								<include name="file_fef-*.zip" />
+							</fileset>
+						</copy>
+					</then>
+					<else>
+						<!-- Get the FEF update XML file -->
+						<httpget url="https://akeeba-cdn.s3.amazonaws.com/updates/fef.xml" dir="${dirs.release}" filename="fef.tmp" followRedirects="true" />
+
+						<!-- Extract the latest FEF version and download location -->
+						<xslt todir="${dirs.release}" style="${dirs.root}/../buildfiles/tools/feflatest.xslt">
+							<mapper type="glob" from="*.tmp" to="*.xml" />
+							<fileset dir="${dirs.release}">
+								<include name="fef.tmp" />
+							</fileset>
+						</xslt>
+						<delete file="${dirs.release}/fef.tmp" />
+						<xmlproperty file="${dirs.release}/fef.xml" />
+						<echo message="Latest Akeeba FEF version ${latestFEF.version} - ${latestFEF.download}" />
+
+						<!-- Make sure there is a cache directory, or create it -->
+						<if>
+							<available file="${dirs.root}/../buildfiles/cache" />
+							<else>
+								<mkdir dir="${dirs.root}/../buildfiles/cache" />
+							</else>
+						</if>
+
+						<!-- Get the FEF version from the cache -->
+						<property name="fef_cache_file_exists" value="0" />
+						<available file="${dirs.root}/../buildfiles/cache/fef.xml" property="fef_cache_file_exists" value="1" />
+
+						<if>
+							<equals arg1="${fef_cache_file_exists}" arg2="1" />
+							<then>
+								<xmlproperty file="${dirs.root}/../buildfiles/cache/fef.xml" keepRoot="false" prefix="fefcache." />
+							</then>
+							<else>
+								<property name="fefcache.version" value="0.0.0" />
+								<property name="fefcache.download" value="" />
+							</else>
+						</if>
+
+						<echo message="${latestFEF.version} - ${fefcache.version}" />
+
+						<!-- If there is a newer version of FEF available, download it to the cache and update the cached versions -->
+						<php expression="version_compare('${latestFEF.version}','${fefcache.version}','gt') ? 1 : 0" returnProperty="has_newer_fef" />
+						<if>
+							<equals arg1="${has_newer_fef}" arg2="1" />
+							<then>
+								<httpget url="${latestFEF.download}" dir="${dirs.root}/../buildfiles/cache" filename="file_fef.zip" followRedirects="true" />
+								<copy file="${dirs.release}/fef.xml" todir="${dirs.root}/../buildfiles/cache" />
+							</then>
+						</if>
+
+						<!-- Copy the cached FEF release -->
+						<copy file="${dirs.root}/../buildfiles/cache/file_fef.zip" todir="${dirs.release}" />
+
+						<!-- Clean up -->
+						<delete file="${dirs.release}/fef.xml" />
+					</else>
+				</if>
+			</then>
+		</if>
+	</target>
+
+	<!--
 	Builds all Core and Pro packages (pkg_something*.zip)
 	-->
-	<target name="package-pkg" description="Installation package (pkg_something)" depends="new-release, setup-properties, package-com, package-files, package-modules, package-plugins, package-fof, package-strapper">
+	<target name="package-pkg" description="Installation package (pkg_something)" depends="new-release, setup-properties, package-com, package-files, package-modules, package-plugins, package-fof, package-strapper, package-fef">
 
 		<!-- Build the Core package -->
 		<phingcall target="package-pkg-builder">
