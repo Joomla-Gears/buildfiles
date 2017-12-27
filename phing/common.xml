@@ -22,6 +22,8 @@ Akeeba Build Files
     <property name="dirs.modules" value="${dirs.root}/modules" />
     <property name="dirs.plugins" value="${dirs.root}/plugins" />
     <property name="dirs.documentation" value="${dirs.root}/documentation" />
+    <property name="dirs.composer" value="${dirs.root}" />
+    <property name="bin.composer" value="${dirs.root}/../buildfiles/composer.phar" />
     <!-- ### DocBook XML Stylesheet Paths -->
     <property name="dirs.bin" value="${phing.dir.common}/bin" />
     <property name="dirs.bin.libxml" value="${dirs.bin}/libxml" />
@@ -101,10 +103,35 @@ Akeeba Build Files
 
     <!--
     Creates the release directory afresh before building anything
+
+    This task depends on link and composer-install to make sure that you have a sane environment before you start
+    building a package.
     -->
-    <target name="new-release" description="Create afresh the release directory">
+    <target name="new-release" description="Create afresh the release directory"
+			depends="composer-install,link">
         <delete dir="${dirs.release}" quiet="true" includeemptydirs="true" />
         <mkdir dir="${dirs.release}" />
+    </target>
+
+    <!--
+    Installs Composer dependencies.
+
+    It's highly recommended that you commit your composer.lock in the repository. It makes sure that all build machines
+    install the same version of the dependencies as your development machine.
+
+    By default we look for composer.json in the repository root. If you have it elsewhere please update the
+    dirs.composer property in your build.properties or build.xml file.
+    -->
+    <target name="composer-install">
+        <if>
+			<available file="${dirs.composer}/composer.json" type="file" />
+			<then>
+				<composer composer="${bin.composer}" command="install">
+					<arg value="-d" />
+					<arg path="${dirs.composer}" />
+				</composer>
+			</then>
+		</if>
     </target>
 
     <!--
