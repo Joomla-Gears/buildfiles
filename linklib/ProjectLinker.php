@@ -293,7 +293,7 @@ class ProjectLinker
 		/** @var   array  $hardlink_files   Hard link files, set up by the file */
 		/** @var   array  $symlink_files    Symbolic link files, set up by the file */
 		/** @var   array  $symlink_folders  Symbolic link folders, set up by the file */
-		require_once $file;
+		include $file;
 
 		if (!isset($hardlink_files) || !isset($symlink_files) || !isset($symlink_folders))
 		{
