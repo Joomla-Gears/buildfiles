@@ -4,7 +4,7 @@
  *
  * @package        buildfiles
  * @license        GPL v3
- * @copyright      2010-2017 Akeeba Ltd
+ * @copyright Copyright (c)2010-2018 Nicholas K. Dionysopoulos / Akeeba Ltd
  */
 
 namespace Akeeba\LinkLibrary\Scanner;

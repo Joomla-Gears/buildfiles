@@ -16,7 +16,7 @@ putenv("DYLD_LIBRARY_PATH=''");
  *
  * @version   $Id$
  * @package   akeebabuilder
- * @copyright Copyright (c)2009-2014 Nicholas K. Dionysopoulos
+ * @copyright Copyright (c)2010-2018 Nicholas K. Dionysopoulos / Akeeba Ltd
  * @license   GNU GPL version 3 or, at your option, any later version
  * @author    nicholas
  */
