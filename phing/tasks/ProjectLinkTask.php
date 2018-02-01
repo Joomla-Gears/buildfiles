@@ -59,7 +59,16 @@ class ProjectLinkTask extends Task
 		}
 
 		$linker = new \Akeeba\LinkLibrary\ProjectLinker($this->repository);
-		$linker->addInternalLanguageMapping();
+
+		try
+		{
+			$linker->addInternalLanguageMapping();
+		}
+		catch (RuntimeException $e)
+		{
+			// If you run this before `phing git` creates the XML manifest this fails. So we need to swallow the error.
+		}
+
 		$linker->link();
 
 		return true;
