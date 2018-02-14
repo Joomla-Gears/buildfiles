@@ -78,9 +78,17 @@ class Scanner
 
 			foreach (new DirectoryIterator($areaDir) as $oFolder)
 			{
-				if (!$oFolder->isDir() || $oFolder->isDot())
+				if ($oFolder->isDot())
 				{
 					continue;
+				}
+
+				// ANGIE and Kickstart languages are shallower
+				if (!$oFolder->isDir() && ($oFolder->getExtension() == 'ini'))
+				{
+					$this->processLanguageFolder($areaDir);
+
+					continue 2;
 				}
 
 				$folder    = $oFolder->getFilename();
@@ -215,6 +223,18 @@ class Scanner
 
 			// Construct and add the line
 			$result .= $key . '="' . $value . "\"\n";
+
+			// Someone managed to cock up so badly that we ended up with escaped \"_QQ_\" in some files...
+			$result = str_replace('="\"_QQ_\"', '="', $result);
+
+			$result = rtrim($result, "\n");
+
+			if (substr($result, -9) == '\"_QQ_\""')
+			{
+				$result = substr($result, 0, -9) . '"';
+			}
+
+			$result .= "\n";
 		}
 
 		$result = rtrim($result, "\n");
