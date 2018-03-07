@@ -31,8 +31,10 @@ Akeeba Build Files
     <property name="dirs.bin.dbxsl" value="${dirs.bin}/dbxsl" />
 	<!-- ### Should I include Strapper in the build? -->
 	<property name="build.strapper" value="1" />
-    <!-- ### Should I include FOF in the build? -->
+    <!-- ### Should I include FOF 3.x in the build? -->
 	<property name="build.fof" value="1" />
+    <!-- ### Should I include FOF 4.x in the build? -->
+	<property name="build.fof4" value="0" />
 	<!-- ### Should I include Akeeba Frontend Framework in the build? -->
 	<property name="build.fef" value="0" />
 
@@ -952,6 +954,107 @@ Akeeba Build Files
 	</target>
 
 	<!--
+Internal task to put the correct FOF 4.x package in your release directory as lib_fof40.zip
+
+If you are building a dev release (the name contains the string dev, rev, git or svn) we'll include a dev build of
+FOF 4. THIS IS NOT RECOMMENDED. It must only be used for TESTING, never on live sites!
+
+If you are building a regular, numeric versioned released the latest FOF 4 package available from akeebabackup.com
+will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASES.
+-->
+	<target name="package-fof4" description="Copy the FOF 4 installation package to the release directory">
+		<if>
+			<!-- Only build when the build.fof4 property is true -->
+			<istrue value="${build.fof4}" />
+			<then>
+				<if>
+					<or>
+						<contains string="${version}" substring="rev" />
+						<contains string="${version}" substring="dev" />
+						<contains string="${version}" substring="git" />
+						<contains string="${version}" substring="svn" />
+					</or>
+					<then>
+						<!-- Start by building a dev build of FOF 4.x... -->
+						<gitversion workingcopy="${dirs.root}/../fof4" propertyname="git.fof4.lastrevision" />
+						<gitdate workingcopy="${dirs.root}/../fof4" propertyname="git.fof4.timestamp" />
+						<property name="fof4.version" value="rev${git.fof4.lastrevision}-${git.fof4.timestamp}" override="true" />
+
+						<phing phingfile="build.xml" dir="${dirs.root}/../fof4/build" inheritAll="false" target="git">
+							<property name="dirs.root" value="${dirs.root}/../fof4" />
+							<property name="version" value="${fof4.version}" />
+						</phing>
+
+						<!-- ...and copy it to the release directory -->
+						<copy todir="${dirs.release}" overwrite="true">
+							<mapper type="regexp" from="^(lib_fof40)(-.*)\.zip$" to="\1.zip" />
+							<fileset dir="${dirs.root}/../fof4/release">
+								<include name="lib_fof40-*.zip" />
+							</fileset>
+						</copy>
+					</then>
+					<else>
+						<!-- Get the FOF update XML file -->
+						<httpget url="https://akeeba-cdn.s3.amazonaws.com/updates/fof4.xml" dir="${dirs.release}" filename="fof4.tmp" followRedirects="true" />
+
+						<!-- Extract the latest FOF version and download location -->
+						<xslt todir="${dirs.release}" style="${dirs.root}/../buildfiles/tools/fof4latest.xslt">
+							<mapper type="glob" from="*.tmp" to="*.xml" />
+							<fileset dir="${dirs.release}">
+								<include name="fof4.tmp" />
+							</fileset>
+						</xslt>
+						<delete file="${dirs.release}/fof4.tmp" />
+						<xmlproperty file="${dirs.release}/fof4.xml" />
+						<echo message="Latest FOF 4 version ${latestFof4.version} - ${latestFof4.download}" />
+
+						<!-- Make sure there is a cache directory, or create it -->
+						<if>
+							<available file="${dirs.root}/../buildfiles/cache" />
+							<else>
+								<mkdir dir="${dirs.root}/../buildfiles/cache" />
+							</else>
+						</if>
+
+						<!-- Get the FOF version from the cache -->
+						<property name="cache_file_exists" value="0" />
+						<available file="${dirs.root}/../buildfiles/cache/fof4.xml" property="cache_file_exists" value="1" />
+
+						<if>
+							<equals arg1="${cache_file_exists}" arg2="1" />
+							<then>
+								<xmlproperty file="${dirs.root}/../buildfiles/cache/fof4.xml" keepRoot="false" prefix="fof4cache." />
+							</then>
+							<else>
+								<property name="fof4cache.version" value="0.0.0" />
+								<property name="fof4cache.download" value="" />
+							</else>
+						</if>
+
+						<echo message="${latestFof4.version} - ${fof4cache.version}" />
+
+						<!-- If there is a newer version of FOF available, download it to the cache and update the cached versions -->
+						<php expression="version_compare('${latestFof4.version}','${fof4cache.version}','gt') ? 1 : 0" returnProperty="has_newer_fof4" />
+						<if>
+							<equals arg1="${has_newer_fof4}" arg2="1" />
+							<then>
+								<httpget url="${latestFof4.download}" dir="${dirs.root}/../buildfiles/cache" filename="lib_fof40.zip" followRedirects="true" />
+								<copy file="${dirs.release}/fof4.xml" todir="${dirs.root}/../buildfiles/cache" />
+							</then>
+						</if>
+
+						<!-- Copy the cached FOF release -->
+						<copy file="${dirs.root}/../buildfiles/cache/lib_fof40.zip" todir="${dirs.release}" />
+
+						<!-- Clean up -->
+						<delete file="${dirs.release}/fof4.xml" />
+					</else>
+				</if>
+			</then>
+		</if>
+	</target>
+
+	<!--
 	Internal task to put the correct Akeeba Strapper package in your release directory as file_strapper30.zip
 
 	If you are building a dev release (the name contains the string dev, rev, git or svn) we'll include a dev build of
@@ -1156,7 +1259,7 @@ Akeeba Build Files
 	<!--
 	Builds all Core and Pro packages (pkg_something*.zip)
 	-->
-	<target name="package-pkg" description="Installation package (pkg_something)" depends="new-release, setup-properties, package-com, package-files, package-modules, package-plugins, package-fof, package-strapper, package-fef">
+	<target name="package-pkg" description="Installation package (pkg_something)" depends="new-release, setup-properties, package-com, package-files, package-modules, package-plugins, package-fof, package-fof4, package-strapper, package-fef">
 
 		<!-- Build the Core package -->
 		<phingcall target="package-pkg-builder">
