@@ -161,7 +161,7 @@ class BuilderBare extends Builder
 			}
 			elseif (!$isBackend && !isset($this->siteLangFiles[$langCode]))
 			{
-				$this->adminLangFiles[$langCode] = [];
+				$this->siteLangFiles[$langCode] = [];
 			}
 
 			foreach (new DirectoryIterator($oFolder->getPathname()) as $oFile)
