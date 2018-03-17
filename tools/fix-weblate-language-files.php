@@ -51,112 +51,46 @@ class Scanner
 {
 	private $repoRoot;
 
-	private $langDir = 'translations';
-
 	private $cliOptions;
 
 	public function __construct(string $repoRoot, OptionResult $cliOptions)
 	{
 		$this->repoRoot   = $repoRoot;
 		$this->cliOptions = $cliOptions;
-		$this->langDir    = $cliOptions->get('directory');
 	}
 
-	public function run()
+	public function run($myRoot = null)
 	{
-		$myRoot      = $this->repoRoot . '/' . $this->langDir;
-
-		foreach (new DirectoryIterator($myRoot) as $oArea)
+		if (is_null($myRoot))
 		{
-			if (!$oArea->isDir() || $oArea->isDot())
-			{
-				continue;
-			}
-
-			$area    = $oArea->getFilename();
-			$areaDir = $myRoot . '/' . $area;
-
-			foreach (new DirectoryIterator($areaDir) as $oFolder)
-			{
-				if ($oFolder->isDot())
-				{
-					continue;
-				}
-
-				// ANGIE and Kickstart languages are shallower
-				if (!$oFolder->isDir() && ($oFolder->getExtension() == 'ini'))
-				{
-					$this->processLanguageFolder($areaDir);
-
-					continue 2;
-				}
-
-				$folder    = $oFolder->getFilename();
-				$folderDir = $areaDir . '/' . $folder;
-
-				// Is this a component?
-				if (is_dir($folderDir . '/en-GB'))
-				{
-					$this->processTopLevelFolder($folderDir);
-
-					continue;
-				}
-
-				// Is this a module or plugin?
-				foreach (new DirectoryIterator($folderDir) as $oExtension)
-				{
-					if (!$oExtension->isDir() || $oExtension->isDot())
-					{
-						continue;
-					}
-
-					$extension    = $oExtension->getFilename();
-					$extensionDir = $folderDir . '/' . $extension;
-
-					if (is_dir($extensionDir . '/en-GB'))
-					{
-						$this->processTopLevelFolder($extensionDir);
-					}
-				}
-			}
+			$myRoot      = $this->repoRoot;
 		}
-	}
 
-	/**
-	 * Process a top level folder. It has subfolders for each language, e.g. en-GB, el-GR etc. Each subfolder has the
-	 * INI files I need to process.
-	 *
-	 * @param   string  $folder  The folder to process
-	 *
-	 * @return  void
-	 */
-	protected function processTopLevelFolder($folder)
-	{
-		$di = new DirectoryIterator($folder);
-
-		foreach ($di as $subFolder)
+		foreach (new DirectoryIterator($myRoot) as $item)
 		{
-			if (!$subFolder->isDir() || $subFolder->isDot())
+			if ($item->isDot())
 			{
 				continue;
 			}
 
-			$this->processLanguageFolder($subFolder->getPathname());
-		}
-	}
+			if ($item->isDir())
+			{
+				$this->run($item->getPathname());
 
-	protected function processLanguageFolder($folder)
-	{
-		$di = new DirectoryIterator($folder);
+				continue;
+			}
 
-		foreach ($di as $file)
-		{
-			if (!$file->isFile() || ($file->getExtension() != 'ini'))
+			if (!$item->isFile())
 			{
 				continue;
 			}
 
-			$this->processLanguageFile($file->getPathname());
+			if ($item->getExtension() != 'ini')
+			{
+				continue;
+			}
+
+			$this->processLanguageFile($item->getPathname());
 		}
 	}
 
@@ -246,17 +180,16 @@ class Scanner
 			return;
 		}
 
+		echo "\tCONVERTED\n";
+
 		// Write the file back
 		file_put_contents($filePath, $result);
 	}
 }
 
 $specs = new OptionCollection;
-$specs->add('r|repo?', 'Repository working copy to scan (default: current working directory).')
+$specs->add('r|repo?', 'Directory holding INI files to scan recursively (default: current working directory).')
 	->isa('String');
-$specs->add('d|directory?', 'Language directory in the repository (default: "translations").')
-	->isa('String')
-	->defaultValue("translations");
 
 try
 {
