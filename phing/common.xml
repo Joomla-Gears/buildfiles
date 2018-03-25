@@ -1371,4 +1371,23 @@ will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASE
     <target name="lang">
         <echo message="The lang task is obsolete." />
     </target>
+
+    <target name="info">
+        <php function="php_ini_loaded_file" returnProperty="inifiles" />
+        <php function="php_ini_scanned_files" returnProperty="extrainifiles" />
+
+        <echo message="Phing v.${phing.version} running on ${os.name}" />
+        <echo message="Host OS ${host.os} release ${host.os.release} version ${host.os.version}" />
+        <echo message="PHP version: ${php.version}" />
+        <echo message="PHP ini file: ${inifiles}" />
+        <echo message="PHP additional ini files: ${extrainifiles}" />
+        <echo message="Host architecture ${host.arch} – fstype ${host.fstype}" />
+        <echo message="Host domain ${host.domain}" />
+        <echo message="CWD ${application.startdir}" />
+        <echo message="phing.file ${phing.file}" />
+        <echo message="phing.home ${phing.home}" />
+        <echo message="phing.dir ${phing.dir}" />
+        <echo message="phing.project.name ${phing.project.name}" />
+        <echo message="project.basedir ${project.basedir}" />
+    </target>
 </project>
