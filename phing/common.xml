@@ -37,6 +37,8 @@ Akeeba Build Files
 	<property name="build.fof4" value="0" />
 	<!-- ### Should I include Akeeba Frontend Framework in the build? -->
 	<property name="build.fef" value="0" />
+	<!-- Initialize the site parameter for relink -->
+	<property name="site" value="${build.relink_site}" />
 
     <!-- ### Version numbers -->
     <property name="version" value="git" />
@@ -554,6 +556,15 @@ Akeeba Build Files
     site        Absolute filesystem path to the Joomla! installation
     -->
     <target name="relink" description="Project relinker">
+		<!-- Initialize the site variable if it's not set -->
+		<if>
+			<equals arg1="${site}" arg2="" />
+			<then>
+				<echo message="FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA " />
+				<property name="site" value="${build.relink_site}" override="true" />
+			</then>
+		</if>
+
         <relinksite site="${site}" repository="${dirs.root}" />
     </target>
 
