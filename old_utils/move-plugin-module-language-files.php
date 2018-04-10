@@ -5,7 +5,7 @@
  * Move the plugin and module language files into the /translations folder of the repository
  *
  * @package    buildfiles
- * @copyright  (c) 2010-2017 Akeeba Ltd
+ * @copyright  (c) 2010-2018 Akeeba Ltd
  */
 
 function moveTheFiles($root, $target)

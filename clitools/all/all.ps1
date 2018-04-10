@@ -1,7 +1,7 @@
 # Akeeba Build Files
 #
 # @package    buildfiles
-# @copyright  (c) 2010-2017 Akeeba Ltd
+# @copyright  (c) 2010-2018 Akeeba Ltd
 #
 Param(
 	[string]$operation
