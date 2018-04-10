@@ -70,6 +70,7 @@ Akeeba Build Files
 	<!-- See https://github.com/rchouinard/phing-tasks/blob/master/classes/rych/tasks/YuiCompressorTask.php -->
     <taskdef name="yuicompressor" classname="tasks.YuiCompressorTask" />
     <taskdef name="closure" classname="tasks.ClosureTask" />
+    <taskdef name="bladejoomla" classname="tasks.BladeJoomlaTask" />
 
 	<!--
 	Generate the installation packages and the documentation
@@ -589,7 +590,7 @@ Akeeba Build Files
 	<!--
 	Generates the component installation ZIP files for the Pro and Core releases
 	-->
-	<target name="package-com" description="Builds the component">
+	<target name="package-com" depends="bladejoomla" description="Builds the component">
 
 		<!-- Build the Core package -->
 		<phingcall target="package-com-builder">
@@ -1382,6 +1383,31 @@ will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASE
     <target name="lang">
         <echo message="The lang task is obsolete." />
     </target>
+
+	<target name="bladejoomla" description="Precompiles Blade templates for Joomla! components">
+		<!-- Remove the PrecompiledTemplates folders from the front- and backend -->
+		<delete quiet="true" includeemptydirs="true" dir="${dirs.component}/frontend/PrecompiledTemplates" />
+		<delete quiet="true" includeemptydirs="true" dir="${dirs.component}/backend/PrecompiledTemplates" />
+
+		<if>
+			<equals arg1="${build.precompile_blade}" arg2="1" />
+			<then>
+				<!-- Precompile all Blade templates -->
+				<bladejoomla site="${site}" component="com_${build.component}">
+					<dirset dir="${dirs.component}/frontend">
+						<include name="views" />
+						<include name="View" />
+						<include name="ViewTemplates" />
+					</dirset>
+					<dirset dir="${dirs.component}/backend">
+						<include name="views" />
+						<include name="View" />
+						<include name="ViewTemplates" />
+					</dirset>
+				</bladejoomla>
+			</then>
+		</if>
+	</target>
 
     <target name="info">
         <php function="php_ini_loaded_file" returnProperty="inifiles" />
