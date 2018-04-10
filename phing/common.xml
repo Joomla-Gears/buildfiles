@@ -71,6 +71,7 @@ Akeeba Build Files
     <taskdef name="yuicompressor" classname="tasks.YuiCompressorTask" />
     <taskdef name="closure" classname="tasks.ClosureTask" />
     <taskdef name="bladejoomla" classname="tasks.BladeJoomlaTask" />
+    <taskdef name="bladeawf" classname="tasks.BladeAwfTask" />
 
 	<!--
 	Generate the installation packages and the documentation
