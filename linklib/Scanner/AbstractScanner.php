@@ -317,16 +317,28 @@ abstract class AbstractScanner implements ScannerInterface
 
 		if (!empty($hardfiles)) foreach($hardfiles as $from => $to)
 		{
-		    try
-            {
-                LinkHelper::hardlink($from, $to);
-            }
-            catch (\Exception $e)
-            {
-                // Hard link failure. We can live with that since usually it's referring to CLI scripts
-                echo "An error occurred while linking $from -> $to:";
-                echo "\t".$e->getMessage();
-            }
+			try
+			{
+				LinkHelper::hardlink($from, $to);
+
+				continue;
+			}
+			catch (\Exception $e)
+			{
+				// Hard link failure. We can live with that since usually it's referring to CLI scripts
+				echo "An error occurred while linking $from -> $to:";
+				echo "\t" . $e->getMessage() . "\n";
+			}
+
+			// If an exception was raised I retry with symlinks; necessary crossing filesystems, e.g. encrypted home
+			try
+			{
+				LinkHelper::symlink($from, $to);
+			}
+			catch (\Exception $e)
+			{
+				// Yeah, well, screw it.
+			}
 		}
 	}
 
