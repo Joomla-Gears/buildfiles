@@ -153,7 +153,23 @@ abstract class LinkHelper
 		}
 		else // $type == 'link'
 		{
-			$res = @link($realFrom, $realTo);
+			if ($isWindows)
+			{
+				$extraArguments = ' /H ';
+
+				if (is_dir($realFrom))
+				{
+					$extraArguments = ' /J ';
+				}
+
+				$relativeFrom = self::getRelativePath($realTo, $realFrom);
+				$cmd          = 'cmd /c mklink ' . $extraArguments . ' "' . $realTo . '" "' . $relativeFrom . '"';
+				$res          = exec($cmd);
+			}
+			else
+			{
+				$res = @link($realFrom, $realTo);
+			}
 		}
 
 		if (!$res)
