@@ -290,6 +290,23 @@ abstract class LinkHelper
 	 */
 	public static function getRelativePath(string $pathToConvert, string $basePath): string
 	{
+		// Windows: convert drive letter to uppercase
+		if (self::isWindows())
+		{
+			list($pathToConvert, $basePath) = array_map(function ($path) {
+				if (strpos($path, ':') === false)
+				{
+					return $path;
+				}
+
+				list($drive, $path) = explode(':', $path, 2);
+				$drive = strtoupper($drive);
+
+				return $drive . ':' . $path;
+
+			}, [$pathToConvert, $basePath]);
+		}
+
 		// Some compatibility fixes for Windows paths
 		$pathToConvert = is_dir($pathToConvert) ? rtrim($pathToConvert, '\/') . '/' : $pathToConvert;
 		$basePath      = is_dir($basePath) ? rtrim($basePath, '\/') . '/' : $basePath;
