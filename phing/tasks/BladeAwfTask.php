@@ -112,16 +112,19 @@ class BladeAwfTask extends Task
 		}
 
 		// Include the autoloader
-		if (false == include $this->site . '/' . $this->awfFolder . '/Autoloader/Autoloader.php')
+		if (!class_exists('Awf\\Autoloader\\Autoloader'))
 		{
-			throw new BuildException('Cannot load AWF autoloader');
+			if (false == include $this->site . '/' . $this->awfFolder . '/Autoloader/Autoloader.php')
+			{
+				throw new BuildException('Cannot load AWF autoloader');
+			}
 		}
 
 		// Do not remove. Required for magic autoloading of necessary files.
 		class_exists('\\Awf\\Utils\\Collection');
 
 		// Load the platform defines
-		if (!defined('APATH_BASE'))
+		if (!defined('APATH_BASE') && !class_exists('\\Awf\\Container\\Container'))
 		{
 			require_once $this->site . '/defines.php';
 		}
