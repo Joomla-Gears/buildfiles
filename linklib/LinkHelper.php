@@ -89,6 +89,7 @@ abstract class LinkHelper
 	 * @return  void
 	 *
 	 * @throw   \RuntimeException  If the link ($to) cannot be created / replaced
+	 * @throws  \Exception         Same as above; phpStorm simply doesn't understand it's the same case.
 	 */
 	public static function makeLink(string $from, string $to, string $type = 'symlink', string $path = null)
 	{
@@ -122,7 +123,7 @@ abstract class LinkHelper
 		// If the target already exists we need to remove it first
 		if (is_file($realTo) || is_dir($realTo) || is_link($realTo) || file_exists($realTo))
 		{
-			$res = self::unlink($realTo);
+			$res = self::unlink($realTo, true);
 
 			if (!$res)
 			{
@@ -210,11 +211,13 @@ abstract class LinkHelper
 	/**
 	 * Recursively delete a directory
 	 *
-	 * @param   string  $dir  The directory to remove
+	 * @param   string  $dir             The directory to remove
+	 * @param   bool    $throwException  Should I thow an exception if I can't delete something?
 	 *
 	 * @return  bool  True on success
+	 * @throws \Exception  If I can't delete something and $throwException is true
 	 */
-	public static function recursiveUnlink(string $dir): bool
+	public static function recursiveUnlink(string $dir, bool $throwException = false): bool
 	{
 		$return = true;
 
@@ -239,7 +242,7 @@ abstract class LinkHelper
 					// If rmdir failed (non-empty, real folder) we have to recursively delete it
 					if (!$deleteFolderResult)
 					{
-						$deleteFolderResult = self::recursiveUnlink($pathname);
+						$deleteFolderResult = self::recursiveUnlink($pathname, true);
 						$return             = $return && $deleteFolderResult;
 					}
 
@@ -276,6 +279,11 @@ abstract class LinkHelper
 		}
 		catch (\Exception $e)
 		{
+			if ($throwException)
+			{
+				throw $e;
+			}
+
 			return false;
 		}
 	}
@@ -353,10 +361,12 @@ abstract class LinkHelper
 	 * Finally, if the target is a real directory it will be deleted recursively.
 	 *
 	 * @param   string  $target  The target link / file / folder to delete.
+	 * @param   bool    $throw   Throw exception on failed deletion?
 	 *
 	 * @return  bool  True on success
+	 * @throws \Exception
 	 */
-	public static function unlink(string $target): bool
+	public static function unlink(string $target, bool $throw = false): bool
 	{
 		$isWindows = self::isWindows();
 
@@ -384,7 +394,7 @@ abstract class LinkHelper
 		// Is this is an actual directory, not an old symlink, by any chance?
 		if (!$res && is_dir($target))
 		{
-			$res = self::recursiveUnlink($target);
+			$res = self::recursiveUnlink($target, $throw);
 		}
 
 		return $res;
