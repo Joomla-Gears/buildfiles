@@ -562,7 +562,6 @@ Akeeba Build Files
 		<if>
 			<equals arg1="${site}" arg2="" />
 			<then>
-				<echo message="FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA FOLA " />
 				<property name="site" value="${build.relink_site}" override="true" />
 			</then>
 		</if>
