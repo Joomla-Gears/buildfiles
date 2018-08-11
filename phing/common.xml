@@ -64,6 +64,7 @@ Akeeba Build Files
     <taskdef name="link" classname="tasks.LinkTask" />
     <taskdef name="projectlink" classname="tasks.ProjectLinkTask" />
     <taskdef name="relinksite" classname="tasks.RelinkSiteTask" />
+    <taskdef name="relinkwp" classname="tasks.RelinkWPSiteTask" />
     <taskdef name="zipme" classname="tasks.ZipmeTask" />
     <taskdef name="docbook2fo" classname="tasks.DocBookToFoTask" />
     <taskdef name="docbook2epub" classname="tasks.DocBookToEpubTask" />
@@ -557,7 +558,7 @@ Akeeba Build Files
 
     site        Absolute filesystem path to the Joomla! installation
     -->
-    <target name="relink" description="Project relinker">
+    <target name="relink" description="Joomla! extension relinker">
 		<!-- Initialize the site variable if it's not set -->
 		<if>
 			<equals arg1="${site}" arg2="" />
@@ -567,6 +568,23 @@ Akeeba Build Files
 		</if>
 
         <relinksite site="${site}" repository="${dirs.root}" />
+    </target>
+
+    <!--
+    Symlink the plugin to a WordPress installation
+
+    site        Absolute filesystem path to the Joomla! installation
+    -->
+    <target name="relinkwp" description="WordPress plugin relinker">
+		<!-- Initialize the site variable if it's not set -->
+		<if>
+			<equals arg1="${site}" arg2="" />
+			<then>
+				<property name="site" value="${build.relink_site}" override="true" />
+			</then>
+		</if>
+
+        <relinkwp site="${site}" repository="${dirs.root}" />
     </target>
 
 	<!--
