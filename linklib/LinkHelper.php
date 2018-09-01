@@ -142,8 +142,31 @@ abstract class LinkHelper
 					$extraArguments = ' /D ';
 				}
 
-				$relativeFrom = self::getRelativePath($realTo, $realFrom);
-				$cmd          = 'cmd /c mklink ' . $extraArguments . ' "' . $realTo . '" "' . $relativeFrom . '"';
+				/**
+				 * !!! DO NOT CHANGE THIS !!!
+				 *
+				 * We use $realFrom instead of $relativeFrom on Windows because of the way nested symlinks are resolved
+				 * on Windows (at least by IIS - didn't have this problem with Apache as far as I can remember). It's
+				 * easier to explain this with an example.
+				 *
+				 * If you have
+				 *   c:\inetpub\wwwroot\foobar ==> c:\Users\MyUser\Project\foobar
+				 * and
+				 *   c:\Users\MyUser\Project\foobar\baz ==> ../../baz
+				 * you would expect that accessing
+				 *   http://foobar/baz
+				 * would load the contents of
+				 *   c:\Users\MyUser\Project\baz
+				 * since you're telling IIS to resolve the nested symlink c:\inetpub\wwwroot\foobar\baz. However,
+				 *   c:\inetpub\wwwroot\foobar\baz ==> ../baz
+				 * which resolves to
+				 *   c:\inetpub\wwwroot\baz
+				 * which does not exist. Therefore you get a 404. That is, the nested symlink resolution does not happen
+				 * against the real path of the container but the symlinked path (unlike *NIX). The only way to have
+				 * nested symlinks work with IIS is using absolute paths for the link targets.
+				 */
+				// $relativeFrom = self::getRelativePath($realTo, $realFrom);
+				$cmd          = 'cmd /c mklink ' . $extraArguments . ' "' . $realTo . '" "' . $realFrom . '"';
 				$res          = exec($cmd);
 			}
 			else
