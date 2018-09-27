@@ -235,7 +235,7 @@ class ProjectLinker
 					echo "-- $from => $to\n";
 				}
 
-				LinkHelper::makeLink($from, $to, 'link', $this->repositoryRoot);
+				LinkHelper::makeLink($from, $to, 'link');
 			}
 		}
 
@@ -253,7 +253,7 @@ class ProjectLinker
 					echo "-- $from => $to\n";
 				}
 
-				LinkHelper::makeLink($from, $to, 'symlink', $this->repositoryRoot);
+				LinkHelper::makeLink($from, $to, 'symlink');
 			}
 		}
 
@@ -271,7 +271,7 @@ class ProjectLinker
 					echo "-- $from => $to\n";
 				}
 
-				LinkHelper::makeLink($from, $to, 'symlink', $this->repositoryRoot);
+				LinkHelper::makeLink($from, $to, 'symlink');
 			}
 		}
 	}

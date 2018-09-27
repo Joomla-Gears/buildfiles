@@ -128,6 +128,13 @@ class RelinkWPSiteTask extends Task
 
 		foreach ($pathArray as $local => $sitePath)
 		{
+			$local = realpath($this->repository . '/' . $local);
+
+			if (empty($local))
+			{
+				continue;
+			}
+
 			$temp[$local] = $this->site . '/' . $sitePath;
 		}
 
