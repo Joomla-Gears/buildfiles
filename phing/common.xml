@@ -39,6 +39,7 @@ Akeeba Build Files
 	<property name="build.fef" value="0" />
 	<!-- Initialize the site parameter for relink -->
 	<property name="site" value="${build.relink_site}" />
+	<property name="sitewp" value="${build.relink_sitewp}" />
 
     <!-- ### Version numbers -->
     <property name="version" value="git" />
@@ -578,13 +579,13 @@ Akeeba Build Files
     <target name="relinkwp" description="WordPress plugin relinker">
 		<!-- Initialize the site variable if it's not set -->
 		<if>
-			<equals arg1="${site}" arg2="" />
+			<equals arg1="${sitewp}" arg2="" />
 			<then>
-				<property name="site" value="${build.relink_site}" override="true" />
+				<property name="sitewp" value="${build.relink_sitewp}" override="true" />
 			</then>
 		</if>
 
-        <relinkwp site="${site}" repository="${dirs.root}" />
+        <relinkwp site="${sitewp}" repository="${dirs.root}" />
     </target>
 
 	<!--
