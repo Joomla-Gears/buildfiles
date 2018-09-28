@@ -88,7 +88,7 @@ class RelinkWPSiteTask extends Task
 		}
 
 		$linker = new \Akeeba\LinkLibrary\ProjectLinker();
-		$linker->setRepositoryRoot($this->repository);
+		$linker->setRepositoryRoot('.');
 
 		include $this->repository . '/build/templates/relink-wp.php';
 
