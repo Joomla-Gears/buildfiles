@@ -74,6 +74,7 @@ Akeeba Build Files
     <taskdef name="closure" classname="tasks.ClosureTask" />
     <taskdef name="bladejoomla" classname="tasks.BladeJoomlaTask" />
     <taskdef name="bladeawf" classname="tasks.BladeAwfTask" />
+    <taskdef name="curlsftp" classname="tasks.CurlSftpTask" />
 
 	<!--
 	Generate the installation packages and the documentation
@@ -315,7 +316,7 @@ Akeeba Build Files
     <target name="docbook-deploy" >
         <basename property="docsdeploy.name" file="${docsdeploy.path.source}" />
         <echo>Uploading ${docsdeploy.name}</echo>
-        <scp
+        <curlsftp
                 host="${scp.host}"
                 port="${scp.port}"
                 username="${scp.username}"
@@ -330,7 +331,7 @@ Akeeba Build Files
                 <include name="images/**"/>
                 <include name="chapters/**"/>
             </fileset>
-        </scp>
+        </curlsftp>
     </target>
 
     <!--
@@ -502,7 +503,7 @@ Akeeba Build Files
             <isset property="ftpdeploy.pattern.core" />
             <then>
                 <echo>Uploading Core release</echo>
-                <scp
+                <curlsftp
                         host="${scp.host}"
                         port="${scp.port}"
                         username="${scp.username}"
@@ -518,7 +519,7 @@ Akeeba Build Files
                     <fileset dir="${dirs.release}">
                         <include name="${ftpdeploy.pattern.core}"/>
                     </fileset>
-                </scp>
+                </curlsftp>
             </then>
         </if>
 
@@ -526,7 +527,7 @@ Akeeba Build Files
             <isset property="ftpdeploy.pattern.pro" />
             <then>
                 <echo>Uploading Professional release</echo>
-                <scp
+                <curlsftp
                         host="${scp.host}"
                         port="${scp.port}"
                         username="${scp.username}"
@@ -542,7 +543,7 @@ Akeeba Build Files
                     <fileset dir="${dirs.release}">
                         <include name="${ftpdeploy.pattern.pro}"/>
                     </fileset>
-                </scp>
+                </curlsftp>
             </then>
         </if>
     </target>
