@@ -98,7 +98,7 @@ abstract class LinkHelper
 		$realFrom  = $from;
 
 		// If from / to are relative to a path let's combine them
-		if (!empty($path))
+		if (!empty($path) && ($path !== '.'))
 		{
 			$realTo   = self::rebaseFolder($to, $path);
 			$realFrom = self::rebaseFolder($from, $path);
