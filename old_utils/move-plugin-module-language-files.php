@@ -1,11 +1,14 @@
 <?php
 /**
- * Akeeba Build Files
- *
- * Move the plugin and module language files into the /translations folder of the repository
+ * Akeeba Build Tools
  *
  * @package    buildfiles
- * @copyright  (c) 2010-2018 Akeeba Ltd
+ * @license    GNU/GPL v3
+ * @copyright  Copyright (c)2010-2019 Nicholas K. Dionysopoulos / Akeeba Ltd
+ */
+
+/**
+ * Move the plugin and module language files into the /translations folder of the repository
  */
 
 function moveTheFiles($root, $target)

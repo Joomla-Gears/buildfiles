@@ -1,10 +1,13 @@
 <?php
 /**
- * Akeeba Build Files
+ * Akeeba Build Tools
  *
  * @package    buildfiles
- * @copyright  (c) 2010-2018 Akeeba Ltd
- *
+ * @license    GNU/GPL v3
+ * @copyright  Copyright (c)2010-2019 Nicholas K. Dionysopoulos / Akeeba Ltd
+ */
+
+/**
  * Fixes the translation INI files to be compatible with Joomla! 1.5 and 1.6
  */
 

@@ -2,9 +2,9 @@
 /**
  * Akeeba Build Tools
  *
- * @package        buildfiles
- * @license        GPL v3
- * @copyright Copyright (c)2010-2018 Nicholas K. Dionysopoulos / Akeeba Ltd
+ * @package    buildfiles
+ * @license    GNU/GPL v3
+ * @copyright  Copyright (c)2010-2019 Nicholas K. Dionysopoulos / Akeeba Ltd
  */
 
 namespace Akeeba\LinkLibrary\Scanner;

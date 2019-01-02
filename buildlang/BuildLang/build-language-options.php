@@ -2,12 +2,14 @@
 /**
  * Akeeba Build Tools
  *
+ * @package    buildfiles
+ * @license    GNU/GPL v3
+ * @copyright  Copyright (c)2010-2019 Nicholas K. Dionysopoulos / Akeeba Ltd
+ */
+
+/**
  * Script to move the language files of an Akeeba repository for a Joomla! extension back to the translations folder
  * in the root of the site.
- *
- * @package        buildfiles
- * @license        GPL v3
- * @copyright Copyright (c)2010-2018 Nicholas K. Dionysopoulos / Akeeba Ltd
  */
 
 use GetOptionKit\OptionCollection;

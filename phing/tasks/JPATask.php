@@ -1,9 +1,10 @@
 <?php
 /**
- * Akeeba Build Files
+ * Akeeba Build Tools
  *
  * @package    buildfiles
- * @copyright  (c) 2010-2018 Akeeba Ltd
+ * @license    GNU/GPL v3
+ * @copyright  Copyright (c)2010-2019 Nicholas K. Dionysopoulos / Akeeba Ltd
  */
 
 //require_once "phing/Task.php";

@@ -1,4 +1,11 @@
 <?php
+/**
+ * Akeeba Build Tools
+ *
+ * @package    buildfiles
+ * @license    GNU/GPL v3
+ * @copyright  Copyright (c)2010-2019 Nicholas K. Dionysopoulos / Akeeba Ltd
+ */
 
 class ClosureTask extends Task
 {

@@ -2,11 +2,13 @@
 /**
  * Akeeba Build Tools
  *
+ * @package    buildfiles
+ * @license    GNU/GPL v3
+ * @copyright  Copyright (c)2010-2019 Nicholas K. Dionysopoulos / Akeeba Ltd
+ */
+
+/**
  * Script to relink the repository's extensions to a Joomla site
- *
- * @package        buildfiles
- * @license        GPL v3
- * @copyright Copyright (c)2010-2018 Nicholas K. Dionysopoulos / Akeeba Ltd
  */
 
 /**
