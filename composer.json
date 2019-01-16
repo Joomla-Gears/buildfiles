@@ -27,6 +27,7 @@
     "php-http/guzzle6-adapter": "^1.1",
     "corneltek/getoptionkit": "^2.6.0",
     "czproject/git-php": "^3.10.0",
-    "akeeba/s3": "dev-master"
+    "akeeba/s3": "dev-master",
+    "phpunit/phpunit": "^7.5"
   }
 }
