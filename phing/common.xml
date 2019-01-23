@@ -76,6 +76,8 @@ Akeeba Build Tools
     <taskdef name="bladejoomla" classname="tasks.BladeJoomlaTask" />
     <taskdef name="bladeawf" classname="tasks.BladeAwfTask" />
     <taskdef name="curlsftp" classname="tasks.CurlSftpTask" />
+	<taskdef name="svnadd" classname="tasks.SvnaddTask"/>
+	<taskdef name="svnremove" classname="tasks.SvnremoveTask"/>
 
 	<!--
 	Generate the installation packages and the documentation
