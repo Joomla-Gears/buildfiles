@@ -3,6 +3,12 @@ define('IS_WINDOWS', substr(PHP_OS, 0, 3) == 'WIN');
 
 require_once 'phing/Task.php';
 
+/**
+ * This task will remove obsolete files from a SVN working copy.
+ * This is a tricky task since we have several symlinks, the easiest way is to copy all files to a temporary directory
+ * and then run a diff between the exported files and the working copy. Files that are only inside the working copy are
+ * the obsolete ones, thus they must be deleted
+ */
 class SvnremoveTask extends ExecTask
 {
 	/**
@@ -49,6 +55,7 @@ class SvnremoveTask extends ExecTask
 		 */
 		$obsolete_paths = [];
 		exec("diff --brief --recursive ".$this->gitExport." ".$this->workingCopy." 2>/dev/null | grep '^Only in'", $obsolete_paths);
+
 		chdir($this->workingCopy);
 
 		$out = [];
@@ -70,11 +77,13 @@ class SvnremoveTask extends ExecTask
 
 			$out[] = "\tRemoving ".$line;
 
+			// The SVN rm command removes the file (or folder) from the disk AND from the CVS index
 			exec('svn rm '.$line);
 		}
 
 		chdir($cwd);
 
+		// Useful for debug or simply for feedback
 		$this->project->setProperty('svn.output', implode("\r\n", $out));
 	}
 }

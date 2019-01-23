@@ -3,6 +3,9 @@ define('IS_WINDOWS', substr(PHP_OS, 0, 3) == 'WIN');
 
 require_once 'phing/Task.php';
 
+/**
+ * This task will add any new file to the version control
+ */
 class SvnaddTask extends ExecTask
 {
 	/**
