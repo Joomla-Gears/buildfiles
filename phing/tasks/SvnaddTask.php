@@ -38,6 +38,6 @@ class SvnaddTask extends ExecTask
 		exec('svn status | grep -v "^.[ \t]*\..*" | grep "^?" && svn status | grep -v "^.[ \t]*\..*" | grep "^?" | awk \'{print $2}\' | xargs svn add', $out);
 		chdir($cwd);
 
-		$this->project->setProperty('svn.output', count($out));
+		$this->project->setProperty('svn.output', "Added files: ".implode("\r\n", $out));
 	}
 }
