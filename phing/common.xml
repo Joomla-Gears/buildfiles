@@ -78,6 +78,7 @@ Akeeba Build Tools
     <taskdef name="curlsftp" classname="tasks.CurlSftpTask" />
 	<taskdef name="svnadd" classname="tasks.SvnaddTask"/>
 	<taskdef name="svnremove" classname="tasks.SvnremoveTask"/>
+	<taskdef name="xmlversion" classname="tasks.XmlVersionTask"/>
 
 	<!--
 	Generate the installation packages and the documentation
@@ -608,7 +609,14 @@ Akeeba Build Tools
 
 	DO NOT OVERRIDE THE OTHER TASKS INVOLVED IN PACKAGE BUILDING. Please consult the README.md for information.
 	-->
-	<target name="component-packages" depends="package-pkg" />
+	<target name="component-packages" depends="xml-version,package-pkg" />
+
+	<!--
+	Modify the XML manifest files applying the build date and version
+	-->
+	<target name="xml-version" depends="setup-properties">
+		<xmlversion repository="${dirs.root}" version="${version}" date="${build.date}" />
+	</target>
 
 	<!--
 	Generates the component installation ZIP files for the Pro and Core releases
