@@ -125,6 +125,7 @@ class ProjectLinker
 				case 'library':
 					// Drop the mod_/tpl_ prefix
 					$bareExtensionName = substr($scanResults->extension, 4);
+					// "librarie" is not a typo. We add the "s" further below.
 					$prefix            = ($scanResults->extensionType == 'library') ? 'librarie' : $scanResults->extensionType;
 					$siteAdmin         = ($scanResults->extensionType == 'library') ? 'frontend' : 'site';
 
@@ -136,7 +137,7 @@ class ProjectLinker
 
 					if (is_array($scanResults->adminLangFiles) && isset($scanResults->adminLangFiles['en-GB']))
 					{
-
+						$siteAdmin                      = ($scanResults->extensionType == 'module') ? 'admin' : $siteAdmin;
 						$source                         = $this->getRelativePath(dirname($scanResults->adminLangFiles['en-GB'][0]));
 						$this->symlink_folders[$source] = "{$prefix}s/$siteAdmin/$bareExtensionName/language/en-GB";
 					}
