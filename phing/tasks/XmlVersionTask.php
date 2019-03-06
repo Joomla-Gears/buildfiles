@@ -53,6 +53,11 @@ class XmlVersionTask extends Task
 
 	private function scan($baseDir, $level = 0)
 	{
+		if (!is_dir($baseDir))
+		{
+			return;
+		}
+
 		$di = new DirectoryIterator($baseDir);
 
 		foreach ($di as $entry)
