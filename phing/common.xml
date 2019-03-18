@@ -615,7 +615,26 @@ Akeeba Build Tools
 	Modify the XML manifest files applying the build date and version
 	-->
 	<target name="xml-version" depends="setup-properties">
-		<xmlversion repository="${dirs.root}" version="${version}" date="${build.date}" />
+
+		<if>
+			<and>
+				<not>
+					<contains string="${version}" substring="rev"/>
+				</not>
+				<not>
+					<contains string="${version}" substring="dev"/>
+				</not>
+				<not>
+					<contains string="${version}" substring="git"/>
+				</not>
+				<not>
+					<contains string="${version}" substring="svn"/>
+				</not>
+			</and>
+			<then>
+				<xmlversion repository="${dirs.root}" version="${version}" date="${build.date}"/>
+			</then>
+		</if>
 	</target>
 
 	<!--
