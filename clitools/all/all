@@ -16,6 +16,7 @@ usage () {
 	echo "branch  Which branch am I in?"
 	echo -e $COLOR_BLUE"Using Akeeba Build Files"$COLOR_NC
 	echo "link    Internal relink"
+	echo "relink  Relink to a site, e.g. %0 relink /var/www/mysite"
 	echo -e $COLOR_BLUE"Using Transifex"$COLOR_NC
 	echo "txpush  Push source translations to Trasnifex"
 	echo "txpull  Pull all translations from Transifex"
@@ -115,6 +116,15 @@ do
 				echo -e "\n"$COLOR_BROWN"Linking $COLOR_CYAN$d"$COLOR_NC
 				cd build
 				phing link
+			fi
+			;;
+
+		relink )
+			if [ -d build ]
+			then
+				echo -e "\n"$COLOR_BROWN"Relinking $COLOR_CYAN$d"$COLOR_NC
+				cd build
+				phing relink -Dsite=$2
 			fi
 			;;
 

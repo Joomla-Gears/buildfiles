@@ -4,7 +4,8 @@
 # @copyright  (c) 2010-2019 Akeeba Ltd
 #
 Param(
-	[string]$operation
+	[string]$operation,
+	[string]$sitepath
 )
 
 function showUsage()
@@ -19,6 +20,7 @@ function showUsage()
 	Write-Host "fixcrlf  Fix CRLF under Windows"
 	Write-Host Using Akeeba Build Files -Foreground Blue
 	Write-Host "link     Internal relink"
+	Write-Host "relink   Relink to a site, e.g. all relink c:\sites\mysite"
 }
 
 if (!$operation)
@@ -85,6 +87,17 @@ Get-ChildItem -Directory | ForEach-Object {
 			}
 		}
 		
+		"relink" {
+			if (Test-Path build)
+			{
+				Write-Host "Relinking " -Foreground Red -NoNewline
+				Write-Host $d -Foreground Cyan
+
+				cd build
+				phing relink -Dsite=$sitepath
+			}
+		}
+
 		"branch" {
 			$currentBranch = git rev-parse --abbrev-ref HEAD
 			$color = "Red"
