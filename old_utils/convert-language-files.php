@@ -34,18 +34,37 @@ function scanDirectory($dir)
 	return $files;
 }
 
-function parse_ini_file_php($file, $process_sections = false, $raw_data = false)
+/**
+ * A PHP based INI file parser.
+ *
+ * Thanks to asohn ~at~ aircanopy ~dot~ net for posting this handy function on
+ * the parse_ini_file page on http://gr.php.net/parse_ini_file
+ *
+ * @param    string $file             Filename to process
+ * @param    bool   $process_sections True to also process INI sections
+ * @param    bool   $rawdata          If true, the $file contains raw INI data, not a filename
+ *
+ * @return    array    An associative array of sections, keys and values
+ */
+function parse_ini_file_php($file, $process_sections = false, $rawdata = false)
 {
 	$process_sections = ($process_sections !== true) ? false : true;
 
-	if (!$raw_data)
+	if (!$rawdata)
 	{
-		$ini = @file($file);
+		$ini = file($file);
 	}
 	else
 	{
-		$ini = $file;
+		$file = str_replace("\r", "", $file);
+		$ini = explode("\n", $file);
 	}
+
+	if (!is_array($ini))
+	{
+		return array();
+	}
+
 	if (count($ini) == 0)
 	{
 		return array();
@@ -68,7 +87,7 @@ function parse_ini_file_php($file, $process_sections = false, $raw_data = false)
 		}
 
 		// Sections
-		if ($line{0} == '[')
+		if ($line[0] == '[')
 		{
 			$tmp = explode(']', $line);
 			$sections[] = trim(substr($tmp[0], 1));
@@ -77,15 +96,21 @@ function parse_ini_file_php($file, $process_sections = false, $raw_data = false)
 		}
 
 		// Key-value pair
-		list($key, $value) = explode('=', $line, 2);
-		$key = trim($key);
-		$value = trim($value);
+		$lineParts = explode('=', $line, 2);
+		if (count($lineParts) != 2)
+		{
+			continue;
+		}
+		$key = trim($lineParts[0]);
+		$value = trim($lineParts[1]);
+		unset($lineParts);
+
 		if (strstr($value, ";"))
 		{
 			$tmp = explode(';', $value);
 			if (count($tmp) == 2)
 			{
-				if ((($value{0} != '"') && ($value{0} != "'")) ||
+				if ((($value[0] != '"') && ($value[0] != "'")) ||
 					preg_match('/^".*"\s*;/', $value) || preg_match('/^".*;[^"]*$/', $value) ||
 					preg_match("/^'.*'\s*;/", $value) || preg_match("/^'.*;[^']*$/", $value)
 				)
@@ -95,11 +120,11 @@ function parse_ini_file_php($file, $process_sections = false, $raw_data = false)
 			}
 			else
 			{
-				if ($value{0} == '"')
+				if ($value[0] == '"')
 				{
 					$value = preg_replace('/^"(.*)".*/', '$1', $value);
 				}
-				elseif ($value{0} == "'")
+				elseif ($value[0] == "'")
 				{
 					$value = preg_replace("/^'(.*)'.*/", '$1', $value);
 				}
@@ -140,11 +165,17 @@ function parse_ini_file_php($file, $process_sections = false, $raw_data = false)
 	{
 		if ($process_sections === true)
 		{
-			$result[$sections[$j]] = $values[$j];
+			if (isset($sections[$j]) && isset($values[$j]))
+			{
+				$result[$sections[$j]] = $values[$j];
+			}
 		}
 		else
 		{
-			$result[] = $values[$j];
+			if (isset($values[$j]))
+			{
+				$result[] = $values[$j];
+			}
 		}
 	}
 
