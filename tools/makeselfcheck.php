@@ -35,12 +35,6 @@ for ($i = 0; $i < $zip->numFiles; $i++)
 		continue;
 	}
 
-	// Skip FOF and Akeeba Strapper files
-	if ((strpos($filename, 'fof/') === 0) || (strpos($filename, 'strapper/') === 0))
-	{
-		continue;
-	}
-
 	// Skip backend/fileslist.php
 	if ($filename == 'backend/fileslist.php')
 	{

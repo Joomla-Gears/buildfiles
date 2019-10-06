@@ -207,7 +207,7 @@ upgrade from Core to Pro version without messing up the `#__extensions` table's 
 
 ### Including other extensions in your package
 
-If you want to include extensions other than the component, modules and plugins (and FOF 3 and Strapper) built by the
+If you want to include extensions other than the component, modules and plugins (and FOF 3) built by the
 Common Phing Script you will need to override the `component-packages` target. *Do not override any other target
 involved in package building*. The dependencies must be added BEFORE the `package-pkg` dependency. For example:
 

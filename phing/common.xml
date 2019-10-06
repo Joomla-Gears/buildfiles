@@ -30,8 +30,6 @@ Akeeba Build Tools
     <property name="dirs.bin.libxml" value="${dirs.bin}/libxml" />
     <property name="dirs.bin.fop" value="${dirs.bin}/fop" />
     <property name="dirs.bin.dbxsl" value="${dirs.bin}/dbxsl" />
-	<!-- ### Should I include Strapper in the build? -->
-	<property name="build.strapper" value="1" />
     <!-- ### Should I include FOF 3.x in the build? -->
 	<property name="build.fof" value="1" />
     <!-- ### Should I include FOF 4.x in the build? -->
@@ -1122,107 +1120,6 @@ will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASE
 	</target>
 
 	<!--
-	Internal task to put the correct Akeeba Strapper package in your release directory as file_strapper30.zip
-
-	If you are building a dev release (the name contains the string dev, rev, git or svn) we'll include a dev build of
-	Strapper. THIS IS NOT RECOMMENDED. It must only be used for TESTING, never on live sites!
-
-	If you are building a regular, numeric versioned released the latest Strapper package available from akeebabackup.com
-	will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASES.
-	-->
-	<target name="package-strapper" description="Copy the Akeeba Strapper 3 installation package to the release directory">
-		<if>
-			<!-- Only build when the build.strapper property is true -->
-			<istrue value="${build.strapper}" />
-            <then>
-				<if>
-					<or>
-						<contains string="${version}" substring="rev" />
-						<contains string="${version}" substring="dev" />
-						<contains string="${version}" substring="git" />
-						<contains string="${version}" substring="svn" />
-					</or>
-					<then>
-						<!-- Start by building a dev build of Strapper... -->
-						<gitversion workingcopy="${dirs.root}/../strapper" propertyname="git.strapper.lastrevision" />
-						<gitdate workingcopy="${dirs.root}/../strapper" propertyname="git.strapper.timestamp" />
-						<property name="strapper.version" value="rev${git.strapper.lastrevision}-${git.strapper.timestamp}" override="true" />
-
-						<phing phingfile="build.xml" dir="${dirs.root}/../strapper/build" inheritAll="false" target="git">
-							<property name="dirs.root" value="${dirs.root}/../strapper" />
-							<property name="version" value="${strapper.version}" />
-						</phing>
-
-						<!-- ...and copy it to the release directory -->
-						<copy todir="${dirs.release}" overwrite="true">
-							<mapper type="regexp" from="^(file_strapper30)(-.*)\.zip$" to="\1.zip" />
-							<fileset dir="${dirs.root}/../strapper/release">
-								<include name="file_strapper30-*.zip" />
-							</fileset>
-						</copy>
-					</then>
-					<else>
-						<!-- Get the Strapper update XML file -->
-						<httpget url="https://akeeba-cdn.s3.amazonaws.com/updates/strapper.xml" dir="${dirs.release}" filename="strapper.tmp" followRedirects="true" />
-
-						<!-- Extract the latest Strapper version and download location -->
-						<xslt todir="${dirs.release}" style="${dirs.root}/../buildfiles/tools/strapperlatest.xslt">
-							<mapper type="glob" from="*.tmp" to="*.xml" />
-							<fileset dir="${dirs.release}">
-								<include name="strapper.tmp" />
-							</fileset>
-						</xslt>
-						<delete file="${dirs.release}/strapper.tmp" />
-						<xmlproperty file="${dirs.release}/strapper.xml" />
-						<echo message="Latest Akeeba Strapper version ${latestStrapper.version} - ${latestStrapper.download}" />
-
-						<!-- Make sure there is a cache directory, or create it -->
-						<if>
-							<available file="${dirs.root}/../buildfiles/cache" />
-							<else>
-								<mkdir dir="${dirs.root}/../buildfiles/cache" />
-							</else>
-						</if>
-
-						<!-- Get the Strapper version from the cache -->
-						<property name="strapper_cache_file_exists" value="0" />
-						<available file="${dirs.root}/../buildfiles/cache/strapper.xml" property="strapper_cache_file_exists" value="1" />
-
-						<if>
-							<equals arg1="${strapper_cache_file_exists}" arg2="1" />
-							<then>
-								<xmlproperty file="${dirs.root}/../buildfiles/cache/strapper.xml" keepRoot="false" prefix="strappercache." />
-							</then>
-							<else>
-								<property name="strappercache.version" value="0.0.0" />
-								<property name="strappercache.download" value="" />
-							</else>
-						</if>
-
-						<echo message="${latestStrapper.version} - ${strappercache.version}" />
-
-						<!-- If there is a newer version of Strapper available, download it to the cache and update the cached versions -->
-						<php expression="version_compare('${latestStrapper.version}','${strappercache.version}','gt') ? 1 : 0" returnProperty="has_newer_strapper" />
-						<if>
-							<equals arg1="${has_newer_strapper}" arg2="1" />
-							<then>
-								<httpget url="${latestStrapper.download}" dir="${dirs.root}/../buildfiles/cache" filename="file_strapper30.zip" followRedirects="true" />
-								<copy file="${dirs.release}/strapper.xml" todir="${dirs.root}/../buildfiles/cache" />
-							</then>
-						</if>
-
-						<!-- Copy the cached Strapper release -->
-						<copy file="${dirs.root}/../buildfiles/cache/file_strapper30.zip" todir="${dirs.release}" />
-
-						<!-- Clean up -->
-						<delete file="${dirs.release}/strapper.xml" />
-					</else>
-				</if>
-			</then>
-		</if>
-	</target>
-
-	<!--
 	Internal task to put the correct Akeeba Frontend Framework package in your release directory as file_fef.zip
 
 	If you are building a dev release (the name contains the string dev, rev, git or svn) we'll include a dev build of
@@ -1326,7 +1223,7 @@ will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASE
 	<!--
 	Builds all Core and Pro packages (pkg_something*.zip)
 	-->
-	<target name="package-pkg" description="Installation package (pkg_something)" depends="new-release, setup-properties, package-com, package-files, package-modules, package-plugins, package-fof, package-fof4, package-strapper, package-fef">
+	<target name="package-pkg" description="Installation package (pkg_something)" depends="new-release, setup-properties, package-com, package-files, package-modules, package-plugins, package-fof, package-fof4, package-fef">
 
 		<!-- Build the Core package -->
 		<phingcall target="package-pkg-builder">
