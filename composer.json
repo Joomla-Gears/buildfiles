@@ -20,7 +20,6 @@
   "require": {
     "php": "^7.0",
     "ext-curl": "*",
-    "ext-ssh2": "*",
     "ext-xsl": "*",
     "ext-zlib": "*",
     "knplabs/github-api": "^2.0",
@@ -29,5 +28,8 @@
     "czproject/git-php": "^3.10.0",
     "akeeba/s3": "dev-master",
     "phpunit/phpunit": "^7.5"
+  },
+  "suggest": {
+    "ext-ssh2": "*"
   }
 }
