@@ -15,6 +15,7 @@ usage () {
 	echo "status  Report repositories with uncommitted changes"
 	echo "branch  Which branch am I in?"
 	echo -e $COLOR_BLUE"Using Akeeba Build Files"$COLOR_NC
+	echo "build   Run the Phing 'git' task to rebuild the software"
 	echo "link    Internal relink"
 	echo "relink  Relink to a site, e.g. %0 relink /var/www/mysite"
 	echo -e $COLOR_BLUE"Using Transifex"$COLOR_NC
@@ -116,6 +117,15 @@ do
 				echo -e "\n"$COLOR_BROWN"Linking $COLOR_CYAN$d"$COLOR_NC
 				cd build
 				phing link
+			fi
+			;;
+
+		build )
+			if [ -d build ]
+			then
+				echo -e "\n"$COLOR_BROWN"Building $COLOR_CYAN$d"$COLOR_NC
+				cd build
+				phing git
 			fi
 			;;
 

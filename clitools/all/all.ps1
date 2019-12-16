@@ -19,6 +19,7 @@ function showUsage()
 	Write-Host "branch   Which Git branch am I in?"
 	Write-Host "fixcrlf  Fix CRLF under Windows"
 	Write-Host Using Akeeba Build Files -Foreground Blue
+	Write-Host "build    Run the Phing 'git' task to rebuild the software"
 	Write-Host "link     Internal relink"
 	Write-Host "relink   Relink to a site, e.g. all relink c:\sites\mysite"
 }
@@ -87,6 +88,17 @@ Get-ChildItem -Directory | ForEach-Object {
 			}
 		}
 		
+		"build" {
+			if (Test-Path build)
+			{
+				Write-Host "Building " -Foreground Red -NoNewline
+				Write-Host $d -Foreground Cyan
+
+				cd build
+				phing git
+			}
+		}
+
 		"relink" {
 			if (Test-Path build)
 			{
