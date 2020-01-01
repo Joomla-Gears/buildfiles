@@ -1,5 +1,11 @@
 <?php
 /**
+ * @package   buildfiles
+ * @copyright Copyright (c)2010-2020 Nicholas K. Dionysopoulos / Akeeba Ltd
+ * @license   GNU General Public License version 3, or later
+ */
+
+/**
  * Part of the Phing tasks collection by Ryan Chouinard.
  *
  * @author Ryan Chouinard <rchouinard@gmail.com>

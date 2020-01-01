@@ -1,8 +1,7 @@
-# Akeeba Build Files
-#
-# @package    buildfiles
-# @copyright  (c) 2010-2019 Akeeba Ltd
-#
+## @package   buildfiles
+## @copyright Copyright (c)2010-2020 Nicholas K. Dionysopoulos / Akeeba Ltd
+## @license   GNU General Public License version 3, or later
+
 Param(
 	[string]$operation,
 	[string]$sitepath

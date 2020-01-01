@@ -1,10 +1,8 @@
 <?php
 /**
- * Akeeba Build Tools
- *
- * @package    buildfiles
- * @license    GNU/GPL v3
- * @copyright  Copyright (c)2010-2019 Nicholas K. Dionysopoulos / Akeeba Ltd
+ * @package   buildfiles
+ * @copyright Copyright (c)2010-2020 Nicholas K. Dionysopoulos / Akeeba Ltd
+ * @license   GNU General Public License version 3, or later
  */
 
 use Github\Client;

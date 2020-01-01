@@ -1,4 +1,10 @@
 <?php
+/**
+ * @package   buildfiles
+ * @copyright Copyright (c)2010-2020 Nicholas K. Dionysopoulos / Akeeba Ltd
+ * @license   GNU General Public License version 3, or later
+ */
+
 define('IS_WINDOWS', substr(PHP_OS, 0, 3) == 'WIN');
 
 require_once 'phing/Task.php';
