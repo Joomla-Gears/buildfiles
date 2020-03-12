@@ -301,7 +301,8 @@ class CurlSftpTask extends ScpTask
 
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $ftpUri);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($ch, CURLOPT_TIMEOUT, 3600);
 
 		// Do I have to use certificate authentication?
 		if (!empty($this->pubkeyfile))
