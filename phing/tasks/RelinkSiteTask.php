@@ -70,6 +70,18 @@ class RelinkSiteTask extends Task
 			$this->repository = realpath($this->project->getBasedir() . '/../..');
 		}
 
+		if (in_array(substr($this->site, 0, 2), ['~/', '~' . DIRECTORY_SEPARATOR]))
+		{
+			$home = $this->getUserHomeDirectory();
+
+			if (is_null($home))
+			{
+				throw new BuildException("Site root folder {$this->site} cannot be resolved: your environment does not return information on the user's Home folder location.");
+			}
+
+			$this->site = $home . DIRECTORY_SEPARATOR . substr($this->site, 2);
+		}
+
 		if (!is_dir($this->site))
 		{
 			throw new BuildException("Site root folder {$this->site} is not a valid directory");
@@ -87,5 +99,25 @@ class RelinkSiteTask extends Task
 		return true;
 	}
 
+	function getUserHomeDirectory(): ?string
+	{
+		// Try the UNIX method first. If it fails it will return either false or null. Normalize it to NULL.
+		$home = @getenv('HOME');
+		$home = ($home === false) ? null : $home;
 
+		// Fallback to Windows method for determining the home
+		if (is_null($home) && !empty($_SERVER['HOMEDRIVE']) && !empty($_SERVER['HOMEPATH']))
+		{
+			$home = $_SERVER['HOMEDRIVE'] . $_SERVER['HOMEPATH'];
+		}
+
+		// Early exit if everything failed
+		if (is_null($home))
+		{
+			return $home;
+		}
+
+		// Remove the trailing slash / backslash
+		return rtrim($home, '/' . DIRECTORY_SEPARATOR);
+	}
 }
