@@ -100,6 +100,7 @@ class CurlSftpTask extends ScpTask
 		}
 
 		$could_auth = null;
+
 		if ($this->pubkeyfile)
 		{
 			$could_auth = ssh2_auth_pubkey_file(
@@ -110,10 +111,16 @@ class CurlSftpTask extends ScpTask
 				$this->privkeyfilepassphrase
 			);
 		}
-		else
+		elseif (!empty($this->password))
 		{
 			$could_auth = ssh2_auth_password($this->connection, $this->username, $this->password);
 		}
+		else
+		{
+			$could_auth = ssh2_auth_agent($this->connection, $this->username);
+		}
+
+
 		if (!$could_auth)
 		{
 			throw new BuildException("Could not authenticate connection!");
@@ -255,7 +262,7 @@ class CurlSftpTask extends ScpTask
 		$authentication = urlencode($this->username);
 
 		// We will only use username and password authentication if there are no certificates configured.
-		if (empty($this->pubkeyfile))
+		if (empty($this->pubkeyfile) && !empty($this->password))
 		{
 			// Remember, both the username and password have to be URL encoded as they're part of a URI!
 			$password = urlencode($this->password);
@@ -335,6 +342,10 @@ class CurlSftpTask extends ScpTask
 			{
 				curl_setopt($ch, CURLOPT_KEYPASSWD, $this->privkeyfilepassphrase);
 			}
+		}
+		elseif (empty($this->password))
+		{
+			curl_setopt($ch, CURLOPT_SSH_AUTH_TYPES, CURLSSH_AUTH_AGENT);
 		}
 
 		// Should I enable verbose output? Useful for debugging.
