@@ -4,6 +4,7 @@
 	"common.arsapiurl": "##API.ENDPOINT##",
 	"common.username": "##API.USERNAME##",
 	"common.password": "##API.PASSWORD##",
+	"common.token": "##API.TOKEN##",
 	"common.category": "##RELEASECATEGORY##",
 	"common.releasedir": "##RELEASEDIR##",
 	"common.repodir": "##REPODIR##",
