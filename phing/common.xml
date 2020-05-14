@@ -342,6 +342,7 @@
     release.api.username        Username for the ARS API
     release.api.password        Password for the ARS API
     release.api.token           FOF API Token for the ARS API
+    release.cacert				Absolute path to a custom cacert.pem file
 
     release.core.method              How should I release the CORE version? s3, sftp, ftp, ftps
     release.core.dir                 SFTP directory for the CORE release, relative to ${scp.dir} or ${s3.directory}
@@ -418,6 +419,7 @@
                     <token key="REPODIR" value="${dirs.root.translated}" />
                     <token key="RELEASECATEGORY" value="${release.category}" />
                     <token key="UPDATEMETHOD" value="${release.updatemethod}" />
+                    <token key="CUSTOMCACERT" value="${release.cacert}" />
 
                     <token key="API.ENDPOINT" value="${release.api.endpoint}" />
                     <token key="API.USERNAME" value="${release.api.username}" />
