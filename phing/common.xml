@@ -450,6 +450,7 @@
                     <token key="CORE.UPDATESTREAM" value="${release.core.update_stream}" />
                     <token key="CORE.SUBSCRIPTIONS" value="${release.core.subscription_levels}" />
                     <token key="CORE.ACCESS" value="${release.core.access_level}" />
+					<token key="CORE.UPDATEFORMATS" value="${release.core.update.formats}" />
 
                     <token key="PRO.METHOD" value="${release.pro.method}" />
                     <token key="PRO.DIR" value="${release.pro.dir}" />
@@ -458,6 +459,7 @@
                     <token key="PRO.UPDATESTREAM" value="${release.pro.update_stream}" />
                     <token key="PRO.SUBSCRIPTIONS" value="${release.pro.subscription_levels}" />
                     <token key="PRO.ACCESS" value="${release.pro.access_level}" />
+                    <token key="PRO.UPDATEFORMATS" value="${release.pro.update.formats}" />
 
                     <token key="DOCS.WHERE" value="${release.docs.where}" />
                     <token key="DOCS.WHICH" value="${release.docs.which}" />

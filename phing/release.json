@@ -38,11 +38,7 @@
 	"pro.pattern": "##PRO.PATTERN##",
 	"pro.method": "##PRO.METHOD##",
 	"pro.update.stream": "##PRO.UPDATESTREAM##",
-	"pro.update.formats": [
-		"ini",
-		"inibare",
-		"xml"
-	],
+	"pro.update.formats": [##PRO.UPDATEFORMATS##],
 	"pro.update.basename": "##PRO.UPDATEBASE##",
 	"pro.groups": "##PRO.SUBSCRIPTIONS##",
 	"pro.access": "##PRO.ACCESS##",
@@ -66,11 +62,7 @@
 	"core.pattern": "##CORE.PATTERN##",
 	"core.method": "##CORE.METHOD##",
 	"core.update.stream": "##CORE.UPDATESTREAM##",
-	"core.update.formats": [
-		"ini",
-		"inibare",
-		"xml"
-	],
+	"core.update.formats": [##CORE.UPDATEFORMATS##],
 	"core.update.basename": "##CORE.UPDATEBASE##",
 	"core.groups": "##CORE.SUBSCRIPTIONS##",
 	"core.access": "##CORE.ACCESS##",
