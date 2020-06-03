@@ -26,13 +26,7 @@
 		"php-http/guzzle6-adapter": "^1.1",
 		"corneltek/getoptionkit": "^2.6.0",
 		"czproject/git-php": "^3.10.0",
-		"akeeba/s3": "dev-master",
-		"phing/phing": "^2.16.1",
-		"pear/http_request2": "^2.3",
-		"pear/versioncontrol_svn": ">=0.5.2",
-		"pear/archive_tar": "^1.4",
-		"pear/versioncontrol_git": ">=0.5.0",
-		"rector/rector": ">=0.7"
+		"akeeba/s3": "dev-master"
 	},
 	"suggest": {
 		"ext-ssh2": "*"

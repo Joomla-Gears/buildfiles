@@ -370,7 +370,7 @@ abstract class AbstractScanner implements ScannerInterface
 
 				if (!isset($files[$tag]))
 				{
-					$files = [];
+					$files[$tag] = [];
 				}
 
 				$files[$tag][] = $folder . '/' . $langFile->textContent;
