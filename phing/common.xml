@@ -349,7 +349,6 @@
     release.core.pattern             Pattern for CORE files
     release.core.update_basename     Update filename, without extension, for the CORE release
     release.core.update_stream       ARS update stream ID for the CORE release
-    release.core.subscription_levels List of subscription levels for the CORE release
     release.core.access_level        Viewing access level for the CORE release
 
     release.pro.method              How should I release the PRO version? s3, sftp, ftp, ftps
@@ -357,7 +356,6 @@
     release.pro.pattern             Pattern for PRO files
     release.pro.update_basename     Update filename, without extension, for the PRO release
     release.pro.update_stream       ARS update stream ID for the PRO release
-    release.pro.subscription_levels List of subscription levels for the PRO release
     release.pro.access_level        Viewing access level for the PRO release
 
     s3.access               Amazon S3 access key for deploying public uploads
@@ -448,7 +446,6 @@
                     <token key="CORE.PATTERN" value="${release.core.pattern}" />
                     <token key="CORE.UPDATEBASE" value="${release.core.update_basename}" />
                     <token key="CORE.UPDATESTREAM" value="${release.core.update_stream}" />
-                    <token key="CORE.SUBSCRIPTIONS" value="${release.core.subscription_levels}" />
                     <token key="CORE.ACCESS" value="${release.core.access_level}" />
 					<token key="CORE.UPDATEFORMATS" value="${release.core.update.formats}" />
 
@@ -457,7 +454,6 @@
                     <token key="PRO.PATTERN" value="${release.pro.pattern}" />
                     <token key="PRO.UPDATEBASE" value="${release.pro.update_basename}" />
                     <token key="PRO.UPDATESTREAM" value="${release.pro.update_stream}" />
-                    <token key="PRO.SUBSCRIPTIONS" value="${release.pro.subscription_levels}" />
                     <token key="PRO.ACCESS" value="${release.pro.access_level}" />
                     <token key="PRO.UPDATEFORMATS" value="${release.pro.update.formats}" />
 
