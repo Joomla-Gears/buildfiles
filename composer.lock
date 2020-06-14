@@ -4,17 +4,49 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "57771c3476a501e0ae8b276be75ab071",
+    "content-hash": "d43785fb1817897f189d150afb72ad9f",
     "packages": [
         {
             "name": "akeeba/s3",
-            "version": "master",
+            "version": "dev-development",
             "source": {
                 "type": "git",
-                "url": "https://github.com/akeeba/s3",
-                "reference": "master"
+                "url": "https://github.com/akeeba/s3.git",
+                "reference": "96208915514b19e7789ea053c6a109b212864001"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/akeeba/s3/zipball/96208915514b19e7789ea053c6a109b212864001",
+                "reference": "96208915514b19e7789ea053c6a109b212864001",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "php": ">=5.3.4"
             },
             "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Akeeba\\Engine\\Postproc\\Connector\\S3v4\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0+"
+            ],
+            "authors": [
+                {
+                    "name": "Nicholas K. Dionysopoulos",
+                    "email": "nicholas_NO_SPAM_PLEASE@akeebabackup.com",
+                    "homepage": "http://www.dionysopoulos.me",
+                    "role": "Lead Developer"
+                }
+            ],
+            "description": "Akeeba Engine connector for Amazon S3",
+            "homepage": "https://github.com/akeeba/s3",
+            "keywords": [
+                "s3"
+            ],
             "time": "2020-01-02T07:13:47+00:00"
         },
         {
@@ -534,16 +566,16 @@
         },
         {
             "name": "php-http/discovery",
-            "version": "1.7.4",
+            "version": "1.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-http/discovery.git",
-                "reference": "82dbef649ccffd8e4f22e1953c3a5265992b83c0"
+                "reference": "10d9019f393773345aedc0dc79e7fd678da874ee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-http/discovery/zipball/82dbef649ccffd8e4f22e1953c3a5265992b83c0",
-                "reference": "82dbef649ccffd8e4f22e1953c3a5265992b83c0",
+                "url": "https://api.github.com/repos/php-http/discovery/zipball/10d9019f393773345aedc0dc79e7fd678da874ee",
+                "reference": "10d9019f393773345aedc0dc79e7fd678da874ee",
                 "shasum": ""
             },
             "require": {
@@ -595,7 +627,7 @@
                 "message",
                 "psr7"
             ],
-            "time": "2020-01-03T11:25:47+00:00"
+            "time": "2020-06-14T10:44:12+00:00"
         },
         {
             "name": "php-http/guzzle6-adapter",
@@ -1083,7 +1115,7 @@
         },
         {
             "name": "symfony/options-resolver",
-            "version": "v5.1.0",
+            "version": "v5.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/options-resolver.git",
