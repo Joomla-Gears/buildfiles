@@ -92,6 +92,12 @@ do
             elif [[ "$ZZZ_CUR_BRANCH" == "master" ]]
             then
                 ZZZ_COLOR=$COLOR_YELLOW
+            elif [[ "$ZZZ_CUR_BRANCH" == "main" ]]
+            then
+                ZZZ_COLOR=$COLOR_YELLOW
+            elif [[ "$ZZZ_CUR_BRANCH" == "kyrion" ]]
+            then
+                ZZZ_COLOR=$COLOR_YELLOW
             fi
             
             echo -ne $COLOR_LIGHT_PURPLE"Branch "$COLOR_CYAN

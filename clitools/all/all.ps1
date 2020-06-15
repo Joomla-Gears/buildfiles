@@ -117,6 +117,10 @@ Get-ChildItem -Directory | ForEach-Object {
 				$color = "Green"
 			} elseif ($currentBranch -eq "master") {
 				$color = "Yellow"
+			} elseif ($currentBranch -eq "main") {
+				$color = "Yellow"
+			} elseif ($currentBranch -eq "kyrion") {
+				$color = "Yellow"
 			}
 			
 			Write-Host "Branch " -Foreground Magenta -NoNewline
