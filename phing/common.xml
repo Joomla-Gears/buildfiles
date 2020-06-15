@@ -465,7 +465,8 @@
         </copy>
 
         <exec executable="${system.php_cli}" dir="${dirs.root}" passthru="true" checkreturn="true">
-            <arg file="${dirs.root}/../releasemaker/releasemaker/index.php" />
+            <arg file="${dirs.root}/../releasemaker/releasemaker.php" />
+			<arg value="--debug" />
             <arg file="${dirs.root}/release.json" />
         </exec>
 
