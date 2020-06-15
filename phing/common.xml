@@ -362,6 +362,8 @@
     s3.private              Amazon S3 secret key for deploying public uploads
     s3.bucket               Amazon S3 bucket name for deploying public uploads
     s3.directory            Amazon S3 directory for deploying public uploads
+    s3.signature            Amazon S3 signature type (v3, v4)
+    s3.region               Amazon S3 region, for v4 signature type
 
     scp.host                    SFTP hostname
     scp.port                    SFTP port
@@ -430,6 +432,8 @@
                     <token key="S3.DIRECTORY" value="${s3.directory}" />
                     <token key="UPDATES_DIR" value="${release.update_dir}" />
                     <token key="S3.CDNHOSTNAME" value="${s3.cdnhostname}" />
+                    <token key="S3.SIGNATURE" value="${s3.signature}" />
+                    <token key="S3.REGION" value="${s3.region}" />
 
                     <token key="SFTP.HOST" value="${scp.host}" />
                     <token key="SFTP.DIR" value="${scp.dir}" />
