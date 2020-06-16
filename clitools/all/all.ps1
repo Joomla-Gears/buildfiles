@@ -59,7 +59,7 @@ Get-ChildItem -Directory | ForEach-Object {
 		"pull" {
 			Write-Host "Pulling " -Foreground Blue -NoNewline
 			Write-Host $d -Foreground Cyan
-			git pull --all
+			git pull --all -p -P
 		}
 
 		"push" {
