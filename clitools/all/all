@@ -15,9 +15,6 @@ usage () {
 	echo "build   Run the Phing 'git' task to rebuild the software"
 	echo "link    Internal relink"
 	echo "relink  Relink to a site, e.g. %0 relink /var/www/mysite"
-	echo -e $COLOR_BLUE"Using Transifex"$COLOR_NC
-	echo "txpush  Push source translations to Trasnifex"
-	echo "txpull  Pull all translations from Transifex"
 
 	exit 255
 }
@@ -73,7 +70,7 @@ do
 	case "$1" in
 		pull )
 			echo -e "\n"$COLOR_LIGHT_BLUE"Pulling $COLOR_CYAN$d"$COLOR_NC
-			git pull --all -p -P
+			git pull --all -p
 			;;
 
 		push )
@@ -82,37 +79,37 @@ do
 			git push --tags
 			;;
 
-        branch )
-            ZZZ_CUR_BRANCH=`git rev-parse --abbrev-ref HEAD`
-            ZZZ_COLOR=$COLOR_LIGHT_RED
+    branch )
+      ZZZ_CUR_BRANCH=`git rev-parse --abbrev-ref HEAD`
+      ZZZ_COLOR=$COLOR_LIGHT_RED
 
 			if [[ "$ZZZ_CUR_BRANCH" == "development" ]]
 			then
-                ZZZ_COLOR=$COLOR_LIGHT_GREEN
-            elif [[ "$ZZZ_CUR_BRANCH" == "master" ]]
-            then
-                ZZZ_COLOR=$COLOR_YELLOW
-            elif [[ "$ZZZ_CUR_BRANCH" == "main" ]]
-            then
-                ZZZ_COLOR=$COLOR_YELLOW
-            elif [[ "$ZZZ_CUR_BRANCH" == "kyrion" ]]
-            then
-                ZZZ_COLOR=$COLOR_YELLOW
-            fi
-            
-            echo -ne $COLOR_LIGHT_PURPLE"Branch "$COLOR_CYAN
-            printf '%-25s' $d
+          ZZZ_COLOR=$COLOR_LIGHT_GREEN
+      elif [[ "$ZZZ_CUR_BRANCH" == "master" ]]
+      then
+          ZZZ_COLOR=$COLOR_YELLOW
+      elif [[ "$ZZZ_CUR_BRANCH" == "main" ]]
+      then
+          ZZZ_COLOR=$COLOR_YELLOW
+      elif [[ "$ZZZ_CUR_BRANCH" == "kyrion" ]]
+      then
+          ZZZ_COLOR=$COLOR_YELLOW
+      fi
+
+      echo -ne $COLOR_LIGHT_PURPLE"Branch "$COLOR_CYAN
+      printf '%-25s' $d
 			echo -e $ZZZ_COLOR$ZZZ_CUR_BRANCH$COLOR_NC
 			;;
 
-        status )
-			#i=`expr $(git status --porcelain 2>/dev/null| egrep "^(M| M)" | wc -l)`
-			i=`expr $(git status --porcelain 2>/dev/null| wc -l)`
-			if [ $i -ne 0 ]
-			then
-				echo -e $COLOR_LIGHT_RED"Dirty $COLOR_CYAN$d"$COLOR_NC
-			fi
-			;;
+    status )
+      #i=`expr $(git status --porcelain 2>/dev/null| egrep "^(M| M)" | wc -l)`
+      i=`expr $(git status --porcelain 2>/dev/null| wc -l)`
+      if [ $i -ne 0 ]
+      then
+        echo -e $COLOR_LIGHT_RED"Dirty $COLOR_CYAN$d"$COLOR_NC
+      fi
+      ;;
 			
 		link )
 			if [ -d build ]
@@ -141,24 +138,12 @@ do
 			fi
 			;;
 
-		txpush )
-			if [ -f ./.tx/config ]
-			then
-				echo -e "\n"$COLOR_PURPLE"Pushing translations for $COLOR_CYAN$d"$COLOR_NC
-				tx push -s
-			fi
-			;;
-
-		txpull )
-			if [ -f ./.tx/config ]
-			then
-				echo -e "\n"$COLOR_PURPLE"Pulling translations for $COLOR_CYAN$d"$COLOR_NC
-				tx pull -a
-			fi
-			;;
-
 		* )
 			echo Unknown command "$1"
+
+			popd > /dev/null
+
+			exit
 			;;
 	esac
 
