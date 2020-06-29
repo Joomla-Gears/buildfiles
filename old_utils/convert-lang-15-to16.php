@@ -1,17 +1,17 @@
 <?php
 /**
  * langConvert - a Joomla! 1.5 to Joomla! 1.6 language converter
- * Copyright ©2011 Nicholas K. Dionysopoulos / AkeebaBackup.com
+ * Copyright ©2011 Nicholas K. Dionysopoulos / Akeeba Ltd
  * 
  * Usage: convert.php filename.ini
  *
- * @author Nicholas K. Dionysopoulos <nicholas@akeebabackup.com>
+ * @author Nicholas K. Dionysopoulos <nicholas@akeeba.com>
  * @license GNU/GPL v3 or later <http://www.gnu.org/licenses/gpl.html>
  */
  
 echo <<<ENDBANNER
 langConvert version 1.0
-Copyright ©2011 Nicholas K. Dionysopoulos / AkeebaBackup.com
+Copyright ©2011 Nicholas K. Dionysopoulos / Akeeba Ltd
 ===============================================================================
 langConvert is Free  Software, distributed under  the terms  of the GNU General
 Public License, version 3 of the license  or –at your option– any later version.

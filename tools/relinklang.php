@@ -25,7 +25,7 @@ echo <<<ENDBANNER
 Akeeba Build Tools - Language Relinker
 No-configuration extension translation linker
 -------------------------------------------------------------------------------
-Copyright ©2010-$year Nicholas K. Dionysopoulos / AkeebaBackup.com
+Copyright ©2010-$year Nicholas K. Dionysopoulos / Akeeba Ltd
 Distributed under the GNU General Public License v3 or later
 -------------------------------------------------------------------------------
 

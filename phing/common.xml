@@ -928,7 +928,7 @@
 	If you are building a dev release (the name contains the string dev, rev, git or svn) we'll include a dev build of
 	FOF 3. THIS IS NOT RECOMMENDED. It must only be used for TESTING, never on live sites!
 
-	If you are building a regular, numeric versioned released the latest FOF 3 package available from akeebabackup.com
+	If you are building a regular, numeric versioned released the latest FOF 3 package available from Akeeba Ltd
 	will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASES.
 	-->
 	<target name="package-fof" description="Copy the FOF 3 installation package to the release directory">
@@ -1029,7 +1029,7 @@ Internal task to put the correct FOF 4.x package in your release directory as li
 If you are building a dev release (the name contains the string dev, rev, git or svn) we'll include a dev build of
 FOF 4. THIS IS NOT RECOMMENDED. It must only be used for TESTING, never on live sites!
 
-If you are building a regular, numeric versioned released the latest FOF 4 package available from akeebabackup.com
+If you are building a regular, numeric versioned released the latest FOF 4 package available from Akeeba Ltd
 will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASES.
 -->
 	<target name="package-fof4" description="Copy the FOF 4 installation package to the release directory">
@@ -1130,7 +1130,7 @@ will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASE
 	If you are building a dev release (the name contains the string dev, rev, git or svn) we'll include a dev build of
 	FEF. THIS IS NOT RECOMMENDED. It must only be used for TESTING, never on live sites!
 
-	If you are building a regular, numeric versioned released the latest FEF package available from akeebabackup.com
+	If you are building a regular, numeric versioned released the latest FEF package available from Akeeba Ltd
 	will be included instead. THIS IS THE ONLY RECOMMENDED METHOD FOR PUBLIC RELEASES.
 	-->
 	<target name="package-fef" description="Copy the Akeeba Frontend Framework installation package to the release directory">
