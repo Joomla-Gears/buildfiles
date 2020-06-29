@@ -74,7 +74,7 @@ class Parameters
 
 	private $s3Path;
 
-	private $s3CDNHostname = 'cdn.akeebabackup.com';
+	private $s3CDNHostname = 'cdn.akeeba.com';
 
 	private $version;
 
