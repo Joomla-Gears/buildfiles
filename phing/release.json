@@ -9,14 +9,7 @@
 	"common.releasedir": "##RELEASEDIR##",
 	"common.repodir": "##REPODIR##",
 	"common.cacert": "##CUSTOMCACERT##",
-	"common.steps": [
-		"prepare",
-		"deploy",
-		"release",
-		"items",
-		"publish",
-		"updates"
-	],
+	"common.steps": [##RELEASESTEPS##],
 
 	"common.update.method": "##UPDATEMETHOD##",
 	"common.update.ftp.hostname": "##SFTP.HOST##",

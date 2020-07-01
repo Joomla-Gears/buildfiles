@@ -420,6 +420,7 @@
                     <token key="RELEASECATEGORY" value="${release.category}" />
                     <token key="UPDATEMETHOD" value="${release.updatemethod}" />
                     <token key="CUSTOMCACERT" value="${release.cacert}" />
+                    <token key="RELEASESTEPS" value="${release.steps}" />
 
                     <token key="API.ENDPOINT" value="${release.api.endpoint}" />
                     <token key="API.USERNAME" value="${release.api.username}" />
