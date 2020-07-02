@@ -15,6 +15,7 @@ usage () {
 	echo "build   Run the Phing 'git' task to rebuild the software"
 	echo "link    Internal relink"
 	echo "relink  Relink to a site, e.g. %0 relink /var/www/mysite"
+	echo "update  Push updates to the CDN (uses Akeeba Release Maker)"
 
 	exit 255
 }
@@ -135,6 +136,15 @@ do
 				echo -e "\n"$COLOR_BROWN"Relinking $COLOR_CYAN$d"$COLOR_NC
 				cd build
 				phing relink -Dsite=$2
+			fi
+			;;
+
+		update )
+			if [ -d build ]
+			then
+				echo -e "\n"$COLOR_BROWN"Pushing updates for $COLOR_CYAN$d"$COLOR_NC
+				cd build
+				phing update
 			fi
 			;;
 

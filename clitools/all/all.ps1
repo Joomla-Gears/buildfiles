@@ -21,6 +21,7 @@ function showUsage()
 	Write-Host "build    Run the Phing 'git' task to rebuild the software"
 	Write-Host "link     Internal relink"
 	Write-Host "relink   Relink to a site, e.g. all relink c:\sites\mysite"
+	Write-Host "update   Push updates to the CDN (uses Akeeba Release Maker)"
 }
 
 if (!$operation)
@@ -106,6 +107,17 @@ Get-ChildItem -Directory | ForEach-Object {
 
 				cd build
 				phing relink -Dsite=$sitepath
+			}
+		}
+
+		"update" {
+			if (Test-Path build)
+			{
+				Write-Host "Pushing updates for " -Foreground Red -NoNewline
+				Write-Host $d -Foreground Cyan
+
+				cd build
+				phing update
 			}
 		}
 
