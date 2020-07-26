@@ -135,7 +135,7 @@
         <if>
 			<available file="${dirs.composer}/composer.json" type="file" />
 			<then>
-				<composer composer="${bin.composer}" command="install">
+				<composer composer="${bin.composer}" command="install" php="${system.php_cli}">
 					<arg value="-d" />
 					<arg path="${dirs.composer}" />
 				</composer>
