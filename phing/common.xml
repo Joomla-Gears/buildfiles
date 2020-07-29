@@ -46,6 +46,8 @@
     <property file="${phing.dir.common}/default.properties" />
     <!-- ### Common properties, stored one level above the repository's root -->
     <property file="${phing.dir}/../../build.properties" override="true" />
+	<!-- ### Common properties, OS-dependent, stored one level above the repository's root -->
+	<property file="${phing.dir}/../../build.${host.os}.properties" override="true" />
     <!-- ### Project properties -->
     <property file="${phing.dir}/build.properties" override="true" />
     <!-- ### Overrides, per project -->
