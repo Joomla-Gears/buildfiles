@@ -2945,7 +2945,7 @@ class PclZip
 					else
 					{
 						// ----- Compress the content
-						$v_content = @gzdeflate($v_content);
+						$v_content = @gzdeflate($v_content, 9);
 
 						// ----- Set header parameters
 						$p_header['compressed_size'] = strlen($v_content);
@@ -2986,7 +2986,7 @@ class PclZip
 				else
 				{
 					// ----- Compress the content
-					$v_content = @gzdeflate($v_content);
+					$v_content = @gzdeflate($v_content, 9);
 
 					// ----- Set header parameters
 					$p_header['compressed_size'] = strlen($v_content);
@@ -3079,7 +3079,7 @@ class PclZip
 
 		// ----- Creates a compressed temporary file
 		$v_gzip_temp_name = PCLZIP_TEMPORARY_DIR . uniqid('pclzip-') . '.gz';
-		if (($v_file_compressed = @gzopen($v_gzip_temp_name, "wb")) == 0)
+		if (($v_file_compressed = @gzopen($v_gzip_temp_name, "wb9")) == 0)
 		{
 			fclose($v_file);
 			PclZip::privErrorLog(PCLZIP_ERR_WRITE_OPEN_FAIL, 'Unable to open temporary file \'' . $v_gzip_temp_name . '\' in binary write mode');
